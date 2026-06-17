@@ -39,6 +39,10 @@ import CartaoMembros from "../components/CartaoMembros";
 import PerfilMembros from "../components/PerfilMembro";
 import HistoricoMembro from "../components/HistoricoMembro";
 
+import MembroCriadoCard from "../components/MembroCriadoCard";
+
+
+
 export default function GestaoMembros() {
   const theme = useTheme();
   const [membros, setMembros] = useState([]);
@@ -57,6 +61,9 @@ export default function GestaoMembros() {
   const [membroEditar, setMembroEditar] = useState(null); // Para edição
   const [page, setPage] = useState(1);
 const itemsPerPage = 8;
+
+const [membroCriado, setMembroCriado] = useState(null);
+const [openMembroCriadoCard, setOpenMembroCriadoCard] = useState(false);
 
 
   useEffect(() => {
@@ -565,12 +572,31 @@ const handleEditarMembro = async (membro) => {
         <DialogContent dividers>
           <FormMembros
             membroData={membroEditar}
-            onSuccess={async () => {
-              setOpenMembroModal(false);
-              setMembroEditar(null);
-              await fetchMembros();
-              setSnackbar({ open: true, message: membroEditar ? "Membro atualizado com sucesso." : "Membro cadastrado com sucesso.", severity: "success" });
-            }}
+           onSuccess={async (dadosMembro) => {
+
+  setOpenMembroModal(false);
+  setMembroEditar(null);
+
+  await fetchMembros();
+
+  if (!membroEditar && dadosMembro) {
+
+    setMembroCriado({
+      nome: dadosMembro.nome,
+      senhaInicial: dadosMembro.senhaInicial
+    });
+
+    setOpenMembroCriadoCard(true);
+  }
+
+  setSnackbar({
+    open: true,
+    message: membroEditar
+      ? "Membro atualizado com sucesso."
+      : "Membro cadastrado com sucesso.",
+    severity: "success"
+  });
+}}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
@@ -647,6 +673,16 @@ const handleEditarMembro = async (membro) => {
           <Button onClick={confirmDelete} color="error">Excluir</Button>
         </DialogActions>
       </Dialog>
+
+      {openMembroCriadoCard && membroCriado && (
+  <MembroCriadoCard
+    data={membroCriado}
+    onClose={() => {
+      setOpenMembroCriadoCard(false);
+      setMembroCriado(null);
+    }}
+  />
+)}
 
       {/* Snackbar */}
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={closeSnack} anchorOrigin={{ vertical: "top", horizontal: "center" }}>

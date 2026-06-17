@@ -125,6 +125,34 @@ router.get('/teste-auth', auth, (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Rota para buscar departamentos filtrados pelo contexto do usuário (Sede/Filhal)
 router.get('/departamentos', auth, async (req, res) => {
   try {
@@ -853,6 +881,175 @@ router.post('/atendimentos', auth, async (req, res) => {
 
 
 
+// 🔥 TOP 5 MAIORES CONTRIBUIDORES (APENAS MEMBROS VALIDADOS)
+router.get('/dashboard/top-contribuidores', auth, async (req, res) => {
+  try {
+
+    // =========================================
+    // 🔐 FILTRO HIERÁRQUICO
+    // =========================================
+    const { SedeId, FilialId, FilhalId } = req.usuario;
+
+    // Garantimos que o MembroId não seja nulo logo no filtro inicial
+    const where = {
+      MembroId: {
+        [Op.ne]: null // 🔥 Op.ne significa "Not Equal" (Não Nulo)
+      }
+    };
+
+    const filial = FilialId || FilhalId;
+
+    if (filial) {
+      where.FilhalId = filial;
+    } else if (SedeId) {
+      where.SedeId = SedeId;
+    }
+
+    // =========================================
+    // 🔥 BUSCAR CONTRIBUIÇÕES COM INNER JOIN
+    // =========================================
+    // Fazemos tudo em uma única query para máxima performance indexada
+    const contribuicoes = await Contribuicao.findAll({
+      where,
+      attributes: [
+        'MembroId',
+        [fn('SUM', col('valor')), 'total']
+      ],
+      // Forçamos o relacionamento trazendo os dados do membro associado
+      include: [
+        {
+          model: Membros,
+          as: 'Membro', // Certifique-se de que este alias condiz com a sua associação no Model
+          required: true, // 🔥 ISSO FAZ O INNER JOIN (SÓ TRÁZ SE O MEMBRO EXISTIR!)
+          attributes: ['id', 'nome', 'foto', 'telefone', 'email']
+        }
+      ],
+      group: [
+        'Contribuicao.MembroId', 
+        'Membro.id', 
+        'Membro.nome', 
+        'Membro.foto', 
+        'Membro.telefone', 
+        'Membro.email'
+      ],
+      order: [
+        [literal('total'), 'DESC']
+      ],
+      limit: 5,
+      raw: true,
+      nest: true // 🔥 Organiza o objeto retornado mantendo a estrutura do Membro limpa
+    });
+
+    // Evita processamento desnecessário se o banco estiver zerado
+    if (contribuicoes.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // =========================================
+    // 🚀 TRATAMENTO E RESULTADO FINAL
+    // =========================================
+    const resultado = contribuicoes.map((item, index) => {
+      
+      // Tratamento premium da URL da foto direto no mapeamento
+      const fotoTratada = item.Membro.foto
+        ? `${req.protocol}://${req.get('host')}${item.Membro.foto}`
+        : null;
+
+      return {
+        posicao: index + 1,
+        total: Number(item.total),
+        membro: {
+          id: item.Membro.id,
+          nome: item.Membro.nome,
+          telefone: item.Membro.telefone,
+          email: item.Membro.email,
+          foto: fotoTratada
+        }
+      };
+    });
+
+    return res.status(200).json(resultado);
+
+  } catch (error) {
+    console.error('Erro crítico ao buscar top contribuidores:', error);
+
+    return res.status(500).json({
+      message: 'Erro interno ao processar o ranking de contribuidores',
+      error: error.message
+    });
+  }
+});
+
+
+
+// 🔥 NOVOS MEMBROS (MAIS RECENTES)
+router.get("/dashboard/novos-membros", auth, async (req, res) => {
+  try {
+    // =========================================
+    // 🔐 FILTRO HIERÁRQUICO
+    // =========================================
+    const { SedeId, FilialId, FilhalId } = req.usuario;
+
+    const where = {};
+
+    const filial = FilialId || FilhalId;
+
+    if (filial) {
+      where.FilhalId = filial;
+    } else if (SedeId) {
+      where.SedeId = SedeId;
+    }
+
+    // =========================================
+    // 👥 BUSCAR NOVOS MEMBROS
+    // =========================================
+    const membros = await Membros.findAll({
+      where,
+
+      attributes: [
+        "id",
+        "nome",
+        "foto",
+        "telefone",
+        "email",
+        "createdAt",
+      ],
+
+      order: [["createdAt", "DESC"]], // 🔥 MAIS RECENTES PRIMEIRO
+
+      limit: 20, // podes ajustar (20, 50, 100...)
+
+      raw: true,
+    });
+
+    // =========================================
+    // 🧠 FORMATAR RESULTADO
+    // =========================================
+    const resultado = membros.map((membro, index) => {
+      return {
+        posicao: index + 1,
+        id: membro.id,
+        nome: membro.nome,
+        telefone: membro.telefone,
+        email: membro.email,
+        foto: membro.foto
+          ? `${req.protocol}://${req.get("host")}${membro.foto}`
+          : null,
+        dataEntrada: membro.createdAt,
+      };
+    });
+
+    return res.status(200).json(resultado);
+  } catch (error) {
+    console.error("Erro ao buscar novos membros:", error);
+
+    return res.status(500).json({
+      message: "Erro ao buscar novos membros",
+      error: error.message,
+    });
+  }
+});
+
 
 
 
@@ -962,6 +1159,9 @@ router.get('/tabela-atendimentos', auth, async (req, res) => {
 
 
 
+
+
+const ChatLeitura = require('../modells/Chat/ChatLeitura')
 
 
 
@@ -3010,7 +3210,6 @@ router.get('/completos-membros/:id', auth, async (req, res) => {
 
 
 
-
 // Rota para cadastrar membros com foto, departamentos e tabelas relacionadas
 router.post('/membros', auth, upload.single('foto'), async (req, res) => {
   try {
@@ -3029,11 +3228,13 @@ router.post('/membros', auth, upload.single('foto'), async (req, res) => {
       // Diversos
       trabalha, conta_outrem, conta_propria,
 
-      // Novo: Usuário vinculado
-      MembroIdUsuario // Esse é o id do usuário selecionado no dropdown
+      // Usuário vinculado
+      MembroIdUsuario
     } = req.body;
 
-    // === Conversão segura de IDs para números e filtragem de NaN ===
+    const bcrypt = require("bcrypt");
+
+    // === Conversão segura de IDs ===
     const cargosArray = Array.isArray(CargosIds)
       ? CargosIds.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
       : CargosIds
@@ -3055,6 +3256,32 @@ router.post('/membros', auth, upload.single('foto'), async (req, res) => {
 
     const fotoCaminho = req.file ? `/uploads/fotos/${req.file.filename}` : null;
 
+    // ==============================
+    // 🔐 GERAR SENHA INICIAL (IMPORTANTE)
+    // ==============================
+
+    const ultimoNumero = await NumeroMembro.findOne({
+      where: {
+        SedeId: req.usuario.SedeId || null,
+        FilhalId: req.usuario.FilhalId || null
+      },
+      order: [['numero', 'DESC']]
+    });
+
+    let proximoNumero = 1;
+
+    if (ultimoNumero) {
+      proximoNumero = parseInt(ultimoNumero.numero, 10) + 1;
+    }
+
+    const numeroFormatado = String(proximoNumero).padStart(5, '0');
+
+    // 👉 senha inicial visível apenas 1x
+    const senhaInicial = `IGREJA-${numeroFormatado}`;
+
+    // 👉 hash para banco
+    const senhaHash = await bcrypt.hash(senhaInicial, 10);
+
     // Cadastro do membro
     const dados = limparCamposVazios({
       nome,
@@ -3074,40 +3301,34 @@ router.post('/membros', auth, upload.single('foto'), async (req, res) => {
       batizado: batizado === true || batizado === 'true',
       data_batismo,
       ativo: ativo === false || ativo === 'false' ? false : true,
+      senha: senhaHash, // 👈 ADICIONADO AQUI
       SedeId: req.usuario.SedeId || null,
       FilhalId: req.usuario.FilhalId || null
     });
 
     const novoMembro = await Membros.create(dados);
 
-   
-// ===== GERAR NÚMERO DE MEMBRO (POR IGREJA) =====
-
-const ultimoNumero = await NumeroMembro.findOne({
-  where: {
-    SedeId: req.usuario.SedeId || null,
-    FilhalId: req.usuario.FilhalId || null
-  },
-  order: [['numero', 'DESC']]
-});
-
-let proximoNumero = 0;
-
-if (ultimoNumero) {
-  proximoNumero = parseInt(ultimoNumero.numero, 10) + 1;
-}
-
-const numeroFormatado = String(proximoNumero).padStart(4, '0');
-
-await NumeroMembro.create({
-  numero: numeroFormatado,
-  usado: true,
+    // Criar utilizador do membro automaticamente
+await MembroUser.create({
+  nome: novoMembro.nome,
+  senha: senhaHash,
+  funcao: 'membro',
+  status: 'aprovado', // ou 'pendente'
   MembroId: novoMembro.id,
   SedeId: req.usuario.SedeId || null,
   FilhalId: req.usuario.FilhalId || null
 });
 
-    // Atualiza o MembroId do usuário vinculado (se enviado)
+    // Guarda número de membro
+    await NumeroMembro.create({
+      numero: numeroFormatado,
+      usado: true,
+      MembroId: novoMembro.id,
+      SedeId: req.usuario.SedeId || null,
+      FilhalId: req.usuario.FilhalId || null
+    });
+
+    // Atualiza usuário vinculado
     if (MembroIdUsuario) {
       await Usuarios.update(
         { MembroId: novoMembro.id },
@@ -3115,7 +3336,7 @@ await NumeroMembro.create({
       );
     }
 
-    // Cadastro dos cargos
+    // Cargos
     if (cargosArray.length > 0) {
       const registrosCargo = cargosArray.map((cargoId) => ({
         MembroId: novoMembro.id,
@@ -3124,7 +3345,7 @@ await NumeroMembro.create({
       await CargoMembro.bulkCreate(registrosCargo);
     }
 
-    // Cadastro dos departamentos
+    // Departamentos
     if (departamentosArray.length > 0) {
       const registrosDepartamentos = departamentosArray.map((depId) => ({
         MembroId: novoMembro.id,
@@ -3135,7 +3356,7 @@ await NumeroMembro.create({
       await DepartamentoMembros.bulkCreate(registrosDepartamentos);
     }
 
-    // Dados Acadêmicos
+    // Académicos
     await DadosAcademicos.create({
       habilitacoes: habilitacoes || null,
       especialidades: especialidades || null,
@@ -3144,7 +3365,7 @@ await NumeroMembro.create({
       MembroId: novoMembro.id
     });
 
-    // Dados Cristãos
+    // Cristãos
     await DadosCristaos.create({
       consagrado: consagrado === true || consagrado === 'true',
       data_consagracao: data_consagracao || null,
@@ -3152,7 +3373,7 @@ await NumeroMembro.create({
       MembroId: novoMembro.id
     });
 
-    // Diversos / Trabalho
+    // Diversos
     await Diversos.create({
       trabalha: trabalha === true || trabalha === 'true',
       conta_outrem: conta_outrem === true || conta_outrem === 'true',
@@ -3160,12 +3381,21 @@ await NumeroMembro.create({
       MembroId: novoMembro.id
     });
 
+    // ==============================
+    // 🔥 RESPOSTA FINAL (COM SENHA 1X)
+    // ==============================
+
     return res.status(201).json({
       message: 'Membro cadastrado com sucesso!',
-      membro: novoMembro
+      membro: novoMembro,
+      credenciais: {
+        nome: novoMembro.nome,
+        senhaInicial // 👈 SÓ APARECE UMA VEZ
+      }
     });
+
   } catch (error) {
-    console.error('Erro ao cadastrar membro, cargos, departamentos ou tabelas relacionadas:', error);
+    console.error('Erro ao cadastrar membro:', error);
     return res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 });
@@ -3707,6 +3937,17 @@ router.get('/lista/contribuicoes', auth, async (req, res) => {
     });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
 
 
 const {literal } = require('sequelize');
@@ -4321,6 +4562,98 @@ router.post('/detalhes-cultos', auth, async (req, res) => {
 });
 
 
+
+router.get("/cultos/proximos", auth, async (req, res) => {
+  try {
+    const { SedeId, FilhalId } = req.usuario;
+
+    const filtro = {};
+    if (FilhalId) filtro.FilhalId = FilhalId;
+    else if (SedeId) filtro.SedeId = SedeId;
+
+    const agora = dayjs();
+
+    const cultos = await Cultos.findAll({
+      where: {
+        ...filtro,
+        dataHora: { [Op.gte]: agora.toDate() },
+      },
+      include: [
+        {
+          model: TipoCulto,
+          attributes: ["nome"],
+        },
+      ],
+      order: [["dataHora", "ASC"]],
+      limit: 10,
+    });
+
+    const diasSemanaPT = [
+      "domingo",
+      "segunda-feira",
+      "terça-feira",
+      "quarta-feira",
+      "quinta-feira",
+      "sexta-feira",
+      "sábado",
+    ];
+
+    
+    const resultado = [];
+
+    for (const c of cultos) {
+      const dataCulto = dayjs(c.dataHora);
+
+      const diasRestantes = dataCulto.diff(agora, "day");
+      const horasRestantes = dataCulto.diff(agora, "hour");
+
+      const diaSemana = diasSemanaPT[dataCulto.day()];
+
+      // 🔥 BUSCA CORRETA DA PRESENÇA (FORÇADO PELA TABELA)
+      const presenca = await Presencas.findOne({
+        where: {
+          CultoId: c.id,
+        },
+        attributes: ["total"],
+      });
+
+      const ultimaPresencaTipoCulto = presenca?.total ?? 0;
+
+      resultado.push({
+        id: c.id,
+        tipo: c.TipoCulto?.nome || "Sem tipo definido",
+        dataHora: c.dataHora,
+        local: c.local || "Não definido",
+
+        diaSemana,
+
+        diasRestantes,
+        horasRestantes,
+
+        tempoParaEvento:
+          diasRestantes === 0
+            ? `${horasRestantes}h`
+            : `${diasRestantes}d`,
+
+        // 🔥 AGORA É REAL
+        ultimaPresencaTipoCulto,
+      });
+    }
+
+    return res.json({
+      total: resultado.length,
+      proximosCultos: resultado,
+    });
+
+  } catch (error) {
+    console.error("Erro ao buscar próximos cultos:", error);
+    return res.status(500).json({
+      error: "Erro ao buscar próximos cultos",
+    });
+  }
+});
+
+
 // DELETE contribuição individual
 router.delete('/detalhes-cultos/:cultoId/contribuicao', auth, async (req, res) => {
   const { cultoId } = req.params;
@@ -4884,161 +5217,300 @@ router.get('/dashboard', auth, async (req, res) => {
 
 
 
-// 🔹 Rota que retorna dados completos (passados e futuros) para gráficos do dashboard
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 router.get('/graficos', auth, async (req, res) => {
+
   try {
+
     const { SedeId, FilhalId } = req.usuario;
-    const hoje = dayjs().startOf("day").toDate();
 
-    // 🔹 Filtro hierárquico
+    // ============================================
+    // FILTRO HIERÁRQUICO
+    // ============================================
+
     const filtroHierarquia = {};
-    if (FilhalId) filtroHierarquia.FilhalId = FilhalId;
-    else if (SedeId) filtroHierarquia.SedeId = SedeId;
 
-    // --------------------------------------------------------
-    // 1️⃣ Membros ativos vs inativos
-    // --------------------------------------------------------
-    const totalAtivos = await Membros.count({ where: { ...filtroHierarquia, ativo: 1 } });
-    const totalInativos = await Membros.count({ where: { ...filtroHierarquia, ativo: 0 } });
+    if (FilhalId) {
+      filtroHierarquia.FilhalId = FilhalId;
+    } else if (SedeId) {
+      filtroHierarquia.SedeId = SedeId;
+    }
 
-    // --------------------------------------------------------
-    // 2️⃣ Distribuição por gênero, faixa etária e batismo
-    // --------------------------------------------------------
+    // ============================================
+    // PERÍODO DINÂMICO
+    // ============================================
+
+    const periodo = req.query.periodo || "6m";
+
+    let inicioPeriodo;
+
+    switch (periodo) {
+
+      case "30d":
+        inicioPeriodo = dayjs().subtract(30, "day");
+        break;
+
+      case "3m":
+        inicioPeriodo = dayjs().subtract(3, "month");
+        break;
+
+      case "6m":
+        inicioPeriodo = dayjs().subtract(6, "month");
+        break;
+
+      case "1a":
+        inicioPeriodo = dayjs().subtract(1, "year");
+        break;
+
+      default:
+        inicioPeriodo = dayjs().subtract(6, "month");
+    }
+
+    // ============================================
+    // MEMBROS
+    // ============================================
+
     const membrosData = await Membros.findAll({
       where: filtroHierarquia,
-      attributes: ['genero', 'data_nascimento', 'batizado']
+      attributes: [
+        "genero",
+        "data_nascimento",
+        "batizado",
+      ],
     });
 
-    const distribuicaoGenero = { homens: 0, mulheres: 0 };
-    const faixasEtarias = { '0-17': 0, '18-30': 0, '31-50': 0, '51+': 0 };
-    const situacaoBatismo = { batizados: 0, naoBatizados: 0 };
+    const faixasEtarias = {
+      "0-17": 0,
+      "18-30": 0,
+      "31-50": 0,
+      "51+": 0,
+    };
+
     const anoAtual = dayjs().year();
 
-    membrosData.forEach(m => {
-      // Gênero
-      if (m.genero === 'Masculino') distribuicaoGenero.homens++;
-      else if (m.genero === 'Feminino') distribuicaoGenero.mulheres++;
+    membrosData.forEach((m) => {
 
-      // Faixa etária
       if (m.data_nascimento) {
-        const idade = anoAtual - dayjs(m.data_nascimento).year();
-        if (idade <= 17) faixasEtarias['0-17']++;
-        else if (idade <= 30) faixasEtarias['18-30']++;
-        else if (idade <= 50) faixasEtarias['31-50']++;
-        else faixasEtarias['51+']++;
+
+        const idade =
+          anoAtual -
+          dayjs(m.data_nascimento).year();
+
+        if (idade <= 17) {
+          faixasEtarias["0-17"]++;
+        }
+
+        else if (idade <= 30) {
+          faixasEtarias["18-30"]++;
+        }
+
+        else if (idade <= 50) {
+          faixasEtarias["31-50"]++;
+        }
+
+        else {
+          faixasEtarias["51+"]++;
+        }
+      }
+    });
+
+    // ============================================
+    // GRÁFICO DE CONTRIBUIÇÕES
+    // ============================================
+
+    const ultimosMeses = [];
+
+    // 30 DIAS
+    if (periodo === "30d") {
+
+      for (let i = 29; i >= 0; i--) {
+
+        const inicio = dayjs()
+          .subtract(i, "day")
+          .startOf("day")
+          .toDate();
+
+        const fim = dayjs()
+          .subtract(i, "day")
+          .endOf("day")
+          .toDate();
+
+        const total =
+          await Contribuicao.sum("valor", {
+            where: {
+              ...filtroHierarquia,
+
+              data: {
+                [Op.between]: [inicio, fim],
+              },
+            },
+          }) || 0;
+
+        ultimosMeses.push({
+          mes: dayjs(inicio).format("DD MMM"),
+          valor: Number(total),
+        });
+      }
+    }
+
+    // 3 MESES / 6 MESES / 1 ANO
+    else {
+
+      let quantidadeMeses = 6;
+
+      if (periodo === "3m") {
+        quantidadeMeses = 3;
       }
 
-      // Batismo
-      if (m.batizado === true || m.batizado === 1) situacaoBatismo.batizados++;
-      else situacaoBatismo.naoBatizados++;
-    });
+      if (periodo === "1a") {
+        quantidadeMeses = 12;
+      }
 
-    // --------------------------------------------------------
-    // 3️⃣ Contribuições vs Despesas do mês atual
-    // --------------------------------------------------------
-    const inicioMes = dayjs().startOf('month').toDate();
-    const fimMes = dayjs().endOf('month').toDate();
+      for (let i = quantidadeMeses - 1; i >= 0; i--) {
 
-    const totalContribuicoesMes = await Contribuicao.sum('valor', {
-      where: { ...filtroHierarquia }
-    }) || 0;
+        const inicio = dayjs()
+          .subtract(i, "month")
+          .startOf("month")
+          .toDate();
 
-    const totalDespesasMes = await Despesa.sum('valor', {
-      where: { ...filtroHierarquia }
-    }) || 0;
+        const fim = dayjs()
+          .subtract(i, "month")
+          .endOf("month")
+          .toDate();
 
-    // --------------------------------------------------------
-    // 4️⃣ Cultos FUTUROS e suas presenças/contribuições
-    // --------------------------------------------------------
-    const cultosFuturos = await Cultos.findAll({
-      where: { ...filtroHierarquia, dataHora: { [Op.gte]: hoje } },
-      include: [{ model: TipoCulto, attributes: ['nome'], required: false }],
-      order: [['dataHora', 'ASC']]
-    });
+        const total =
+          await Contribuicao.sum("valor", {
+            where: {
+              ...filtroHierarquia,
 
-    const presencasFuturas = await Presencas.findAll({
-      where: { CultoId: { [Op.in]: cultosFuturos.map(c => c.id) } }
-    });
+              data: {
+                [Op.between]: [inicio, fim],
+              },
+            },
+          }) || 0;
 
-    const dadosCultosFuturos = [];
+        ultimosMeses.push({
+          mes: dayjs(inicio).format("MMM"),
+          valor: Number(total),
+        });
+      }
+    }
 
-    for (const culto of cultosFuturos) {
-      const tipo = culto.TipoCulto ? culto.TipoCulto.nome : 'Não definido';
-      const presenca = presencasFuturas.find(p => p.CultoId === culto.id);
-      const totalPresenca = presenca ? presenca.total : 0;
+    // ============================================
+    // TIPOS DE CONTRIBUIÇÃO
+    // ============================================
 
-      const totalContribuicao = await Contribuicao.sum('valor', {
-        where: { ...filtroHierarquia, CultoId: culto.id }
-      }) || 0;
+    const tipos =
+      await TipoContribuicao.findAll({
+        where: filtroHierarquia,
+        attributes: ["id", "nome"],
+      });
 
-      dadosCultosFuturos.push({
-        tipoCulto: tipo,
-        data: culto.dataHora,
-        totalPresenca,
-        totalContribuicao
+    const tiposContribuicao = [];
+
+    for (const tipo of tipos) {
+
+      const total =
+        await Contribuicao.sum("valor", {
+
+          where: {
+            ...filtroHierarquia,
+
+            TipoContribuicaoId: tipo.id,
+          },
+
+        }) || 0;
+
+      tiposContribuicao.push({
+        nome: tipo.nome,
+        valor: Number(total),
       });
     }
 
-    // --------------------------------------------------------
-    // 5️⃣ Cultos PASSADOS e suas presenças/contribuições
-    // --------------------------------------------------------
-    const cultosPassados = await Cultos.findAll({
-      where: { ...filtroHierarquia, dataHora: { [Op.lt]: hoje } },
-      include: [{ model: TipoCulto, attributes: ['nome'], required: false }],
-      order: [['dataHora', 'DESC']]
-    });
+    // ============================================
+    // RESPOSTA
+    // ============================================
 
-    const presencasPassadas = await Presencas.findAll({
-      where: { CultoId: { [Op.in]: cultosPassados.map(c => c.id) } }
-    });
-
-    const dadosCultosPassados = [];
-
-    for (const culto of cultosPassados) {
-      const tipo = culto.TipoCulto ? culto.TipoCulto.nome : 'Não definido';
-      const presenca = presencasPassadas.find(p => p.CultoId === culto.id);
-      const totalPresenca = presenca ? presenca.total : 0;
-
-      const totalContribuicao = await Contribuicao.sum('valor', {
-        where: { ...filtroHierarquia, CultoId: culto.id }
-      }) || 0;
-
-      dadosCultosPassados.push({
-        tipoCulto: tipo,
-        data: culto.dataHora,
-        totalPresenca,
-        totalContribuicao
-      });
-    }
-
-    // --------------------------------------------------------
-    // 🔹 Resposta final
-    // --------------------------------------------------------
     res.status(200).json({
-      membrosAtivosInativos: { ativos: totalAtivos, inativos: totalInativos },
-      distribuicaoGenero,
+
+      financeiro: {
+        ultimosMeses,
+        tiposContribuicao,
+      },
+
       faixasEtarias,
-      situacaoBatismo,
-      financeiro: { contribMes: totalContribuicoesMes, despMes: totalDespesasMes },
-      cultos: {
-        futuros: dadosCultosFuturos,
-        passados: dadosCultosPassados
-      }
     });
 
   } catch (error) {
-    console.error('Erro ao gerar dados para gráficos:', error);
-    res.status(500).json({ message: 'Erro ao gerar dados para gráficos' });
+
+    console.error(
+      "Erro ao gerar gráficos:",
+      error
+    );
+
+    res.status(500).json({
+      message: "Erro ao gerar gráficos",
+    });
   }
 });
-
-
-
-
-
-
-
-
 
 
 
@@ -5271,6 +5743,7 @@ router.get('/usuario/status', auth, async (req, res) => {
     return res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 });
+
 
 
 
@@ -5793,9 +6266,7 @@ router.get('/:tipo/:id', auth, async (req, res) => {
 
 
 
-
-
-// POST /filhais - cadastrar nova filhal (opcional) e usuário
+// POST /filhais - cadastrar nova filial (opcional) ou apenas um usuário para filial existente
 router.post('/filhais', async (req, res) => {
   try {
     const {
@@ -5805,12 +6276,13 @@ router.post('/filhais', async (req, res) => {
       email,
       status,
       SedeId,
+      FilhalId, // ✨ Captura o ID caso a filial já exista
       usuarioNome,
       usuarioSenha,
       usuarioFuncao
     } = req.body;
 
-    // Agora só valida dados obrigatórios do usuário e sede
+    // Valida dados obrigatórios do usuário e sede
     if (!SedeId || !usuarioNome || !usuarioSenha) {
       return res.status(400).json({ message: 'Sede, nome e senha do usuário são obrigatórios.' });
     }
@@ -5823,7 +6295,7 @@ router.post('/filhais', async (req, res) => {
 
     let filhal = null;
 
-    // Só cria filial se o nome foi informado
+    // Só cria uma NOVA filial se o nome foi informado
     if (nome && nome.trim() !== '') {
       filhal = await Filhal.create({
         nome,
@@ -5835,31 +6307,51 @@ router.post('/filhais', async (req, res) => {
       });
     }
 
+    // Se não criou uma nova, mas foi passado o ID de uma existente, valida se ela existe
+    if (!filhal && FilhalId) {
+      const filialExiste = await Filhal.findByPk(FilhalId);
+      if (!filialExiste) {
+        return res.status(404).json({ message: 'A filial informada para o usuário não foi encontrada.' });
+      }
+    }
+
     // Hash da senha do usuário
     const hashSenha = await bcrypt.hash(usuarioSenha, 10);
 
-    // Cria o usuário vinculado à sede e, se existir, à filial
+    // ✨ Define inteligentemente qual FilhalId usar
+    // Prioridade: 1º Nova filial criada agora | 2º Filial já existente | 3º Nenhuma (null)
+    const idFilialFinal = filhal ? filhal.id : (FilhalId || null);
+
+    // Cria o usuário vinculado
     const usuario = await Usuarios.create({
       nome: usuarioNome,
       senha: hashSenha,
       funcao: usuarioFuncao || 'admin',
       SedeId,
-      FilhalId: filhal ? filhal.id : null
+      FilhalId: idFilialFinal
     });
 
-    // Retorna o que foi criado
+    // Retorna mensagens dinâmicas bem explicativas para o Frontend
+    let mensagemSucesso = 'Usuário criado com sucesso (sem filial).';
+    if (filhal) {
+      mensagemSucesso = 'Filial e usuário criados com sucesso!';
+    } else if (FilhalId) {
+      mensagemSucesso = 'Novo usuário vinculado à filial com sucesso!';
+    }
+
     return res.status(201).json({
-      message: filhal
-        ? 'Filial e usuário criados com sucesso!'
-        : 'Usuário criado com sucesso (sem filial).',
-      filhal,
+      message: mensagemSucesso,
+      filhal: filhal || null,
       usuario
     });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Erro ao cadastrar filial e usuário.' });
   }
 });
+
+
 
 
 /**
@@ -7773,5 +8265,7 @@ router.get('/perfil/do/membro', auth, async (req, res) => {
   }
 });
  
+
+
 
 module.exports = router;

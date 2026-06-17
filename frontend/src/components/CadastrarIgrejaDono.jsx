@@ -13,7 +13,7 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import api from '../api/axiosConfig';
 
-export default function CadastrarIgrejaDono({ sedeId }) {
+export default function CadastrarIgrejaDono({ sedeId, filhalExistenteId }) {
   const [formData, setFormData] = useState({
     filhalNome: '',
     filhalEndereco: '',
@@ -23,7 +23,7 @@ export default function CadastrarIgrejaDono({ sedeId }) {
 
     usuarioNome: '',
     usuarioSenha: '',
-    usuarioFuncao: 'admin' // usuário será admin
+    usuarioFuncao: 'admin'
   });
 
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,6 @@ export default function CadastrarIgrejaDono({ sedeId }) {
       return;
     }
 
-    // Agora só valida usuário
     if (!formData.usuarioNome || !formData.usuarioSenha) {
       setError('Por favor, preencha o nome e a senha do usuário.');
       return;
@@ -57,7 +56,7 @@ export default function CadastrarIgrejaDono({ sedeId }) {
     setSuccess('');
 
     try {
-      // Monta payload básico (sempre terá usuário e sede)
+      // Monta payload básico de usuário administrador vinculado à sede
       const payload = {
         usuarioNome: formData.usuarioNome,
         usuarioSenha: formData.usuarioSenha,
@@ -65,8 +64,12 @@ export default function CadastrarIgrejaDono({ sedeId }) {
         SedeId: sedeId
       };
 
-      // Se a filial tiver nome, inclui no payload
-      if (formData.filhalNome.trim() !== '') {
+      // ✨ SE A FILIAL JÁ EXISTIR: Injetamos o FilhalId direto no payload do Usuário
+      if (filhalExistenteId) {
+        payload.FilhalId = filhalExistenteId; // Envia o Id para vincular o novo usuário a ela
+      } 
+      // SE FOR FILIAL NOVA: Segue o fluxo padrão incluindo dados da filial
+      else if (formData.filhalNome.trim() !== '') {
         payload.nome = formData.filhalNome;
         payload.endereco = formData.filhalEndereco;
         payload.telefone = formData.filhalTelefone;
@@ -74,14 +77,18 @@ export default function CadastrarIgrejaDono({ sedeId }) {
         payload.status = formData.filhalStatus;
       }
 
-      const res = await api.post('/filhais', payload);
+      // Dispara o POST para a sua rota de filiais
+      await api.post('/filhais', payload);
 
       setSuccess(
-        formData.filhalNome.trim() !== ''
-          ? 'Filial e Usuário cadastrados com sucesso!'
-          : 'Usuário cadastrado com sucesso (sem filial)!'
+        filhalExistenteId
+          ? 'Novo usuário cadastrado e vinculado a esta filial com sucesso!'
+          : formData.filhalNome.trim() !== ''
+            ? 'Filial e Usuário criados com sucesso!'
+            : 'Usuário cadastrado com sucesso (vínculo com a sede)!'
       );
 
+      // Limpa os estados
       setFormData({
         filhalNome: '',
         filhalEndereco: '',
@@ -105,54 +112,63 @@ export default function CadastrarIgrejaDono({ sedeId }) {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-      <Typography variant="h6" sx={{ mb: 1 }}>Dados da Filial (opcional)</Typography>
-      <TextField
-        fullWidth
-        label="Nome da Filial"
-        name="filhalNome"
-        value={formData.filhalNome}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="Endereço da Filial"
-        name="filhalEndereco"
-        value={formData.filhalEndereco}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="Telefone da Filial"
-        name="filhalTelefone"
-        value={formData.filhalTelefone}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        fullWidth
-        label="Email da Filial"
-        name="filhalEmail"
-        value={formData.filhalEmail}
-        onChange={handleChange}
-        margin="normal"
-      />
-      <TextField
-        select
-        fullWidth
-        label="Status da Filial"
-        name="filhalStatus"
-        value={formData.filhalStatus}
-        onChange={handleChange}
-        margin="normal"
-      >
-        <MenuItem value="ativo">Ativo</MenuItem>
-        <MenuItem value="pendente">Pendente</MenuItem>
-        <MenuItem value="bloqueado">Bloqueado</MenuItem>
-      </TextField>
+      {/* ✨ ESCONDE OS CAMPOS DA FILIAL CASO ELA JÁ EXISTA */}
+      {!filhalExistenteId ? (
+        <>
+          <Typography variant="h6" sx={{ mb: 1 }}>Dados da Filial (opcional)</Typography>
+          <TextField
+            fullWidth
+            label="Nome da Filial"
+            name="filhalNome"
+            value={formData.filhalNome}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Endereço da Filial"
+            name="filhalEndereco"
+            value={formData.filhalEndereco}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Telefone da Filial"
+            name="filhalTelefone"
+            value={formData.filhalTelefone}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Email da Filial"
+            name="filhalEmail"
+            value={formData.filhalEmail}
+            onChange={handleChange}
+            margin="normal"
+          />
+          <TextField
+            select
+            fullWidth
+            label="Status da Filial"
+            name="filhalStatus"
+            value={formData.filhalStatus}
+            onChange={handleChange}
+            margin="normal"
+          >
+            <MenuItem value="ativo">Ativo</MenuItem>
+            <MenuItem value="pendente">Pendente</MenuItem>
+            <MenuItem value="bloqueado">Bloqueado</MenuItem>
+          </TextField>
+        </>
+      ) : (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Você está adicionando uma nova credencial de acesso para gerenciar esta filial específica.
+        </Alert>
+      )}
 
-      <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>Usuário Admin</Typography>
+      <Typography variant="h6" sx={{ mt: filhalExistenteId ? 0 : 3, mb: 1 }}>Usuário Admin</Typography>
       <TextField
         fullWidth
         label="Nome do Usuário"
@@ -174,10 +190,7 @@ export default function CadastrarIgrejaDono({ sedeId }) {
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton
-                onClick={() => setShowPassword(!showPassword)}
-                edge="end"
-              >
+              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                 {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
             </InputAdornment>
@@ -202,7 +215,7 @@ export default function CadastrarIgrejaDono({ sedeId }) {
         disabled={loading}
         startIcon={loading ? <CircularProgress size={20} /> : null}
       >
-        {loading ? 'Cadastrando...' : 'Cadastrar'}
+        {loading ? 'Cadastrando...' : filhalExistenteId ? 'Vincular Usuário' : 'Cadastrar'}
       </Button>
     </Box>
   );

@@ -190,82 +190,99 @@ useEffect(() => {
     setMensagem({ tipo: '', texto: '' });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!formData.nome || !formData.genero) {
-      setMensagem({ tipo: 'error', texto: 'Preencha os campos obrigatórios: nome e gênero.' });
-      return;
+  if (!formData.nome || !formData.genero) {
+    setMensagem({ tipo: 'error', texto: 'Preencha os campos obrigatórios: nome e gênero.' });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const data = new FormData();
+
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] !== null && formData[key] !== undefined) {
+        if (key === 'foto' && formData.foto) data.append('foto', formData.foto);
+        else if (key === 'DepartamentosIds' || key === 'CargosIds')
+          formData[key].forEach((id) => data.append(`${key}[]`, id));
+        else data.append(key, formData[key]);
+      }
+    });
+
+    let res;
+    
+    // ✨ ESTRUTURA CORRIGIDA: Agora ou ele atualiza, ou ele cadastra!
+    if (membroData?.id) {
+      console.log(`📝 [FRONT] Enviando requisição PUT para atualizar membro ID: ${membroData.id}`);
+      res = await api.put(`/membros/${membroData.id}`, data, { 
+        headers: { 'Content-Type': 'multipart/form-data' } 
+      });
+    } else {
+      console.log("🆕 [FRONT] Enviando requisição POST para cadastrar novo membro");
+      res = await api.post('/membros', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
     }
 
-    setLoading(true);
+    setMensagem({
+      tipo: 'success',
+      texto: res.data.message || (
+        membroData
+          ? 'Membro atualizado com sucesso!'
+          : 'Membro cadastrado com sucesso!'
+      ),
+    });
 
-    try {
-      const data = new FormData();
-
-      Object.keys(formData).forEach((key) => {
-        if (formData[key] !== null && formData[key] !== undefined) {
-          if (key === 'foto' && formData.foto) data.append('foto', formData.foto);
-          else if (key === 'DepartamentosIds' || key === 'CargosIds')
-            formData[key].forEach((id) => data.append(`${key}[]`, id));
-          else data.append(key, formData[key]);
-        }
-      });
-
-      let res;
-      if (membroData?.id) {
-        res = await api.put(`/membros/${membroData.id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
-      } else {
-        res = await api.post('/membros', data, { headers: { 'Content-Type': 'multipart/form-data' } });
-      }
-
-      setMensagem({
-        tipo: 'success',
-        texto: res.data.message || (membroData ? 'Membro atualizado com sucesso!' : 'Membro cadastrado com sucesso!'),
-      });
-
-      if (!membroData) {
-        setFormData({
-          nome: '',
-          foto: null,
-          genero: '',
-          data_nascimento: '',
-          estado_civil: '',
-          bi: '',
-          telefone: '',
-          email: '',
-          endereco_rua: '',
-          endereco_bairro: '',
-          endereco_cidade: '',
-          endereco_provincia: '',
-          batizado: false,
-          data_batismo: '',
-          ativo: true,
-          CargosIds: [],
-          DepartamentosIds: [],
-          habilitacoes: '',
-          especialidades: '',
-          estudo_teologico: '',
-          local_formacao: '',
-          profissao: '',
-          consagrado: false,
-          data_consagracao: '',
-          categoria_ministerial: '',
-          trabalha: false,
-          conta_outrem: false,
-          conta_propria: false,
-        });
-        setPreviewFoto(null);
-      }
-
-      if (onSuccess) onSuccess();
-    } catch (err) {
-      console.error(err);
-      setMensagem({ tipo: 'error', texto: err.response?.data?.message || 'Erro ao salvar membro.' });
-    } finally {
-      setLoading(false);
+    if (onSuccess) {
+      // Passa as credenciais se a rota de criação retornar, ou apenas fecha a modal
+      onSuccess(res.data?.credenciais);
     }
-  };
+
+    // Só limpa o formulário se for um cadastro NOVO
+    if (!membroData) {
+      setFormData({
+        nome: '',
+        foto: null,
+        genero: '',
+        data_nascimento: '',
+        estado_civil: '',
+        bi: '',
+        telefone: '',
+        email: '',
+        endereco_rua: '',
+        endereco_bairro: '',
+        endereco_cidade: '',
+        endereco_provincia: '',
+        batizado: false,
+        data_batismo: '',
+        ativo: true,
+        CargosIds: [],
+        DepartamentosIds: [],
+        habilitacoes: '',
+        especialidades: '',
+        estudo_teologico: '',
+        local_formacao: '',
+        profissao: '',
+        consagrado: false,
+        data_consagracao: '',
+        categoria_ministerial: '',
+        trabalha: false,
+        conta_outrem: false,
+        conta_propria: false,
+      });
+      setPreviewFoto(null);
+    }
+
+  } catch (err) {
+    console.error("❌ Erro ao salvar dados do membro:", err);
+    setMensagem({ tipo: 'error', texto: err.response?.data?.message || 'Erro ao salvar membro.' });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Box component="form" onSubmit={handleSubmit} encType="multipart/form-data" sx={{ maxWidth: 800, mx: 'auto', color: 'white' }}>

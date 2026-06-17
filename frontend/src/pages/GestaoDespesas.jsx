@@ -14,6 +14,10 @@ import {
   Chip,
   LinearProgress,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
@@ -25,6 +29,7 @@ import ListaDespesasCategorias from "../components/ListaDespesasCategorias";
 export default function ListaCategorias() {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
+const [categoriaFiltro, setCategoriaFiltro] = useState("");
 
   const [openModalCategoria, setOpenModalCategoria] = useState(false);
   const [selectedCategoria, setSelectedCategoria] = useState(null);
@@ -72,12 +77,15 @@ export default function ListaCategorias() {
     );
   }, [categorias]);
 
-  const topCategoria = useMemo(() => {
-    if (!categorias.length) return null;
-    return [...categorias].sort(
-      (a, b) => (b.totalDespesas || 0) - (a.totalDespesas || 0)
-    )[0];
-  }, [categorias]);
+ 
+const categoriasFiltradas = useMemo(() => {
+  if (!categoriaFiltro) return categorias;
+
+  return categorias.filter(
+    (cat) => String(cat.id) === String(categoriaFiltro)
+  );
+}, [categorias, categoriaFiltro]);
+
 
   const listItemVariants = {
     hidden: { opacity: 0, y: 50, scale: 0.98 },
@@ -140,12 +148,32 @@ export default function ListaCategorias() {
             </Typography>
           </Paper>
 
-          <Paper sx={kpiCard}>
-            <Typography sx={kpiLabel}>TOP CATEGORIA</Typography>
-            <Typography sx={kpiValue}>
-              {topCategoria?.nome || "—"}
-            </Typography>
-          </Paper>
+         <Paper
+  sx={{
+    ...kpiCard,
+    minWidth: 260,
+  }}
+>
+  <FormControl fullWidth>
+    <InputLabel>Filtrar Categoria</InputLabel>
+
+    <Select
+      value={categoriaFiltro}
+      label="Filtrar Categoria"
+      onChange={(e) => setCategoriaFiltro(e.target.value)}
+    >
+      <MenuItem value="">
+        Todas as Categorias
+      </MenuItem>
+
+      {categorias.map((cat) => (
+        <MenuItem key={cat.id} value={cat.id}>
+          {cat.nome}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Paper>
 
           <Box sx={{ flex: 1 }} />
 
@@ -167,21 +195,35 @@ export default function ListaCategorias() {
           <CircularProgress size={50} />
         </Box>
       ) : (
-        <Stack spacing={3}>
-          {categorias.map((categoria, idx) => {
-            const totalCategoria = Number(categoria.totalDespesas || 0);
-            const percent = totalGeral
-              ? (totalCategoria / totalGeral) * 100
-              : 0;
+       <Stack spacing={3}>
+  {categoriasFiltradas.length === 0 && (
+    <Paper
+      sx={{
+        p: 4,
+        textAlign: "center",
+        borderRadius: 4,
+      }}
+    >
+      <Typography>
+        Nenhuma categoria encontrada.
+      </Typography>
+    </Paper>
+  )}
 
-            return (
-              <motion.div
-                key={categoria.id}
-                custom={idx}
-                initial="hidden"
-                animate="show"
-                variants={listItemVariants}
-              >
+  {categoriasFiltradas.map((categoria, idx) => {
+    const totalCategoria = Number(categoria.totalDespesas || 0);
+    const percent = totalGeral
+      ? (totalCategoria / totalGeral) * 100
+      : 0;
+
+    return (
+      <motion.div
+        key={categoria.id}
+        custom={idx}
+        initial="hidden"
+        animate="show"
+        variants={listItemVariants}
+      >
                 <Paper sx={cardSurrealUltra}>
                   <Stack spacing={3}>
                     <Stack
@@ -358,6 +400,8 @@ export default function ListaCategorias() {
     </Box>
   );
 }
+
+
 
 /* ===== ESTILOS ULTRA SURREAIS ===== */
 /* ===== ESTILO SURREAL PREMIUM (ZERO GRADIENTES) ===== */

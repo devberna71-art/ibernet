@@ -27,8 +27,8 @@ export default function Cartao() {
   const [linha3, setLinha3] = useState('');
 
   const [busca, setBusca] = useState('');
-const [pagina, setPagina] = useState(1);
-const itensPorPagina = 6;
+  const [pagina, setPagina] = useState(1);
+  const itensPorPagina = 6;
 
   useEffect(() => {
     async function fetchMembros() {

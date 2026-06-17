@@ -1,5 +1,6 @@
+
 // src/components/FormCategoria.jsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   TextField,
   Button,
@@ -8,15 +9,16 @@ import {
   Switch,
   FormControlLabel,
   Paper,
-  Divider,
-  Chip
-} from '@mui/material';
-import { Category } from '@mui/icons-material';
-import api from '../api/axiosConfig';
+} from "@mui/material";
+import api from "../api/axiosConfig";
 
-export default function FormCategoria({ categoria = null, onSuccess, onCancel }) {
-  const [nome, setNome] = useState(categoria?.nome || '');
-  const [descricao, setDescricao] = useState(categoria?.descricao || '');
+export default function FormCategoria({
+  categoria = null,
+  onSuccess,
+  onCancel,
+}) {
+  const [nome, setNome] = useState(categoria?.nome || "");
+  const [descricao, setDescricao] = useState(categoria?.descricao || "");
   const [ativa, setAtiva] = useState(
     categoria?.ativa !== undefined ? categoria.ativa : true
   );
@@ -26,7 +28,7 @@ export default function FormCategoria({ categoria = null, onSuccess, onCancel })
     e.preventDefault();
 
     if (!nome.trim()) {
-      return alert('O nome da categoria é obrigatório.');
+      return alert("O nome da categoria é obrigatório.");
     }
 
     setLoading(true);
@@ -34,20 +36,20 @@ export default function FormCategoria({ categoria = null, onSuccess, onCancel })
     const payload = {
       nome,
       descricao: descricao || null,
-      ativa
+      ativa,
     };
 
     try {
       if (categoria) {
         await api.put(`/categorias/${categoria.id}`, payload);
       } else {
-        await api.post('/categorias', payload);
+        await api.post("/categorias", payload);
       }
 
       onSuccess();
     } catch (error) {
-      console.error('Erro ao salvar categoria:', error);
-      alert('Erro ao salvar categoria.');
+      console.error("Erro ao salvar categoria:", error);
+      alert("Erro ao salvar categoria.");
     } finally {
       setLoading(false);
     }
@@ -56,114 +58,75 @@ export default function FormCategoria({ categoria = null, onSuccess, onCancel })
   return (
     <Box
       sx={{
-        minHeight: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         p: 2,
-        background: 'linear-gradient(180deg, #fafbff 0%, #f4f6fc 100%)'
+        background: "#ffffff",
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          width: '100%',
-          maxWidth: 560,
-          p: 5,
-          borderRadius: 5,
-          background: '#ffffff',
-          border: '1px solid rgba(15,23,42,0.06)',
-          boxShadow: `
-            0 10px 30px rgba(15,23,42,0.04),
-            0 2px 10px rgba(15,23,42,0.03)
-          `,
-          transition: 'all 0.35s ease',
-          '&:hover': {
-            boxShadow: `
-              0 20px 60px rgba(15,23,42,0.08),
-              0 8px 25px rgba(15,23,42,0.05)
-            `,
-            transform: 'translateY(-2px)'
-          }
+          width: "100%",
+          maxWidth: 900,
+          mx: "auto",
+          p: 4,
+          borderRadius: 3,
+          background: "#ffffff",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
         }}
       >
-        {/* HEADER PREMIUM */}
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Chip
-            icon={<Category sx={{ fontSize: 18 }} />}
-            label="Organização Financeira"
-            sx={{
-              mb: 2,
-              fontWeight: 600,
-              background: 'rgba(99,102,241,0.08)',
-              color: '#6366f1',
-              borderRadius: 2
-            }}
-          />
-
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 800,
-              letterSpacing: '-0.5px',
-              color: '#0f172a'
-            }}
-          >
-            {categoria ? 'Editar Categoria' : 'Nova Categoria'}
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{
-              mt: 1,
-              color: '#64748b',
-              fontWeight: 400
-            }}
-          >
-            Organize suas despesas com categorias elegantes e inteligentes
-          </Typography>
-        </Box>
-
-        <Divider
+        {/* TÍTULO */}
+        <Typography
+          variant="h5"
           sx={{
+            fontWeight: 700,
+            color: "#111827",
             mb: 4,
-            borderColor: 'rgba(15,23,42,0.06)'
           }}
-        />
+        >
+          {categoria ? "Editar Categoria" : "Nova Categoria"}
+        </Typography>
 
         <Box component="form" onSubmit={handleSubmit}>
-          {/* NOME */}
-          <TextField
-            label="Nome da Categoria"
-            placeholder="Ex: Alimentação, Transporte, Internet..."
-            fullWidth
-            required
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            sx={premiumInput}
-          />
-
-          {/* DESCRIÇÃO */}
-          <TextField
-            label="Descrição (Opcional)"
-            placeholder="Descreva o objetivo desta categoria..."
-            fullWidth
-            multiline
-            rows={3}
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            sx={premiumInput}
-          />
-
-          {/* STATUS ATIVO */}
+          {/* CAMPOS */}
           <Box
             sx={{
-              mt: 2,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                md: "1fr 1fr",
+              },
+              gap: 2,
               mb: 3,
+            }}
+          >
+            <TextField
+              label="Nome da Categoria"
+              placeholder="Ex: Alimentação"
+              fullWidth
+              required
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              sx={cleanInput}
+            />
+
+            <TextField
+              label="Descrição"
+              placeholder="Descrição da categoria"
+              fullWidth
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              sx={cleanInput}
+            />
+          </Box>
+
+          {/* STATUS */}
+          <Box
+            sx={{
+              border: "1px solid #e5e7eb",
+              borderRadius: 2,
               p: 2,
-              borderRadius: 3,
-              background: '#f8fafc',
-              border: '1px solid rgba(15,23,42,0.06)'
+              mb: 4,
             }}
           >
             <FormControlLabel
@@ -171,51 +134,28 @@ export default function FormCategoria({ categoria = null, onSuccess, onCancel })
                 <Switch
                   checked={ativa}
                   onChange={(e) => setAtiva(e.target.checked)}
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: '#6366f1'
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: '#6366f1'
-                    }
-                  }}
                 />
               }
-              label={
-                <Typography
-                  sx={{
-                    fontWeight: 600,
-                    color: '#0f172a'
-                  }}
-                >
-                  Categoria ativa
-                </Typography>
-              }
+              label="Categoria activa"
             />
           </Box>
 
           {/* BOTÕES */}
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mt: 4,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
               pt: 3,
-              borderTop: '1px solid rgba(15,23,42,0.06)'
+              borderTop: "1px solid #e5e7eb",
             }}
           >
             <Button
               onClick={onCancel}
               sx={{
-                textTransform: 'none',
+                textTransform: "none",
                 fontWeight: 600,
-                color: '#64748b',
-                borderRadius: 2,
-                px: 3,
-                '&:hover': {
-                  background: '#f1f5f9'
-                }
+                color: "#6b7280",
               }}
             >
               Cancelar
@@ -226,27 +166,25 @@ export default function FormCategoria({ categoria = null, onSuccess, onCancel })
               variant="contained"
               disabled={loading}
               sx={{
-                textTransform: 'none',
-                fontWeight: 700,
-                fontSize: 15,
-                px: 5,
-                py: 1.4,
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                boxShadow: '0 10px 25px rgba(99,102,241,0.25)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 18px 40px rgba(99,102,241,0.35)'
-                }
+                height: 44,
+                px: 4,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                background: "#111827",
+                boxShadow: "none",
+
+                "&:hover": {
+                  background: "#000000",
+                  boxShadow: "none",
+                },
               }}
             >
               {loading
-                ? 'Salvando...'
+                ? "Salvando..."
                 : categoria
-                ? 'Atualizar Categoria'
-                : 'Cadastrar Categoria'}
+                ? "Actualizar Categoria"
+                : "Cadastrar Categoria"}
             </Button>
           </Box>
         </Box>
@@ -255,30 +193,28 @@ export default function FormCategoria({ categoria = null, onSuccess, onCancel })
   );
 }
 
-const premiumInput = {
-  mb: 2.5,
-  '& .MuiOutlinedInput-root': {
-    borderRadius: 3,
-    background: '#ffffff',
+const cleanInput = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: 2,
+    background: "#ffffff",
+
+    "& fieldset": {
+      borderColor: "#d1d5db",
+    },
+
+    "&:hover fieldset": {
+      borderColor: "#9ca3af",
+    },
+
+    "&.Mui-focused fieldset": {
+      borderColor: "#111827",
+      borderWidth: "1px",
+    },
+  },
+
+  "& .MuiInputLabel-root": {
+    color: "#374151",
     fontWeight: 500,
-    transition: 'all 0.25s ease',
-    '& fieldset': {
-      borderColor: 'rgba(15,23,42,0.12)'
-    },
-    '&:hover fieldset': {
-      borderColor: '#6366f1'
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#6366f1',
-      borderWidth: '1.5px'
-    }
   },
-  '& .MuiInputLabel-root': {
-    fontWeight: 600,
-    color: '#334155'
-  },
-  '& .MuiInputBase-input': {
-    color: '#0f172a',
-    fontWeight: 500
-  }
 };
+

@@ -1,0 +1,197 @@
+/* =========================
+   NAVBAR PREMIUM CLEAN STYLE
+   (SEM GRADIENTES)
+========================= */
+
+:root {
+  --nav-bg: #1e3a8a;
+  --nav-bg-2: #172554;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.75);
+  --hover: rgba(255, 255, 255, 0.08);
+  --active: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.12);
+}
+
+/* ================= SIDEBAR / DRAWER ================= */
+.navbar-container {
+  width: 260px;
+  height: 100vh;
+  background-color: var(--nav-bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  box-shadow: 2px 0 18px rgba(0, 0, 0, 0.25);
+}
+
+/* ================= LOGO ================= */
+.navbar-logo {
+  display: flex;
+  justify-content: center;
+  padding: 18px 0;
+}
+
+.navbar-logo img {
+  height: 85px;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+}
+
+.navbar-logo img:hover {
+  transform: scale(1.05);
+}
+
+/* ================= DIVIDER ================= */
+.navbar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0 12px 0;
+}
+
+/* ================= LISTA ================= */
+.navbar-list {
+  padding: 0;
+  margin: 0;
+}
+
+/* ================= ITEM BASE ================= */
+.navbar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 11px 14px;
+  margin: 4px 8px;
+  border-radius: 10px;
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ================= HOVER ================= */
+.navbar-item:hover {
+  background-color: var(--hover);
+  transform: translateX(2px);
+}
+
+/* ================= ACTIVE ================= */
+.navbar-item.active {
+  background-color: var(--active);
+  border-left: 3px solid #60a5fa;
+  padding-left: 11px;
+}
+
+/* ================= ICON ================= */
+.navbar-icon {
+  min-width: 34px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  opacity: 0.95;
+}
+
+/* ================= TEXT ================= */
+.navbar-text {
+  color: var(--text);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* ================= SUBMENU ================= */
+.navbar-submenu {
+  margin-left: 12px;
+  border-left: 1px solid var(--border);
+  padding-left: 8px;
+}
+
+.navbar-subitem {
+  padding: 9px 12px;
+  border-radius: 8px;
+  margin: 3px 6px;
+
+  font-size: 13px;
+  color: var(--muted);
+
+  transition: all 0.15s ease;
+}
+
+.navbar-subitem:hover {
+  background-color: var(--hover);
+  color: var(--text);
+}
+
+/* ================= COLLAPSE ANIMATION ================= */
+.navbar-collapse {
+  transition: all 0.25s ease-in-out;
+}
+
+/* ================= BUTTONS (VISITANTE CTA) ================= */
+.navbar-cta {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 8px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  background: transparent;
+  color: white;
+
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.navbar-cta:hover {
+  background-color: var(--hover);
+  transform: translateY(-1px);
+}
+
+/* ================= LOGIN BUTTON ================= */
+.navbar-login {
+  background-color: #f59e0b;
+  color: #111;
+  font-weight: 700;
+}
+
+.navbar-login:hover {
+  background-color: #fbbf24;
+}
+
+/* ================= NOTIFICATION ================= */
+.navbar-notification {
+  margin: 8px 10px;
+}
+
+/* ================= SCROLLBAR CLEAN ================= */
+.navbar-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.navbar-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.navbar-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ================= MOBILE IMPROVEMENTS ================= */
+@media (max-width: 900px) {
+  .navbar-container {
+    width: 100%;
+  }
+
+  .navbar-item {
+    padding: 14px;
+  }
+}

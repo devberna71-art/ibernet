@@ -1,348 +1,407 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
+import Chart from "react-apexcharts";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar, Doughnut } from "react-chartjs-2";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar as ReBar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as ReTooltip,
-  Legend as ReLegend,
-  Cell,
-} from "recharts";
-import { Box, Typography, Button, ButtonGroup } from "@mui/material";
-import { motion, AnimatePresence } from "framer-motion";
-import { People, Timeline } from "@mui/icons-material";
-import "bootstrap/dist/css/bootstrap.min.css";
+  Box,
+  Typography,
+  Grid,
+  CircularProgress,
+  Select,
+  MenuItem,
+  Stack,
+} from "@mui/material";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
+import DonutLargeRoundedIcon from "@mui/icons-material/DonutLargeRounded";
+import Groups2RoundedIcon from "@mui/icons-material/Groups2Rounded";
+import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
+
+const cardStyle = {
+  position: "relative",
+  overflow: "hidden",
+  background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
+  borderRadius: "16px",
+  border: "1px solid #e2e8f0",
+  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)",
+  padding: {
+    xs: "20px",
+    sm: "24px",
+    md: "32px",
+  },
+  display: "flex",
+  flexDirection: "column",
+  transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+  "&:hover": {
+    transform: "translateY(-2px)",
+    borderColor: "#cbd5e1",
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.01)",
+  }
+};
+
+const emptyStateStyle = {
+  height: 350,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#94a3b8",
+  gap: 1.5,
+  fontFamily: '"Inter", sans-serif'
+};
 
 export default function Graficos() {
   const [dados, setDados] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [secao, setSecao] = useState("membros");
+  const [periodo, setPeriodo] = useState("6m");
+
+  async function carregarGraficos(periodoSelecionado = periodo) {
+    try {
+      setLoading(true);
+      const response = await api.get(`/graficos?periodo=${periodoSelecionado}`);
+      setDados(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar dados dos gráficos:", error);
+      setDados(null);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const fetchGraficos = async () => {
-      try {
-        const res = await api.get("/graficos");
-        setDados(res.data);
-      } catch (err) {
-        console.error("Erro ao buscar dados para gráficos:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchGraficos();
+    carregarGraficos();
   }, []);
 
-  if (loading)
+  const handlePeriodo = async (e) => {
+    const novoPeriodo = e.target.value;
+    setPeriodo(novoPeriodo);
+    carregarGraficos(novoPeriodo);
+  };
+
+  if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <Box className="spinner-border text-primary" role="status" />
+      <Box sx={{ height: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <CircularProgress size={45} thickness={4} sx={{ color: "#4f46e5" }} />
       </Box>
     );
+  }
 
-  if (!dados)
-    return (
-      <Box sx={{ textAlign: "center", mt: 5 }}>
-        <Typography variant="h5" color="error">
-          Não foi possível carregar os gráficos.
-        </Typography>
-      </Box>
-    );
+  const ultimosMeses = dados?.financeiro?.ultimosMeses || [];
+  const tiposContribuicao = dados?.financeiro?.tiposContribuicao || [];
+  const faixasEtarias = dados?.faixasEtarias || {};
 
-  // ---------- DATASETS Chart.js ----------
-  const membrosData = {
-    labels: ["Ativos", "Inativos"],
-    datasets: [
-      {
-        label: "Membros",
-        data: [dados.membrosAtivosInativos.ativos, dados.membrosAtivosInativos.inativos],
-        backgroundColor: ["#42a5f5", "#9e9e9e"],
-        borderWidth: 2,
+  const totalContribuicoes = tiposContribuicao.reduce(
+    (acc, item) => acc + Number(item.valor || 0),
+    0
+  );
+
+  const temDadosLinha = ultimosMeses.length > 0;
+  const temDadosDonut = tiposContribuicao.length > 0 && totalContribuicoes > 0;
+  const temDadosBarra = Object.keys(faixasEtarias).length > 0;
+
+  // ======================================================
+  // CONFIGURAÇÃO CONFIG: LINEAR / AREA GRAPH
+  // ======================================================
+  const lineOptions = {
+    chart: {
+      type: "area",
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      background: "transparent",
+      foreColor: "#64748b",
+      dropShadow: {
+        enabled: true,
+        top: 12,
+        left: 0,
+        blur: 8,
+        color: "#4f46e5",
+        opacity: 0.18
       },
-    ],
-  };
-
-  const generoData = {
-    labels: ["Homens", "Mulheres"],
-    datasets: [
-      {
-        label: "Gênero",
-        data: [dados.distribuicaoGenero.homens, dados.distribuicaoGenero.mulheres],
-        backgroundColor: ["#1976d2", "#ec407a"],
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const batismoData = {
-    labels: ["Batizados", "Não Batizados"],
-    datasets: [
-      {
-        label: "Batismo",
-        data: [dados.situacaoBatismo.batizados, dados.situacaoBatismo.naoBatizados],
-        backgroundColor: ["#29b6f6", "#bdbdbd"],
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const presencasFuturasData = {
-    labels: dados.cultos.futuros.map(
-      (p) => `${p.tipoCulto} (${new Date(p.data).toLocaleDateString()})`
-    ),
-    datasets: [
-      {
-        label: "Presenças por Culto",
-        data: dados.cultos.futuros.map((p) => p.totalPresenca),
-        backgroundColor: "#1e88e5",
-      },
-    ],
-  };
-
-  const contribFuturasData = {
-    labels: dados.cultos.futuros.map(
-      (c) => `${c.tipoCulto} (${new Date(c.data).toLocaleDateString()})`
-    ),
-    datasets: [
-      {
-        label: "Contribuições por Culto (Kz)",
-        data: dados.cultos.futuros.map((c) => c.totalContribuicao),
-        backgroundColor: "#ffb300",
-      },
-    ],
-  };
-
-  // ---------- DATASETS RECHARTS ----------
-  const faixasDataRecharts = Object.entries(dados.faixasEtarias).map(([faixa, qtd]) => ({
-    faixa,
-    quantidade: qtd,
-  }));
-
-  const faixaColors = [
-    "#5c6bc0",
-    "#26a69a",
-    "#ffee58",
-    "#ef5350",
-    "#8e24aa",
-    "#42a5f5",
-  ];
-
-  const financeiroRecharts = [
-    { nome: "Contribuições", valor: dados.financeiro.contribMes, cor: "#43a047" },
-    { nome: "Despesas", valor: dados.financeiro.despMes, cor: "#ef5350" },
-  ];
-
-  // ---------- Chart.js Options ----------
-  const chartOptions = {
-    plugins: {
-      legend: { labels: { color: "#333", font: { size: 14, weight: 600 } } },
-      tooltip: {
-        backgroundColor: "rgba(0,0,0,0.85)",
-        titleColor: "#fff",
-        bodyColor: "#fff",
+      animations: { enabled: true, easing: "easeout", speed: 800 }
+    },
+    colors: ["#4f46e5"],
+    stroke: { curve: "smooth", width: 4, lineCap: "round" },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.25,
+        opacityTo: 0.01,
+        stops: [0, 95, 100],
       },
     },
-    responsive: true,
-    maintainAspectRatio: false,
+    markers: {
+      size: 0,
+      strokeColors: "#fff",
+      strokeWidth: 3,
+      hover: { size: 6 }
+    },
+    grid: {
+      borderColor: "#f1f5f9",
+      strokeDashArray: 6,
+      padding: { left: 10, right: 10, bottom: 0, top: 0 }
+    },
+    tooltip: {
+      theme: "light",
+      y: { formatter: (val) => `${Number(val).toLocaleString()} Kz` },
+      style: { fontSize: "13px", fontFamily: '"Inter", sans-serif' }
+    },
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories: ultimosMeses.map((item) => item.mes || ""),
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: { style: { fontWeight: 600, fontSize: "11px" } }
+    },
+    yaxis: {
+      labels: {
+        formatter: (val) => `${Number(val).toLocaleString()}`,
+        style: { fontSize: "11px", fontWeight: 500 }
+      }
+    },
+    legend: { show: false }
   };
 
-  // ---------- SEÇÕES ----------
-  const secoes = {
-    membros: [
-      { title: "Atividade dos Membros", chart: <Doughnut data={membrosData} options={chartOptions} /> },
-      { title: "Distribuição de Gênero", chart: <Doughnut data={generoData} options={chartOptions} /> },
-      {
-        title: "Faixas Etárias (Recharts)",
-        chart: (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={faixasDataRecharts} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="faixa" />
-              <YAxis />
-              <ReTooltip />
-              <ReLegend />
-              <ReBar dataKey="quantidade" radius={[6, 6, 0, 0]}>
-                {faixasDataRecharts.map((_, idx) => (
-                  <Cell key={idx} fill={faixaColors[idx % faixaColors.length]} />
-                ))}
-              </ReBar>
-            </BarChart>
-          </ResponsiveContainer>
-        ),
-      },
-      { title: "Situação de Batismo", chart: <Doughnut data={batismoData} options={chartOptions} /> },
-    ],
-    atuais: [
-      {
-        title: "Financeiro (Recharts): Contribuições vs Despesas",
-        chart: (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={financeiroRecharts} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="nome" />
-              <YAxis />
-              <ReTooltip />
-              <ReLegend />
-              <ReBar dataKey="valor" radius={[6, 6, 0, 0]}>
-                {financeiroRecharts.map((item, idx) => (
-                  <Cell key={idx} fill={item.cor} />
-                ))}
-              </ReBar>
-            </BarChart>
-          </ResponsiveContainer>
-        ),
-      },
-      { title: "Presenças por Culto", chart: <Bar data={presencasFuturasData} options={chartOptions} /> },
-      { title: "Contribuições por Culto", chart: <Bar data={contribFuturasData} options={chartOptions} /> },
-    ],
+  const lineSeries = [{
+    name: "Contribuições",
+    data: ultimosMeses.map((item) => item.valor || 0)
+  }];
+
+  // ======================================================
+  // CONFIGURAÇÃO CONFIG: DONUT GRAPH
+  // ======================================================
+  const donutOptions = {
+    labels: tiposContribuicao.map((item) => item.nome || "Outros"),
+    colors: ["#4f46e5", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
+    chart: { 
+      background: "transparent",
+      dropShadow: {
+        enabled: true,
+        top: 8,
+        left: 0,
+        blur: 10,
+        color: "#0f172a",
+        opacity: 0.04
+      }
+    },
+    legend: {
+      position: "bottom",
+      fontSize: "12px",
+      fontFamily: '"Inter", sans-serif',
+      fontWeight: 500,
+      labels: { colors: "#64748b" },
+      markers: { radius: 12, width: 10, height: 10 },
+      itemMargin: { horizontal: 10, vertical: 5 }
+    },
+    stroke: { width: 3, colors: ["#ffffff"] },
+    plotOptions: {
+      pie: {
+        expandOnClick: true,
+        donut: {
+          size: "75%",
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: "Volume Total",
+              color: "#64748b",
+              fontSize: "12px",
+              fontWeight: 600,
+              fontFamily: '"Inter", sans-serif',
+              formatter: () => `${Number(totalContribuicoes).toLocaleString()} Kz`
+            },
+            value: {
+              color: "#0f172a",
+              fontWeight: 800,
+              fontSize: "20px",
+              fontFamily: '"Inter", sans-serif',
+              formatter: (val) => `${Number(val).toLocaleString()}`
+            }
+          }
+        }
+      }
+    },
+    responsive: [{
+      breakpoint: 480,
+      options: {
+        legend: { position: "top" }
+      }
+    }],
+    dataLabels: { enabled: false }
   };
 
-  // ---------- RENDER ----------
+  const donutSeries = tiposContribuicao.map((item) => item.valor || 0);
+
+  // ======================================================
+  // CONFIGURAÇÃO CONFIG: BAR GRAPH
+  // ======================================================
+  const barOptions = {
+    chart: {
+      toolbar: { show: false },
+      foreColor: "#64748b",
+      background: "transparent",
+      dropShadow: {
+        enabled: true,
+        top: 6,
+        left: 0,
+        blur: 6,
+        color: "#4f46e5",
+        opacity: 0.12
+      }
+    },
+    colors: ["#4f46e5"],
+    plotOptions: {
+      bar: {
+        borderRadius: 8,
+        columnWidth: "32%",
+        distributed: false,
+      }
+    },
+    grid: {
+      borderColor: "#f1f5f9",
+      strokeDashArray: 6,
+      padding: { bottom: 0, top: 0 }
+    },
+    dataLabels: { enabled: false },
+    xaxis: {
+      categories: Object.keys(faixasEtarias),
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: { style: { fontWeight: 600, fontSize: "11px" } }
+    },
+    yaxis: {
+      labels: {
+        formatter: (val) => Number(val).toLocaleString(),
+        style: { fontSize: "11px" }
+      }
+    },
+    tooltip: {
+      theme: "light",
+      style: { fontSize: "12px", fontFamily: '"Inter", sans-serif' }
+    },
+    legend: { show: false }
+  };
+
+  const barSeries = [{
+    name: "Membros",
+    data: Object.values(faixasEtarias)
+  }];
+
   return (
-    <Box
-      sx={{
-        py: 6,
-        px: { xs: 2, md: 10 },
-        background: "linear-gradient(135deg, #e3f2fd, #fafafa)",
-        minHeight: "100vh",
-      }}
-    >
-      {/* Título */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{
-            fontWeight: 800,
-            mb: 5,
-            fontFamily: "'Poppins', sans-serif",
-            borderBottom: "3px solid #1976d2",
-            pb: 1,
-            color: "#0d47a1",
-            textShadow: "0 2px 10px rgba(0,0,0,0.15)",
-          }}
-        >
-          📊 Painel de Análise Geral
-        </Typography>
-      </motion.div>
+    <Grid container spacing={4}>
+      
+      {/* CARD 1: GRÁFICO DE LINHA (RESUMO FINANCEIRO) */}
+      <Grid item xs={12} xl={8}>
+        <Box sx={cardStyle}>
+          <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" spacing={2} sx={{ mb: 4 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #4f46e5, #8b5cf6)", boxShadow: "0 8px 16px -4px rgba(79, 70, 229, 0.4)" }}>
+                <TrendingUpRoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", fontFamily: '"Inter", sans-serif' }}>
+                  Resumo Financeiro
+                </Typography>
+                <Typography sx={{ color: "#64748b", fontSize: "0.82rem", fontWeight: 500 }}>
+                  Evolução das contribuições ao longo do tempo
+                </Typography>
+              </Box>
+            </Stack>
 
-      {/* Botões de Seção */}
-      <Box sx={{ display: "flex", justifyContent: "center", mb: 6 }}>
-        <ButtonGroup
-          sx={{
-            borderRadius: 5,
-            overflow: "hidden",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-          }}
-        >
-          <Button
-            startIcon={<People />}
-            variant={secao === "membros" ? "contained" : "outlined"}
-            onClick={() => setSecao("membros")}
-            sx={{
-              px: 3,
-              py: 1.2,
-              fontWeight: 600,
-              fontFamily: "'Poppins', sans-serif",
-              background:
-                secao === "membros"
-                  ? "linear-gradient(90deg, #1976d2, #42a5f5)"
-                  : "transparent",
-              color: secao === "membros" ? "#fff" : "#1976d2",
-              "&:hover": {
-                background: "linear-gradient(90deg, #1565c0, #42a5f5)",
-                color: "#fff",
-              },
-            }}
-          >
-            Visão dos Membros
-          </Button>
+            <Select
+              value={periodo}
+              onChange={handlePeriodo}
+              size="small"
+              sx={{
+                width: { xs: "100%", sm: 160 },
+                height: 40,
+                borderRadius: "10px",
+                background: "#f8fafc",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                color: "#334155",
+                "& fieldset": { border: "1px solid #e2e8f0" },
+              }}
+            >
+              <MenuItem value="30d">Últimos 30 dias</MenuItem>
+              <MenuItem value="3m">Últimos 3 meses</MenuItem>
+              <MenuItem value="6m">Últimos 6 meses</MenuItem>
+              <MenuItem value="1a">Último 1 ano</MenuItem>
+            </Select>
+          </Stack>
 
-          <Button
-            startIcon={<Timeline />}
-            variant={secao === "atuais" ? "contained" : "outlined"}
-            onClick={() => setSecao("atuais")}
-            sx={{
-              px: 3,
-              py: 1.2,
-              fontWeight: 600,
-              fontFamily: "'Poppins', sans-serif",
-              background:
-                secao === "atuais"
-                  ? "linear-gradient(90deg, #009688, #4db6ac)"
-                  : "transparent",
-              color: secao === "atuais" ? "#fff" : "#009688",
-              "&:hover": {
-                background: "linear-gradient(90deg, #00796b, #4db6ac)",
-                color: "#fff",
-              },
-            }}
-          >
-            Indicadores Atuais
-          </Button>
-        </ButtonGroup>
-      </Box>
-
-      {/* Gráficos */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={secao}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Box className="row g-4">
-            {secoes[secao].map((g, idx) => (
-              <motion.div key={idx} className="col-md-6" whileHover={{ scale: 1.03 }}>
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 4,
-                    backdropFilter: "blur(10px)",
-                    background: "rgba(255,255,255,0.75)",
-                    boxShadow: "0 20px 50px rgba(0,0,0,0.12)",
-                    height: 400,
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    align="center"
-                    sx={{
-                      fontWeight: 700,
-                      mb: 3,
-                      fontFamily: "'Poppins', sans-serif",
-                      color: "#0d47a1",
-                    }}
-                  >
-                    {g.title}
-                  </Typography>
-                  <Box sx={{ height: "calc(100% - 60px)" }}>{g.chart}</Box>
-                </Box>
-              </motion.div>
-            ))}
+          <Box sx={{ height: 350, width: "100%" }}>
+            {temDadosLinha ? (
+              <Chart options={lineOptions} series={lineSeries} type="area" height="100%" width="100%" />
+            ) : (
+              <Box sx={emptyStateStyle}>
+                <TrendingUpRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
+                <Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Nenhum fluxo financeiro registrado.</Typography>
+              </Box>
+            )}
           </Box>
-        </motion.div>
-      </AnimatePresence>
-    </Box>
+        </Box>
+      </Grid>
+
+      {/* CARD 2: GRÁFICO DONUT (CATEGORIAS) */}
+      <Grid item xs={12} xl={4}>
+        <Box sx={cardStyle}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #06b6d4, #4f46e5)", boxShadow: "0 8px 16px -4px rgba(6, 182, 212, 0.4)" }}>
+              <DonutLargeRoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", fontFamily: '"Inter", sans-serif' }}>
+                Contribuições
+              </Typography>
+              <Typography sx={{ color: "#64748b", fontSize: "0.82rem", fontWeight: 500 }}>
+                Divisão proporcional por categoria
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ height: 350, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {temDadosDonut ? (
+              <Chart options={donutOptions} series={donutSeries} type="donut" height="100%" width="100%" />
+            ) : (
+              <Box sx={emptyStateStyle}>
+                <DonutLargeRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
+                <Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Sem dados disponíveis.</Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </Grid>
+
+      {/* CARD 3: GRÁFICO DE BARRAS (FAIXA ETÁRIA) */}
+      <Grid item xs={12}>
+        <Box sx={cardStyle}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #8b5cf6, #4f46e5)", boxShadow: "0 8px 16px -4px rgba(139, 92, 246, 0.4)" }}>
+              <Groups2RoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", fontFamily: '"Inter", sans-serif' }}>
+                Demografia de Membros
+              </Typography>
+              <Typography sx={{ color: "#64748b", fontSize: "0.82rem", fontWeight: 500 }}>
+                Distribuição volumétrica por faixas etárias
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Box sx={{ height: 300, width: "100%" }}>
+            {temDadosBarra ? (
+              <Chart options={barOptions} series={barSeries} type="bar" height="100%" width="100%" />
+            ) : (
+              <Box sx={emptyStateStyle}>
+                <BarChartRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
+                <Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Nenhum dado demográfico indexado.</Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </Grid>
+
+    </Grid>
   );
 }

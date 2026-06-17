@@ -1,81 +1,71 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Navbar from '../components/NavBar';
+
+import MainLayout from '../layouts/MainLayout';
+
 import api from '../api/axiosConfig';
+import FullScreenLoader from '../components/FullScreenLoader';
 
-// Importa todas as páginas
-import Home from '../pages/home';
-import Membros from '../pages/membros';
-import Ministerios from '../pages/ministerios';
-import Relatorios from '../pages/relatorios';
-import Login from '../pages/login';
-import GestaoMembros from '../pages/GestaoMembros';
-import CriarUsuarios from '../pages/criarUsuario';
-import GestaoCargos from '../pages/GestaoCargos';
-import GestaoContribuicoes from '../pages/GestaoContribuicoes';
-import GestaoDespesas from '../pages/GestaoDespesas';
-import RelatorioContribuicoes from '../pages/Relatrios/RelatorioContribuicoes';
-import RelatorioFinanceiroGeral from '../pages/Relatrios/RelatorioFinanceiroGeral';
-import RelatorioMembros from '../pages/Relatrios/RelatorioMembros';
-import RelatorioDespesa from '../pages/Relatrios/RelatorioDespesa';
-import RelatorioPresencas from '../pages/Relatrios/ReltorioPresencas';
-import RelatorioSede from '../pages/Relatrios/RelatorioSede';
-import GestaoIgrejas from '../pages/GestaoIgrejas';
-import ListaCultos from '../pages/Cultos/ListaCultos';
-import GestaoDepartamento from '../pages/GestaoDepartamentos';
-import Perfil from '../pages/Perfil';
-import TabelaCulto from '../pages/Cultos/GestaoCulto'; // <-- NOVA ROTA PÚBLICA
+/* =========================
+   LAZY IMPORTS (Páginas)
+========================= */
+const Home = lazy(() => import('../pages/home'));
+const Membros = lazy(() => import('../pages/membros'));
+const Ministerios = lazy(() => import('../pages/ministerios'));
+const Relatorios = lazy(() => import('../pages/relatorios'));
+const Login = lazy(() => import('../pages/login'));
+const GestaoMembros = lazy(() => import('../pages/GestaoMembros'));
+const CriarUsuarios = lazy(() => import('../pages/criarUsuario'));
+const GestaoCargos = lazy(() => import('../pages/GestaoCargos'));
+const GestaoContribuicoes = lazy(() => import('../pages/GestaoContribuicoes'));
+const GestaoDespesas = lazy(() => import('../pages/GestaoDespesas'));
 
-// Novas páginas públicas
-import SobreEquipe from '../components/SobreEquipe';
-import Planos from '../components/Planos';
-import Testemunhos from '../components/Testemunhos';
-import Contato from '../components/Contato';
-import Servicos from '../components/servicos';
-import Aniversarios from '../pages/Notificacoes';
+const RelatorioContribuicoes = lazy(() => import('../pages/Relatrios/RelatorioContribuicoes'));
+const RelatorioFinanceiroGeral = lazy(() => import('../pages/Relatrios/RelatorioFinanceiroGeral'));
+const RelatorioMembros = lazy(() => import('../pages/Relatrios/RelatorioMembros'));
+const RelatorioDespesa = lazy(() => import('../pages/Relatrios/RelatorioDespesa'));
+const RelatorioPresencas = lazy(() => import('../pages/Relatrios/ReltorioPresencas'));
+const RelatorioSede = lazy(() => import('../pages/Relatrios/RelatorioSede'));
 
+const GestaoIgrejas = lazy(() => import('../pages/GestaoIgrejas'));
+const ListaCultos = lazy(() => import('../pages/Cultos/ListaCultos'));
+const GestaoDepartamento = lazy(() => import('../pages/GestaoDepartamentos'));
+const Perfil = lazy(() => import('../pages/Perfil'));
+const TabelaCulto = lazy(() => import('../pages/Cultos/GestaoCulto'));
 
-// Dashboard agora é público
-import Dashboard from '../pages/Dashboard';
+const SobreEquipe = lazy(() => import('../components/SobreEquipe'));
+const Planos = lazy(() => import('../components/Planos'));
+const Testemunhos = lazy(() => import('../components/Testemunhos'));
+const Contato = lazy(() => import('../components/Contato'));
+const Servicos = lazy(() => import('../components/servicos'));
 
-// Dashboard agora é público
-import Salarios from '../pages/Salarios';
-import TabelaSalarios from '../components/TabelaSalarios'; // <-- nova página
+const Aniversarios = lazy(() => import('../pages/Notificacoes'));
+const Dashboard = lazy(() => import('../pages/Dashboard'));
+const Salarios = lazy(() => import('../pages/Salarios'));
+const TabelaSalarios = lazy(() => import('../components/TabelaSalarios'));
 
+const CadastroMembros = lazy(() => import('../pages/CadastroMembro'));
+const CriarContaMembro = lazy(() => import('../pages/CriarContaMembro'));
+const PerfilMembro = lazy(() => import('../pages/PerfilMembro'));
+const Cartao = lazy(() => import('../pages/Cartao'));
 
+/* =========================
+   CHAT (🔥 ADICIONADO)
+========================= */
+const ChatList = lazy(() => import('../pages/Chat/MembersChat'));
+const ChatPage = lazy(() => import('../pages/Chat/ChatPage'));
 
-
-// Importa o novo componente de Dashboard de Eventos
-import CadastroMembros from '../pages/CadastroMembro'; // <-- Novo componente para /dasheventos
-
-
-
-// Importa o novo componente de Dashboard de Eventos
-import CriarContaMembro from '../pages/CriarContaMembro'; // <-- Novo componente para /dasheventos
-
-
-
-
-// Importa o novo componente de Dashboard de Eventos
-import PerfilMembro from '../pages/PerfilMembro'; // <-- Novo componente para /dasheventos
-
-
-
-
-
-// Importa o novo componente de Dashboard de Eventos
-import Cartao from '../pages/Cartao'; // <-- Novo componente para /dasheventos
-
-
-
-// ---------------- AuthWrapper ---------------- //
+/* =========================
+   AUTH WRAPPER
+========================= */
 function AuthWrapper({ children }) {
-  const [isAllowed, setIsAllowed] = useState(null); // null = carregando
+  const [isAllowed, setIsAllowed] = useState(null);
 
   useEffect(() => {
     const verificarStatus = async () => {
       try {
         const token = localStorage.getItem('token');
+
         if (!token) {
           setIsAllowed(false);
           return;
@@ -87,21 +77,13 @@ function AuthWrapper({ children }) {
 
         const usuario = res.data.usuario;
 
-        // Super admin pode acessar tudo
         if (usuario.funcao === 'super_admin') {
           setIsAllowed(true);
           return;
         }
 
-        // Usuário comum:
-        const path = window.location.pathname;
-        if (path === '/membros') {
-          setIsAllowed(true);
-          return;
-        }
-
-        // Pode adicionar outras verificações de status ativo aqui
         setIsAllowed(true);
+
       } catch (err) {
         setIsAllowed(false);
       }
@@ -110,74 +92,95 @@ function AuthWrapper({ children }) {
     verificarStatus();
   }, []);
 
-  if (isAllowed === null) return <div>Carregando...</div>;
-  if (!isAllowed) return <Navigate to="/login" replace />;
+  if (isAllowed === null) {
+    return <FullScreenLoader isDone={false} />;
+  }
+
+  if (!isAllowed) {
+    return <Navigate to="/login" replace />;
+  }
 
   return children;
 }
 
-// ---------------- AppRoutes ---------------- //
+/* =========================
+   APP ROUTES
+========================= */
 export default function AppRoutes() {
   return (
     <Router>
-      <Navbar />
-      <Routes>
-        {/* Rotas públicas */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/criar-usuarios" element={<CriarUsuarios />} />
-        <Route path="/sobre-equipe" element={<SobreEquipe />} />
-        <Route path="/planos" element={<Planos />} />
-        <Route path="/testemunhos" element={<Testemunhos />} />
-        <Route path="/contato" element={<Contato />} />
-        <Route path="/servicos" element={<Servicos />} />
-        <Route path="/salarios" element={<Salarios />} /> {/* PÚBLICA */}
-        <Route path="/tabelaSalarios" element={<TabelaSalarios />} /> {/* NOVA ROTA PÚBLICA */}
-        <Route path="/dashboard" element={<Dashboard />} /> {/* agora é público */}
-        <Route path="/aniversarios" element={<Aniversarios />} /> {/* rota pública */}
-       
-        <Route path="/TabelaCulto" element={<TabelaCulto />} /> {/* NOVA ROTA PÚBLICA */}
-      
-        
+      <Suspense fallback={<FullScreenLoader isDone={false} />}>
+        <Routes>
 
-  <Route path="/cadastro/membro" element={< CadastroMembros />} /> {/* rota pública */}
-
- <Route path="/perfil/membro" element={< PerfilMembro />} /> {/* rota pública */}
+          {/* 🔥 MAIN LAYOUT */}
+          <Route element={<MainLayout />}>
 
 
+            {/* ================= PUBLICAS ================= */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/criar-usuarios" element={<CriarUsuarios />} />
 
-  <Route path="/criar/conta/membro" element={< CriarContaMembro />} /> {/* rota pública */}
+            <Route path="/sobre-equipe" element={<SobreEquipe />} />
+            <Route path="/planos" element={<Planos />} />
+            <Route path="/testemunhos" element={<Testemunhos />} />
+            <Route path="/contato" element={<Contato />} />
+            <Route path="/servicos" element={<Servicos />} />
+
+            <Route path="/salarios" element={<Salarios />} />
+            <Route path="/tabelaSalarios" element={<TabelaSalarios />} />
+
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/aniversarios" element={<Aniversarios />} />
+
+            <Route path="/TabelaCulto" element={<TabelaCulto />} />
+
+            <Route path="/cadastro/membro" element={<CadastroMembros />} />
+            <Route path="/perfil/membro" element={<PerfilMembro />} />
+            <Route path="/criar/conta/membro" element={<CriarContaMembro />} />
+            <Route path="/cartao/membro" element={<Cartao />} />
 
 
+            {/* ================= CHAT PUBLIC ================= */}
+            <Route path="/chat/list" element={<ChatList />} />
+            <Route path="/chat/:id" element={<ChatPage />} />
 
-  <Route path="/cartao/membro" element={< Cartao />} /> {/* rota pública */}
 
-     
-        
-        {/* Rotas protegidas (usuários autenticados) */}
-        <Route element={<AuthWrapper><Outlet /></AuthWrapper>}>
-          <Route path="/membros" element={<Membros />} />
-          <Route path="/ministerios" element={<Ministerios />} />
-          <Route path="/relatorios" element={<Relatorios />} />
-          <Route path="/gestao/membros" element={<GestaoMembros />} />
-          <Route path="/gestao/cargos" element={<GestaoCargos />} />
-          <Route path="/gestao/contribuicoes" element={<GestaoContribuicoes />} />
-          <Route path="/gestao/despesas" element={<GestaoDespesas />} />
-          <Route path="/gestao/relatorioContribuicoes" element={<RelatorioContribuicoes />} />
-          <Route path="/gestao/relatorioDespesas" element={<RelatorioDespesa />} />
-          <Route path="/gestao/relatorioFinanceiroGeral" element={<RelatorioFinanceiroGeral />} />
-          <Route path="/gestao/relatorioMembros" element={<RelatorioMembros />} />
-          <Route path="/listaCultos" element={<ListaCultos />} />
-          <Route path="/gestao/RelatorioPresencas" element={<RelatorioPresencas />} />
-          <Route path="/gestao/relatorioSede" element={<RelatorioSede />} />
-          <Route path="/gestao/departamentos" element={<GestaoDepartamento />} />
-          <Route path="/gestao/gestaoigrejas" element={<GestaoIgrejas />} />
-          <Route path="/perfil" element={<Perfil />} />
-        </Route>
+            {/* ================= PROTEGIDAS ================= */}
+            <Route element={<AuthWrapper><Outlet /></AuthWrapper>}>
 
-        {/* Redirecionamento genérico caso rota não exista */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+
+              <Route path="/membros" element={<Membros />} />
+              <Route path="/ministerios" element={<Ministerios />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+
+              <Route path="/gestao/membros" element={<GestaoMembros />} />
+              <Route path="/gestao/cargos" element={<GestaoCargos />} />
+              <Route path="/gestao/contribuicoes" element={<GestaoContribuicoes />} />
+              <Route path="/gestao/despesas" element={<GestaoDespesas />} />
+
+              <Route path="/gestao/relatorioContribuicoes" element={<RelatorioContribuicoes />} />
+              <Route path="/gestao/relatorioDespesas" element={<RelatorioDespesa />} />
+              <Route path="/gestao/relatorioFinanceiroGeral" element={<RelatorioFinanceiroGeral />} />
+              <Route path="/gestao/relatorioMembros" element={<RelatorioMembros />} />
+              <Route path="/gestao/RelatorioPresencas" element={<RelatorioPresencas />} />
+              <Route path="/gestao/relatorioSede" element={<RelatorioSede />} />
+
+              <Route path="/listaCultos" element={<ListaCultos />} />
+              <Route path="/gestao/departamentos" element={<GestaoDepartamento />} />
+              <Route path="/gestao/gestaoigrejas" element={<GestaoIgrejas />} />
+
+              <Route path="/perfil" element={<Perfil />} />
+
+            </Route>
+
+          </Route>
+
+          {/* fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+
+        </Routes>
+      </Suspense>
     </Router>
   );
 }
