@@ -1,12 +1,11 @@
-// src/pages/GestaoCargos.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Container,
   Typography,
   Button,
   TextField,
   Box,
-  List,
+  Grid,
   Paper,
   IconButton,
   Dialog,
@@ -20,6 +19,8 @@ import {
   Tooltip,
   Avatar,
   Stack,
+  Divider,
+  LinearProgress
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -28,6 +29,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import GroupIcon from "@mui/icons-material/Group";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import WorkIcon from "@mui/icons-material/Work";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import LeaderboardIcon from "@mui/icons-material/Leaderboard";
+import PieChartIcon from "@mui/icons-material/PieChart";
 
 import { motion } from "framer-motion";
 
@@ -45,9 +49,14 @@ export default function GestaoCargos() {
   const [deletingCargo, setDeletingCargo] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  const listItemVariants = {
-    hidden: { opacity: 0, y: 18, scale: 0.985 },
-    show: (i) => ({ opacity: 1, y: 0, scale: 1, transition: { delay: i * 0.03, type: "spring", stiffness: 160, damping: 16 } }),
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 15, scale: 0.98 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 120, damping: 14 } },
   };
 
   const fetchCargos = async () => {
@@ -64,13 +73,32 @@ export default function GestaoCargos() {
   };
 
   useEffect(() => { fetchCargos(); }, []);
+  
   useEffect(() => {
     setFilteredCargos(!search ? cargos : cargos.filter(c => c.nome.toLowerCase().includes(search.toLowerCase())));
   }, [search, cargos]);
 
+  // Estatísticas Calculadas Dinamicamente
+  const stats = useMemo(() => {
+    const totalCargos = cargos.length;
+    const totalMembros = cargos.reduce((acc, curr) => acc + (curr.totalMembros || 0), 0);
+    const mediaMembros = totalCargos > 0 ? (totalMembros / totalCargos).toFixed(1) : 0;
+    
+    let cargoMaisOcupado = { nome: "Nenhum", totalMembros: 0 };
+    if (totalCargos > 0) {
+      const topCargo = [...cargos].sort((a, b) => b.totalMembros - a.totalMembros)[0];
+      if (topCargo && topCargo.totalMembros > 0) {
+        cargoMaisOcupado = topCargo;
+      }
+    }
+
+    return { totalCargos, totalMembros, mediaMembros, cargoMaisOcupado };
+  }, [cargos]);
+
   const handleOpenNewCargo = () => { setEditingCargo(null); setOpenCargoModal(true); };
   const handleEditCargo = (cargo) => { setEditingCargo(cargo); setOpenCargoModal(true); };
   const handleDeleteClick = (cargo) => setDeletingCargo(cargo);
+  
   const confirmDelete = async () => {
     try {
       await api.delete(`/cargos/${deletingCargo.id}`);
@@ -81,6 +109,7 @@ export default function GestaoCargos() {
       setSnackbar({ open: true, message: "Erro ao excluir cargo.", severity: "error" });
     }
   };
+
   const cancelDelete = () => setDeletingCargo(null);
   const handleCloseModal = () => { setOpenCargoModal(false); setEditingCargo(null); };
   const closeSnack = () => setSnackbar(s => ({ ...s, open: false }));
@@ -90,35 +119,36 @@ export default function GestaoCargos() {
       minHeight: "100vh",
       pb: 10,
       px: { xs: 2, md: 4 },
-      background: `radial-gradient(600px 300px at 10% 10%, rgba(124,77,255,0.06), transparent),
-                   radial-gradient(600px 300px at 90% 85%, rgba(0,229,255,0.04), transparent),
-                   linear-gradient(180deg, #050816 0%, #071430 60%, #041029 100%)`,
-      color: "#e6eef8",
+      background: `radial-gradient(600px 300px at 10% 5%, rgba(0, 97, 255, 0.04), transparent),
+                   radial-gradient(600px 300px at 90% 85%, rgba(0, 168, 255, 0.03), transparent),
+                   #f8fafc`,
+      color: "#0f172a",
       fontFamily: "'Poppins', sans-serif",
     }}>
-      <Container maxWidth="lg" sx={{ pt: 8 }}>
+      <Container maxWidth="lg" sx={{ pt: 6 }}>
+        
         {/* Cabeçalho */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, mb: 6, flexWrap: "wrap" }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 3, mb: 5, flexWrap: "wrap" }}>
           <Box>
             <Typography
               variant="h3"
               sx={{
                 fontWeight: 800,
-                lineHeight: 1,
-                background: "linear-gradient(90deg,#00e5ff,#7c4dff,#00bcd4)",
+                lineHeight: 1.1,
+                background: "linear-gradient(90deg, #0041ca, #0061ff, #00a8ff)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 fontSize: { xs: "1.8rem", md: "2.4rem" },
-                letterSpacing: 0.6,
-                mb: 0.5,
+                letterSpacing: -0.5,
+                mb: 1,
                 backgroundSize: "200% auto",
                 animation: "gradientFlow 6s ease infinite",
               }}
             >
               Gestão de Cargos
             </Typography>
-            <Typography sx={{ color: "rgba(230,238,248,0.8)" }}>
-              Gerencie cargos e atribua membros com estilo premium.
+            <Typography sx={{ color: "#475569", fontWeight: 500, fontSize: "0.95rem" }}>
+              Acompanhe métricas, gerencie funções corporativas e distribua sua equipe de forma inteligente.
             </Typography>
           </Box>
 
@@ -127,15 +157,21 @@ export default function GestaoCargos() {
               startIcon={<AddIcon />}
               onClick={handleOpenNewCargo}
               sx={{
-                borderRadius: "999px",
-                px: 3,
-                py: 1,
-                fontWeight: 700,
-                background: "linear-gradient(90deg,#7c4dff,#00e5ff)",
-                boxShadow: "0 8px 30px rgba(124,77,255,0.18)",
+                borderRadius: "12px",
+                px: 3.5,
+                py: 1.2,
+                fontWeight: 600,
+                background: "linear-gradient(90deg, #0052d4, #0061ff)",
+                boxShadow: "0 4px 20px rgba(0, 97, 255, 0.2)",
                 color: "white",
                 textTransform: "none",
-                "&:hover": { transform: "translateY(-3px) scale(1.02)", boxShadow: "0 18px 50px rgba(124,77,255,0.28)" },
+                fontSize: "0.9rem",
+                "&:hover": { 
+                  transform: "translateY(-2px)", 
+                  boxShadow: "0 8px 25px rgba(0, 97, 255, 0.35)",
+                  background: "linear-gradient(90deg, #0041ca, #0052d4)",
+                },
+                transition: "all 0.2s ease"
               }}
             >
               Novo Cargo
@@ -148,101 +184,173 @@ export default function GestaoCargos() {
               size="small"
               sx={{
                 minWidth: 280,
-                borderRadius: "999px",
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "999px",
-                  background: "rgba(255,255,255,0.02)",
-                  backdropFilter: "blur(6px)",
-                  color: "#e6eef8",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                  color: "#0f172a",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  "& fieldset": { borderColor: "#e2e8f0" },
+                  "&:hover fieldset": { borderColor: "#cbd5e1" },
+                  "&.Mui-focused fieldset": { borderColor: "#0061ff" },
                 },
-                "& .MuiInputBase-input": { color: "#e6eef8", pl: 1.2 },
+                "& .MuiInputBase-input": { pl: 1.5, fontSize: "0.9rem" },
               }}
             />
           </Box>
         </Box>
 
-        {/* Lista de cargos */}
+        {/* Seção de Estatísticas (Métricas Avançadas) */}
+        <Grid container spacing={3} sx={{ mb: 6 }}>
+          {[
+            { title: "Total de Cargos", value: stats.totalCargos, icon: <WorkIcon />, color: "#0061ff", subtitle: "Funções mapeadas" },
+            { title: "Membros Alocados", value: stats.totalMembros, icon: <GroupIcon />, color: "#00a8ff", subtitle: "Colaboradores ativos" },
+            { title: "Média por Cargo", value: `${stats.mediaMembros} memb.`, icon: <PieChartIcon />, color: "#3b82f6", subtitle: "Densidade organizacional" },
+            { title: "Mais Ocupado", value: stats.cargoMaisOcupado.nome, icon: <LeaderboardIcon />, color: "#0041ca", subtitle: `${stats.cargoMaisOcupado.totalMembros || 0} membros ativos` },
+          ].map((stat, i) => (
+            <Grid item xs={12} sm={6} md={3} key={i}>
+              <Paper
+                component={motion.div}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08 }}
+                elevation={0}
+                sx={{
+                  p: 2.5,
+                  borderRadius: "16px",
+                  background: "#ffffff",
+                  border: "1px solid #edf2f7",
+                  boxShadow: "0 4px 18px rgba(0, 0, 0, 0.02)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                <Box sx={{ maxWidth: '70%' }}>
+                  <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase", tracking: 0.5 }}>{stat.title}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, my: 0.5, color: "#1e293b", textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {stat.value}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: "#94a3b8", fontWeight: 500 }}>{stat.subtitle}</Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: `${stat.color}10`, color: stat.color, width: 48, height: 48, borderRadius: "12px", border: `1px solid ${stat.color}20` }}>
+                  {stat.icon}
+                </Avatar>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+
+        <Divider sx={{ borderColor: "#e2e8f0", mb: 5 }} />
+
+        {/* Listagem de Cargos */}
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", pt: 10 }}>
-            <CircularProgress size={64} thickness={5} sx={{ color: "#00e5ff" }} />
+            <CircularProgress size={50} thickness={4.5} sx={{ color: "#0061ff" }} />
           </Box>
+        ) : filteredCargos.length === 0 ? (
+          <Typography align="center" sx={{ mt: 8, color: "#64748b", fontWeight: 500 }}>
+            Nenhum cargo encontrado.
+          </Typography>
         ) : (
-          <List sx={{ p: 0 }}>
-            {filteredCargos.length === 0 ? (
-              <Typography align="center" sx={{ mt: 8, color: "rgba(230,238,248,0.7)" }}>
-                Nenhum cargo encontrado.
-              </Typography>
-            ) : filteredCargos.map((cargo, idx) => (
-              <motion.div key={cargo.id} custom={idx} initial="hidden" animate="show" variants={listItemVariants}>
-                <Paper
-                  elevation={3}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    p: { xs: 2, md: 3 },
-                    mb: 3,
-                    borderRadius: 3,
-                    background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
-                    backdropFilter: "blur(8px)",
-                    border: "1px solid rgba(255,255,255,0.04)",
-                    transition: "transform 220ms ease, box-shadow 220ms ease",
-                    "&:hover": {
-                      transform: "translateY(-6px)",
-                      boxShadow: "0 20px 60px rgba(2,6,23,0.6), 0 0 30px rgba(0,229,255,0.06)",
-                      border: "1px solid rgba(124,77,255,0.18)",
-                    },
-                  }}
-                >
-                  <Avatar sx={{ bgcolor: "#7c4dff", width: { xs: 64, md: 80 }, height: { xs: 64, md: 80 } }}>
-                    <WorkIcon fontSize="large" />
-                  </Avatar>
+          <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="show">
+            {filteredCargos.map((cargo, idx) => {
+              const percentagemMembros = stats.totalMembros > 0 ? (cargo.totalMembros / stats.totalMembros) * 100 : 0;
+              
+              return (
+                <Grid item xs={12} md={6} key={cargo.id} component={motion.div} variants={cardVariants}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      borderRadius: "16px",
+                      background: "#ffffff",
+                      border: "1px solid #e2e8f0",
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.015)",
+                      position: "relative",
+                      overflow: "hidden",
+                      transition: "all 0.25s ease-in-out",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: "0 12px 30px rgba(0, 97, 255, 0.08)",
+                        borderColor: "#0061ff",
+                      },
+                    }}
+                  >
+                    {/* Header do Cargo */}
+                    <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 2.5 }}>
+                      <Avatar sx={{ background: "linear-gradient(135deg, #0061ff, #00a8ff)", width: 48, height: 48, borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,97,255,0.15)" }}>
+                        <WorkIcon fontSize="small" />
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1, maxWidth: 'calc(100% - 100px)' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: "1.15rem", color: "#0f172a", lineHeight: 1.3 }}>
+                          {cargo.nome}
+                        </Typography>
+                        
+                      </Box>
 
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: { xs: 16, md: 20 }, color: "#e6eef8" }}>
-                      {cargo.nome}
+                      {/* Ações */}
+                      <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
+                        <Tooltip title="Editar">
+                          <IconButton onClick={() => handleEditCargo(cargo)} sx={{ color: "#0061ff", bgcolor: "#0061ff08", p: 1, borderRadius: "8px", "&:hover": { bgcolor: "#0061ff15" } }}>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Excluir">
+                          <IconButton onClick={() => handleDeleteClick(cargo)} sx={{ color: "#ef4444", bgcolor: "#ef444408", p: 1, borderRadius: "8px", "&:hover": { bgcolor: "#ef444415" } }}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Box>
+
+                    {/* Descrição */}
+                    <Typography variant="body2" sx={{ color: "#475569", mb: 3, minHeight: 40, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", fontSize: "0.875rem", lineHeight: 1.5 }}>
+                      {cargo.descricao || "Nenhuma descrição fornecida para este cargo corporativo estruturado."}
                     </Typography>
-                    {cargo.descricao && (
-                      <Typography variant="body2" sx={{ mt: 0.5, color: "rgba(230,238,248,0.8)" }}>
-                        {cargo.descricao}
-                      </Typography>
-                    )}
-                    <Stack direction="row" spacing={2} alignItems="center" mt={1}>
-                      <GroupIcon fontSize="small" sx={{ color: "rgba(230,238,248,0.7)" }} />
-                      <Typography variant="caption" sx={{ color: "rgba(230,238,248,0.7)" }}>
-                        {cargo.totalMembros || 0} membro(s) atribuídos
-                      </Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1} alignItems="center" mt={1}>
-                      <AccessTimeIcon fontSize="small" sx={{ color: "rgba(230,238,248,0.7)" }} />
-                      <Typography variant="caption" sx={{ color: "rgba(230,238,248,0.7)" }}>
-                        Última atribuição: {cargo.ultimoAtribuido ? new Date(cargo.ultimoAtribuido).toLocaleDateString("pt-BR") : "Nenhuma"}
-                      </Typography>
-                    </Stack>
-                  </Box>
 
-                  <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
-                    <Tooltip title="Editar">
-                      <IconButton onClick={() => handleEditCargo(cargo)} sx={{ color: "#00e5ff" }}>
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Excluir">
-                      <IconButton onClick={() => handleDeleteClick(cargo)} sx={{ color: "#ff1744" }}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Paper>
-              </motion.div>
-            ))}
-          </List>
+                    {/* Barra de Distribuição Interna */}
+                    <Box sx={{ mb: 3 }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 500 }}>Representação na Equipe</Typography>
+                        <Typography variant="caption" sx={{ color: "#0061ff", fontWeight: 700 }}>{percentagemMembros.toFixed(0)}%</Typography>
+                      </Box>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={percentagemMembros > 0 ? Math.max(percentagemMembros, 5) : 0} 
+                        sx={{ height: 6, borderRadius: 3, bgcolor: "#f1f5f9", "& .MuiLinearProgress-bar": { background: "linear-gradient(90deg, #0061ff, #00a8ff)" } }} 
+                      />
+                    </Box>
+
+                    {/* Meta-dados inferiores */}
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ pt: 2, borderTop: "1px solid #f1f5f9" }} justifyContent="space-between">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <GroupIcon sx={{ color: "#94a3b8", fontSize: 16 }} />
+                        <Typography variant="caption" sx={{ color: "#334155", fontWeight: 600 }}>
+                          {cargo.totalMembros || 0} membro(s) alocado(s)
+                        </Typography>
+                      </Stack>
+                      
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <AccessTimeIcon sx={{ color: "#94a3b8", fontSize: 16 }} />
+                        <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 500 }}>
+                          Última Alteração: {cargo.ultimoAtribuido ? new Date(cargo.ultimoAtribuido).toLocaleDateString("pt-BR") : "Sem histórico"}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+
+                  </Paper>
+                </Grid>
+              );
+            })}
+          </Grid>
         )}
 
         {/* Modal cadastro/edição */}
-        <Dialog open={openCargoModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ color: "#e6eef8" }}>{editingCargo ? "Editar Cargo" : "Cadastrar Novo Cargo"}</DialogTitle>
-          <DialogContent dividers>
+        <Dialog open={openCargoModal} onClose={handleCloseModal} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: "#ffffff", color: "#0f172a", borderRadius: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.1)" } }}>
+          <DialogTitle sx={{ color: "#0f172a", fontWeight: 700, px: 3, pt: 3 }}>{editingCargo ? "Editar Cargo" : "Cadastrar Novo Cargo"}</DialogTitle>
+          <DialogContent dividers sx={{ borderColor: "#f1f5f9", px: 3 }}>
             <FormCargos
               cargo={editingCargo}
               onSuccess={() => { handleCloseModal(); fetchCargos(); setSnackbar({ open: true, message: `Cargo ${editingCargo ? "atualizado" : "cadastrado"} com sucesso!`, severity: "success" }); }}
@@ -252,24 +360,26 @@ export default function GestaoCargos() {
         </Dialog>
 
         {/* Modal confirmação exclusão */}
-        <Dialog open={Boolean(deletingCargo)} onClose={cancelDelete}>
-          <DialogTitle sx={{ color: "#e6eef8" }}>Confirmar exclusão</DialogTitle>
+        <Dialog open={Boolean(deletingCargo)} onClose={cancelDelete} PaperProps={{ sx: { bgcolor: "#ffffff", color: "#0f172a", borderRadius: "16px" } }}>
+          <DialogTitle sx={{ color: "#0f172a", fontWeight: 700 }}>Confirmar exclusão</DialogTitle>
           <DialogContent>
-            <DialogContentText sx={{ color: "rgba(230,238,248,0.8)" }}>
-              Deseja realmente excluir o cargo <strong>{deletingCargo?.nome}</strong>?
+            <DialogContentText sx={{ color: "#475569" }}>
+              Deseja realmente excluir o cargo <strong>{deletingCargo?.nome}</strong>? Essa operação é irreversível.
             </DialogContentText>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={cancelDelete}>Cancelar</Button>
-            <Button onClick={confirmDelete} color="error" variant="contained">Excluir</Button>
+          <DialogActions sx={{ p: 2.5, gap: 1 }}>
+            <Button onClick={cancelDelete} sx={{ color: "#64748b", textTransform: "none", fontWeight: 600 }}>Cancelar</Button>
+            <Button onClick={confirmDelete} color="error" variant="contained" sx={{ borderRadius: "10px", px: 3, textTransform: "none", fontWeight: 600, boxShadow: "none" }}>Excluir Cargo</Button>
           </DialogActions>
         </Dialog>
 
-        <AtribuirCargoMembro cargos={cargos} />
+        <Box sx={{ mt: 6 }}>
+          <AtribuirCargoMembro cargos={cargos} />
+        </Box>
 
-        {/* Snackbar */}
+        {/* Snackbar Premium */}
         <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={closeSnack} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
-          <Alert severity={snackbar.severity} sx={{ width: "100%", fontWeight: 700, background: snackbar.severity === "success" ? "linear-gradient(90deg,#2ecc71,#10ac84)" : "linear-gradient(90deg,#ff6b6b,#ff4d4d)", color: "#fff" }}>
+          <Alert severity={snackbar.severity} sx={{ width: "100%", fontWeight: 600, borderRadius: "12px", background: snackbar.severity === "success" ? "#0061ff" : "#ef4444", color: "#fff", boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}>
             {snackbar.message}
           </Alert>
         </Snackbar>

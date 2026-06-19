@@ -5,12 +5,12 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Grid,
   Container
 } from "@mui/material";
 
 import WelcomeCard from "../components/WelcomeCard";
 import DashboardCards from "../components/DashboardCards";
+import Distribuicoes from "../components/Distribuicoes"; // <-- Importação do novo componente
 import Graficos from "../components/Graficos";
 import TopContribuidores from "../components/topContribuidores";
 import NovosMembros from "../components/novosMembros";
@@ -94,41 +94,40 @@ export default function Dashboard() {
     <Box
       sx={{
         minHeight: "100vh",
-        // Espaçamento calculado milimetricamente para não colidir com o topo (Navbar)
         pt: { xs: "100px", md: "120px" },
         pb: { xs: 4, md: 6 },
-        
-        // Fundo Premium Studio com Gradientes de Iluminação Periférica Avançados
         background: `
-          radial-gradient(circle at 10% 15%, rgba(79, 70, 229, 0.04) 0%, transparent 40%),
-          radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 35%),
-          radial-gradient(circle at 50% 80%, rgba(245, 158, 11, 0.02) 0%, transparent 50%),
+          radial-gradient(circle at 8% 12%, rgba(79, 70, 229, 0.04) 0%, transparent 35%),
+          radial-gradient(circle at 92% 18%, rgba(16, 185, 129, 0.03) 0%, transparent 30%),
+          radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.01) 0%, transparent 45%),
           #f8fafc
         `,
-        
         px: { xs: 2, sm: 3, md: 5, lg: 6, xl: 8 },
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Container Máximo de segurança para telas Ultra-Wide não quebrarem o layout */}
       <Container maxWidth="xl" disableGutters>
         
-        {/* Bloco de Boas-Vindas */}
+        {/* Bloco de Boas-vindas */}
         <Box sx={{ mb: 4, width: "100%" }}>
           <WelcomeCard membro={user} />
         </Box>
 
-        {/* Bloco de Indicadores (Membros, Contribuições, Despesas, Balanço) */}
+        {/* Bloco de Indicadores Financeiros Centrais */}
         <Box sx={{ mb: 4, width: "100%" }}>
           <DashboardCards dados={dados} />
         </Box>
 
-        {/* Grelha Organizadora Principal contra Colisões de Componentes */}
+        {/* Novo Bloco Isolado das Distribuições Demográficas/Gênero */}
+        <Box sx={{ mb: 5, width: "100%" }}>
+          <Distribuicoes dados={dados} />
+        </Box>
+
+        {/* Grelha de Gráficos e Relatórios Laterais */}
         <Box
           sx={{
             display: "grid",
-            // minmax(0, x) impede o componente filho de crescer infinitamente e forçar quebra
             gridTemplateColumns: {
               xs: "minmax(0, 1fr)",
               lg: "minmax(0, 2fr) minmax(0, 1fr)",
@@ -139,29 +138,15 @@ export default function Dashboard() {
           }}
         >
           {/* LADO ESQUERDO: Painel Analítico de Gráficos */}
-          <Box 
-            sx={{ 
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              gap: 4
-            }}
-          >
-            <Graficos />
+          <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 4 }}>
+            <Graficos dados={dados} />
           </Box>
 
           {/* LADO DIREITO: Painéis Operacionais Relatórios Laterais */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 3, // Espaçamento calibrado para os cards empilhados
-              width: "100%",
-            }}
-          >
-            <TopContribuidores />
-            <NovosMembros />
-            <ProximoCultos />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3, width: "100%" }}>
+            <TopContribuidores dados={dados?.topContribuidores || []} />
+            <NovosMembros dados={dados?.novosMembros || []} />
+            <ProximoCultos dados={dados?.proximosCultos || []} />
           </Box>
           
         </Box>

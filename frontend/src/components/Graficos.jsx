@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
-import Chart from "react-apexcharts";
 import {
   Box,
   Typography,
@@ -10,6 +9,23 @@ import {
   MenuItem,
   Stack,
 } from "@mui/material";
+
+// Importações do Recharts para substituir o ApexCharts
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as ChartTooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  BarChart,
+  Bar,
+} from "recharts";
 
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import DonutLargeRoundedIcon from "@mui/icons-material/DonutLargeRounded";
@@ -48,6 +64,8 @@ const emptyStateStyle = {
   gap: 1.5,
   fontFamily: '"Inter", sans-serif'
 };
+
+const CoresDonut = ["#4f46e5", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 export default function Graficos() {
   const [dados, setDados] = useState(null);
@@ -98,198 +116,16 @@ export default function Graficos() {
   const temDadosDonut = tiposContribuicao.length > 0 && totalContribuicoes > 0;
   const temDadosBarra = Object.keys(faixasEtarias).length > 0;
 
-  // ======================================================
-  // CONFIGURAÇÃO CONFIG: LINEAR / AREA GRAPH
-  // ======================================================
-  const lineOptions = {
-    chart: {
-      type: "area",
-      toolbar: { show: false },
-      zoom: { enabled: false },
-      background: "transparent",
-      foreColor: "#64748b",
-      dropShadow: {
-        enabled: true,
-        top: 12,
-        left: 0,
-        blur: 8,
-        color: "#4f46e5",
-        opacity: 0.18
-      },
-      animations: { enabled: true, easing: "easeout", speed: 800 }
-    },
-    colors: ["#4f46e5"],
-    stroke: { curve: "smooth", width: 4, lineCap: "round" },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.25,
-        opacityTo: 0.01,
-        stops: [0, 95, 100],
-      },
-    },
-    markers: {
-      size: 0,
-      strokeColors: "#fff",
-      strokeWidth: 3,
-      hover: { size: 6 }
-    },
-    grid: {
-      borderColor: "#f1f5f9",
-      strokeDashArray: 6,
-      padding: { left: 10, right: 10, bottom: 0, top: 0 }
-    },
-    tooltip: {
-      theme: "light",
-      y: { formatter: (val) => `${Number(val).toLocaleString()} Kz` },
-      style: { fontSize: "13px", fontFamily: '"Inter", sans-serif' }
-    },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: ultimosMeses.map((item) => item.mes || ""),
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: { style: { fontWeight: 600, fontSize: "11px" } }
-    },
-    yaxis: {
-      labels: {
-        formatter: (val) => `${Number(val).toLocaleString()}`,
-        style: { fontSize: "11px", fontWeight: 500 }
-      }
-    },
-    legend: { show: false }
-  };
-
-  const lineSeries = [{
-    name: "Contribuições",
-    data: ultimosMeses.map((item) => item.valor || 0)
-  }];
-
-  // ======================================================
-  // CONFIGURAÇÃO CONFIG: DONUT GRAPH
-  // ======================================================
-  const donutOptions = {
-    labels: tiposContribuicao.map((item) => item.nome || "Outros"),
-    colors: ["#4f46e5", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"],
-    chart: { 
-      background: "transparent",
-      dropShadow: {
-        enabled: true,
-        top: 8,
-        left: 0,
-        blur: 10,
-        color: "#0f172a",
-        opacity: 0.04
-      }
-    },
-    legend: {
-      position: "bottom",
-      fontSize: "12px",
-      fontFamily: '"Inter", sans-serif',
-      fontWeight: 500,
-      labels: { colors: "#64748b" },
-      markers: { radius: 12, width: 10, height: 10 },
-      itemMargin: { horizontal: 10, vertical: 5 }
-    },
-    stroke: { width: 3, colors: ["#ffffff"] },
-    plotOptions: {
-      pie: {
-        expandOnClick: true,
-        donut: {
-          size: "75%",
-          labels: {
-            show: true,
-            total: {
-              show: true,
-              label: "Volume Total",
-              color: "#64748b",
-              fontSize: "12px",
-              fontWeight: 600,
-              fontFamily: '"Inter", sans-serif',
-              formatter: () => `${Number(totalContribuicoes).toLocaleString()} Kz`
-            },
-            value: {
-              color: "#0f172a",
-              fontWeight: 800,
-              fontSize: "20px",
-              fontFamily: '"Inter", sans-serif',
-              formatter: (val) => `${Number(val).toLocaleString()}`
-            }
-          }
-        }
-      }
-    },
-    responsive: [{
-      breakpoint: 480,
-      options: {
-        legend: { position: "top" }
-      }
-    }],
-    dataLabels: { enabled: false }
-  };
-
-  const donutSeries = tiposContribuicao.map((item) => item.valor || 0);
-
-  // ======================================================
-  // CONFIGURAÇÃO CONFIG: BAR GRAPH
-  // ======================================================
-  const barOptions = {
-    chart: {
-      toolbar: { show: false },
-      foreColor: "#64748b",
-      background: "transparent",
-      dropShadow: {
-        enabled: true,
-        top: 6,
-        left: 0,
-        blur: 6,
-        color: "#4f46e5",
-        opacity: 0.12
-      }
-    },
-    colors: ["#4f46e5"],
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        columnWidth: "32%",
-        distributed: false,
-      }
-    },
-    grid: {
-      borderColor: "#f1f5f9",
-      strokeDashArray: 6,
-      padding: { bottom: 0, top: 0 }
-    },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: Object.keys(faixasEtarias),
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: { style: { fontWeight: 600, fontSize: "11px" } }
-    },
-    yaxis: {
-      labels: {
-        formatter: (val) => Number(val).toLocaleString(),
-        style: { fontSize: "11px" }
-      }
-    },
-    tooltip: {
-      theme: "light",
-      style: { fontSize: "12px", fontFamily: '"Inter", sans-serif' }
-    },
-    legend: { show: false }
-  };
-
-  const barSeries = [{
-    name: "Membros",
-    data: Object.values(faixasEtarias)
-  }];
+  // Formatação dos dados de faixas etárias de Objeto para Array (exigido pelo Recharts)
+  const dadosBarraFormatados = Object.keys(faixasEtarias).map((chave) => ({
+    faixa: chave,
+    Membros: faixasEtarias[chave],
+  }));
 
   return (
     <Grid container spacing={4}>
       
-      {/* CARD 1: GRÁFICO DE LINHA (RESUMO FINANCEIRO) */}
+      {/* CARD 1: GRÁFICO DE ÁREA (RESUMO FINANCEIRO) */}
       <Grid item xs={12} xl={8}>
         <Box sx={cardStyle}>
           <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" spacing={2} sx={{ mb: 4 }}>
@@ -331,7 +167,24 @@ export default function Graficos() {
 
           <Box sx={{ height: 350, width: "100%" }}>
             {temDadosLinha ? (
-              <Chart options={lineOptions} series={lineSeries} type="area" height="100%" width="100%" />
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={ultimosMeses} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.01} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="6 6" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="mes" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} style={{ fontWeight: 600 }} />
+                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
+                  <ChartTooltip 
+                    formatter={(val) => [`${Number(val).toLocaleString()} Kz`, "Contribuições"]}
+                    contentStyle={{ fontFamily: '"Inter", sans-serif', borderRadius: '8px', borderColor: '#e2e8f0' }}
+                  />
+                  <Area type="monotone" dataKey="valor" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorValor)" />
+                </AreaChart>
+              </ResponsiveContainer>
             ) : (
               <Box sx={emptyStateStyle}>
                 <TrendingUpRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
@@ -361,7 +214,26 @@ export default function Graficos() {
 
           <Box sx={{ height: 350, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {temDadosDonut ? (
-              <Chart options={donutOptions} series={donutSeries} type="donut" height="100%" width="100%" />
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={tiposContribuicao}
+                    dataKey="valor"
+                    nameKey="nome"
+                    cx="50%"
+                    cy="45%"
+                    innerRadius="68%"
+                    outerRadius="85%"
+                    paddingAngle={4}
+                  >
+                    {tiposContribuicao.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CoresDonut[index % CoresDonut.length]} stroke="#fff" strokeWidth={2} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip formatter={(val) => `${Number(val).toLocaleString()} Kz`} />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', fontFamily: '"Inter", sans-serif' }} />
+                </PieChart>
+              </ResponsiveContainer>
             ) : (
               <Box sx={emptyStateStyle}>
                 <DonutLargeRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
@@ -391,7 +263,15 @@ export default function Graficos() {
 
           <Box sx={{ height: 300, width: "100%" }}>
             {temDadosBarra ? (
-              <Chart options={barOptions} series={barSeries} type="bar" height="100%" width="100%" />
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dadosBarraFormatados} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="6 6" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="faixa" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} style={{ fontWeight: 600 }} />
+                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
+                  <ChartTooltip contentStyle={{ fontFamily: '"Inter", sans-serif', borderRadius: '8px', borderColor: '#e2e8f0' }} />
+                  <Bar dataKey="Membros" fill="#4f46e5" radius={[8, 8, 0, 0]} maxBarSize={45} />
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
               <Box sx={emptyStateStyle}>
                 <BarChartRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />

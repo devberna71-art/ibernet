@@ -104,9 +104,12 @@ export default function Navbar() {
     );
   }
 
+  // Lógica para determinar se a barra lateral do desktop está visível
+  const showDesktopSidebar = !isMobile && userRole;
+
   return (
     <>
-      {/* Corrige o deslocamento do conteúdo */}
+      {/* Corrige o deslocamento do conteúdo dinamicamente */}
       <GlobalStyles
         styles={{
           html: {
@@ -116,7 +119,8 @@ export default function Navbar() {
           body: {
             margin: 0,
             padding: 0,
-            paddingLeft: isMobile ? 0 : `${DESKTOP_NAV_WIDTH}px`,
+            // Se NÃO for mobile E for utilizador logado, adiciona o espaço à esquerda. Caso contrário, expande (0)
+            paddingLeft: showDesktopSidebar ? `${DESKTOP_NAV_WIDTH}px` : 0,
             transition: "padding-left .25s ease",
             overflowX: "hidden",
           },
@@ -131,13 +135,14 @@ export default function Navbar() {
       {isMobile && (
         <AppBar
           position="fixed"
-          elevation={3}
+          elevation={1}
           sx={{
-            background:
-              "linear-gradient(135deg,#1e3a8a 0%,#2563eb 50%,#60a5fa 100%)",
+            background: "#ffffff",
+            color: "#1e293b",
+            borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
           }}
         >
-          <Toolbar>
+          <Toolbar sx={{ minHeight: { xs: 80, sm: 80 } }}> 
             <IconButton
               edge="start"
               color="inherit"
@@ -146,13 +151,13 @@ export default function Navbar() {
               <MenuIcon />
             </IconButton>
 
-            <Box sx={{ flexGrow: 1 }}>
+            <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", pl: 1 }}>
               <Box
                 component="img"
                 src={logoBernet}
                 alt="Logo"
                 sx={{
-                  height: 70,
+                  height: 55,
                   display: "block",
                 }}
               />
@@ -192,8 +197,8 @@ export default function Navbar() {
         )}
       </Drawer>
 
-      {/* Espaço APENAS para AppBar Mobile */}
-      {isMobile && <Toolbar />}
+      {/* Espaço dinâmico para empurrar o conteúdo abaixo da AppBar Mobile alterada */}
+      {isMobile && <Toolbar sx={{ minHeight: { xs: 80, sm: 80 } }} />}
     </>
   );
 }

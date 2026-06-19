@@ -7,21 +7,14 @@ export default function FullScreenLoader({ isDone }) {
   const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
-    // Só inicia o processo de abertura quando o sistema disser que está pronto
     if (isDone) {
-      
-      // FORÇA O LOADER A DEMORAR MAIS UM POUCO (2.5 segundos de pura retenção)
       const delayAntesDeAbrir = setTimeout(() => {
-        setIsLeaving(true); // Dispara a abertura suave da página
-
-        // ESPERA A TRANSIÇÃO ULTRA LENTA DE 2 SEGUNDOS TERMINAR
+        setIsLeaving(true);
         const removeDoDOM = setTimeout(() => {
           setShouldRender(false);
-        }, 2000); // Casado exatamente com os 2000ms do CSS abaixo
-
+        }, 1200); // Ajustado para uma transição mais fluida
         return () => clearTimeout(removeDoDOM);
-      }, 2500); 
-
+      }, 800);
       return () => clearTimeout(delayAntesDeAbrir);
     }
   }, [isDone]);
@@ -29,80 +22,62 @@ export default function FullScreenLoader({ isDone }) {
   if (!shouldRender) return null;
 
   return (
-    <div 
-      style={{
-        ...styles.overlay,
-        ...(isLeaving ? styles.overlayExit : {})
-      }}
-    >
-      <div 
-        style={{
-          ...styles.content,
-          ...(isLeaving ? styles.contentExit : {})
-        }}
-      >
-        {/* LOTTIE BEM MENOR NO MOBILE */}
+    <div style={{ ...styles.overlay, ...(isLeaving ? styles.overlayExit : {}) }}>
+      <div style={{ ...styles.content, ...(isLeaving ? styles.contentExit : {}) }}>
         <div style={styles.lottieBox}>
           <Lottie animationData={loaderAnim} style={styles.lottie} />
         </div>
-
-        {/* TEXTO */}
-        <h3 style={styles.title}>Espere...</h3>
-        <p style={styles.subtitle}>Bernet System</p>
+        
+        <div style={styles.textContainer}>
+          <h3 style={styles.title}>Bernet System</h3>
+          <p style={styles.subtitle}>Iniciando ambiente seguro...</p>
+        </div>
       </div>
     </div>
   );
 }
 
 const styles = {
-  /* FUNDO DO LOADER */
   overlay: {
     position: 'fixed',
     inset: 0,
-    backgroundColor: '#0a0f1c',
+    // Gradiente radial moderno que traz profundidade ao centro
+    background: 'radial-gradient(circle at center, #1a2038 0%, #0a0f1c 100%)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 99999,
     opacity: 1,
-    // TRANSIÇÃO ULTRA SUAVE E LENTA (2 segundos de transição cinematográfica)
-    transition: 'opacity 2000ms cubic-bezier(0.33, 1, 0.68, 1)',
-    willChange: 'opacity',
+    transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
   },
 
-  /* QUANDO ABRE A PÁGINA: Desvanece muito devagar para não abrir rápido */
   overlayExit: {
     opacity: 0,
     pointerEvents: 'none',
   },
 
-  /* CONTEÚDO DA ANIMAÇÃO */
   content: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    textAlign: 'center',
-    opacity: 1,
-    transform: 'scale(1)',
-    transition: 'transform 2000ms cubic-bezier(0.33, 1, 0.68, 1), opacity 2000ms cubic-bezier(0.33, 1, 0.68, 1)',
-    willChange: 'transform, opacity',
+    gap: '1.5rem',
+    transition: 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 1.2s ease',
   },
 
-  /* O conteúdo some sumindo no horizonte lentamente */
   contentExit: {
-    transform: 'scale(0.92)',
+    transform: 'translateY(20px)',
     opacity: 0,
   },
 
-  /* AJUSTE COMPLETO DE RESPONSIVIDADE (DIMINUI NO MOBILE) */
   lottieBox: {
-    // No Mobile: 200px (bem menor). No Desktop: até 360px.
-    width: 'clamp(200px, 35vw, 360px)',
-    height: 'clamp(200px, 35vw, 360px)',
+    width: 'clamp(150px, 25vw, 250px)',
+    height: 'clamp(150px, 25vw, 250px)',
+    // Efeito de brilho sutil atrás do ícone
+    background: 'radial-gradient(circle, rgba(66, 153, 225, 0.15) 0%, transparent 70%)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    filter: 'drop-shadow(0 15px 35px rgba(0,0,0,0.6))',
+    borderRadius: '50%',
   },
 
   lottie: {
@@ -110,20 +85,32 @@ const styles = {
     height: '100%',
   },
 
-  /* TEXTOS RESPONSIVOS */
+  textContainer: {
+    textAlign: 'center',
+    animation: 'pulse 2s infinite ease-in-out',
+  },
+
   title: {
-    marginTop: '20px',
-    fontSize: 'clamp(14px, 2vw, 18px)',
-    fontWeight: 600,
-    color: '#ffffff',
-    letterSpacing: '0.5px',
+    margin: 0,
+    fontSize: '1.2rem',
+    fontWeight: '400',
+    color: '#e2e8f0',
+    letterSpacing: '0.2rem',
+    textTransform: 'uppercase',
   },
 
   subtitle: {
-    marginTop: '6px',
-    fontSize: 'clamp(10px, 1.5vw, 12px)',
-    color: 'rgba(255,255,255,0.45)',
-    letterSpacing: '0.8px',
-    textTransform: 'uppercase',
-  }
+    margin: '8px 0 0 0',
+    fontSize: '0.8rem',
+    color: '#64748b',
+    letterSpacing: '0.1rem',
+  },
 };
+
+// Adicione este bloco de estilo CSS no seu arquivo CSS global ou style tag
+/*
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+*/

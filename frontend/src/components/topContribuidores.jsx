@@ -137,7 +137,7 @@ export default function TopContribuidores() {
                 fontFamily: "inherit",
               }}
             >
-              Líderes de Contribuição
+              Maiores contribuidores
             </Typography>
             <Typography
               sx={{

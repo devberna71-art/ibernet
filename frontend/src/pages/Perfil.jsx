@@ -9,46 +9,30 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
+  DialogTitle,
   TextField,
   Snackbar,
   Alert,
   Stack,
-  InputAdornment,
-  IconButton,
-  OutlinedInput,
-  FormControl,
-  InputLabel,
   Chip,
-  Divider
+  Grid,
+  IconButton
 } from '@mui/material';
 
-import { motion } from 'framer-motion';
-
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
+import ShieldIcon from '@mui/icons-material/ShieldOutlined';
+import BusinessIcon from '@mui/icons-material/BusinessOutlined';
+import ContactIcon from '@mui/icons-material/ContactPageOutlined';
 import api from '../api/axiosConfig';
-
-const MotionBox = motion(Box);
-const MotionPaper = motion(Paper);
 
 export default function Perfil() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
-
-  const [formUsuario, setFormUsuario] = useState({
-    nome: '',
-    senha: '',
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [formUsuario, setFormUsuario] = useState({ nome: '' });
 
   const fetchPerfil = async () => {
     try {
@@ -61,297 +45,162 @@ export default function Perfil() {
     }
   };
 
-  useEffect(() => {
-    fetchPerfil();
-  }, []);
+  useEffect(() => { fetchPerfil(); }, []);
 
   const handleOpen = () => {
-    setFormUsuario({
-      nome: usuario.nome,
-      senha: '',
-    });
+    setFormUsuario({ nome: usuario.nome });
     setOpenModal(true);
   };
 
   const handleSubmit = async () => {
     try {
-      await api.put('/meu-perfil', formUsuario);
-
-      setSnackbar({
-        open: true,
-        message: 'Perfil atualizado com sucesso!',
-        severity: 'success'
-      });
-
+      await api.put('/meu-perfil', { nome: formUsuario.nome });
+      setSnackbar({ open: true, message: 'Perfil atualizado! ✨', severity: 'success' });
       setOpenModal(false);
       fetchPerfil();
     } catch (error) {
-      setSnackbar({
-        open: true,
-        message: 'Erro ao atualizar perfil',
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: 'Erro ao atualizar', severity: 'error' });
     }
   };
 
   if (loading) {
     return (
-      <Box sx={styles.center}>
-        <CircularProgress />
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <CircularProgress size={24} sx={{ color: 'text.primary' }} />
       </Box>
     );
   }
 
-  if (!usuario) {
-    return (
-      <Typography align="center" color="error" sx={{ mt: 10 }}>
-        Erro ao carregar perfil
-      </Typography>
-    );
-  }
-
+  if (!usuario) return null;
   const membro = usuario.membro;
 
   return (
-    <Box sx={styles.page}>
-
-      <Box sx={styles.bgGlow} />
-
-      <MotionPaper sx={styles.header} />
-
-      <MotionPaper sx={styles.profileCard}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
-
-          <Avatar
-            src={membro?.foto || usuario.foto || ''}
-            sx={styles.avatar}
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 900, margin: '0 auto' }}>
+      
+      {/* CARD COMPACTO SUPERIOR (FOTO + IDENTIDADE + BOTÃO) */}
+      <Paper 
+        elevation={0}
+        sx={{ 
+          p: 2.5, mb: 2, borderRadius: '16px', 
+          border: '1px solid', borderColor: 'grey.100',
+          background: '#fff', boxShadow: '0px 4px 20px rgba(0,0,0,0.01)'
+        }}
+      >
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems="center">
+          <Avatar 
+            src={membro?.foto || usuario.foto || ''} 
+            sx={{ width: 64, height: 64, border: '2px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} 
           />
-
-          <Box flex={1}>
-            <Typography variant="h4" fontWeight={900}>
+          <Box sx={{ flexGrow: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
               {usuario.nome}
             </Typography>
-
-            <Typography color="text.secondary">
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontWeight: 500 }}>
               {membro?.email}
             </Typography>
-
-            <Stack direction="row" spacing={1} mt={2} flexWrap="wrap">
-              {(membro?.cargos || []).map((cargo) => (
-                <Chip
-                  key={cargo.id}
-                  label={cargo.nome}
-                  sx={styles.chip}
-                />
+            
+            {/* CARGOS E DEPTOS JUNTOS E COMPACTOS LOGO ABAIXO DO NOME */}
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 1, justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+              {(membro?.cargos || []).map((c) => (
+                <Chip key={c.id} label={c.nome} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(25, 118, 210, 0.05)', color: 'primary.main', border: 'none' }} />
+              ))}
+              {(membro?.departamentos || []).map((d) => (
+                <Chip key={d.id} label={d.nome} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(156, 39, 176, 0.05)', color: 'secondary.main', border: 'none' }} />
               ))}
             </Stack>
           </Box>
-
-          <Button
-            variant="contained"
-            startIcon={<EditIcon />}
+          <Button 
+            variant="contained" disableElevation size="small"
+            startIcon={<EditIcon sx={{ fontSize: '14px !important' }} />} 
             onClick={handleOpen}
-            sx={styles.button}
+            sx={{
+              backgroundColor: 'text.primary', borderRadius: '8px', textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', px: 2, py: 0.8,
+              '&:hover': { backgroundColor: 'grey.800' }
+            }}
           >
             Editar
           </Button>
         </Stack>
-      </MotionPaper>
+      </Paper>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} mt={4}>
-        <StatCard title="Perfil Completo" value="98%" />
-        <StatCard title="Atividade" value="Alta" />
-        <StatCard title="Segurança" value="Protegido" />
-      </Stack>
+      {/* GRID INFERIOR MICRO-CARDS DE INFORMAÇÃO */}
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={4}>
+          <MiniCard title="Contactos" icon={<ContactIcon fontSize="inherit" />}>
+            <Row label="Telefone" value={membro?.telefone || '—'} />
+            <Row label="E-mail" value={membro?.email || '—'} />
+          </MiniCard>
+        </Grid>
+        
+        <Grid item xs={12} sm={4}>
+          <MiniCard title="Organização" icon={<BusinessIcon fontSize="inherit" />}>
+            <Row label="Sede" value={usuario.Sede?.nome || '—'} />
+            <Row label="Filial" value={usuario.Filhal?.nome || '—'} />
+          </MiniCard>
+        </Grid>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} mt={3}>
+        <Grid item xs={12} sm={4}>
+          <MiniCard title="Segurança" icon={<ShieldIcon fontSize="inherit" />}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4, mb: 1 }}>
+              Dados protegidos de ponta a ponta.
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', cursor: 'pointer', '&:hover': { opacity: 0.7 } }}>
+              Alterar senha →
+            </Typography>
+          </MiniCard>
+        </Grid>
+      </Grid>
 
-        <InfoCard title="Contactos">
-          <Info label="Telefone" value={membro?.telefone || 'N/D'} />
-          <Divider sx={{ my: 2 }} />
-          <Info label="Email" value={membro?.email || 'N/D'} />
-        </InfoCard>
-
-        <InfoCard title="Organização">
-          <Info label="Sede" value={usuario.Sede?.nome || 'N/D'} />
-          <Divider sx={{ my: 2 }} />
-          <Info label="Filial" value={usuario.Filhal?.nome || 'N/D'} />
-        </InfoCard>
-
-        <InfoCard title="Segurança">
-          <Typography color="text.secondary">
-            A tua conta está protegida com nível elevado de segurança.
-            A tua senha está protegida com incriptografia. Se desejar mudá-la use a ediçao de perfil.
-          </Typography>
-        </InfoCard>
-      </Stack>
-
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth="sm">
-        <DialogContent>
-          <Stack spacing={3} mt={1}>
-            <TextField
-              label="Nome"
-              value={formUsuario.nome}
-              onChange={(e) => setFormUsuario({ ...formUsuario, nome: e.target.value })}
-              fullWidth
-            />
-
-            <FormControl fullWidth>
-              <InputLabel>Senha</InputLabel>
-              <OutlinedInput
-                type={showPassword ? 'text' : 'password'}
-                value={formUsuario.senha}
-                onChange={(e) => setFormUsuario({ ...formUsuario, senha: e.target.value })}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </FormControl>
-          </Stack>
+      {/* MODAL DE EDIÇÃO CLEAN */}
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, fontSize: '1rem', p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Editar Perfil
+          <IconButton onClick={() => setOpenModal(false)} size="small"><CloseIcon fontSize="small" /></IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 2, pt: 0 }}>
+          <TextField 
+            label="Nome Completo" value={formUsuario.nome} onChange={(e) => setFormUsuario({ nome: e.target.value })} 
+            fullWidth size="small" variant="outlined" InputLabelProps={{ shrink: true }}
+            sx={{ mt: 1, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+          />
         </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenModal(false)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Salvar
-          </Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setOpenModal(false)} size="small" sx={{ textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
+          <Button variant="contained" disableElevation size="small" onClick={handleSubmit} sx={{ textTransform: 'none', fontWeight: 600, backgroundColor: 'text.primary', borderRadius: '6px', px: 2, '&:hover': { backgroundColor: 'grey.800' } }}>Salvar</Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-      >
-        <Alert severity={snackbar.severity}>
-          {snackbar.message}
-        </Alert>
+      {/* TOAST POPUP */}
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}>{snackbar.message}</Alert>
       </Snackbar>
     </Box>
   );
 }
 
-/* ---------- COMPONENTES ---------- */
-
-function Info({ label, value }) {
+// Componentes Utilitários de Escopo Local para manter o código limpo
+function MiniCard({ title, icon, children }) {
   return (
-    <Box>
-      <Typography fontSize={12} color="text.secondary">
-        {label}
-      </Typography>
-      <Typography fontWeight={700}>{value}</Typography>
-    </Box>
-  );
-}
-
-function InfoCard({ title, children }) {
-  return (
-    <Paper sx={styles.card}>
-      <Typography fontWeight={900} mb={2}>
-        {title}
-      </Typography>
+    <Paper 
+      elevation={0}
+      sx={{ p: 2, height: '100%', borderRadius: '12px', border: '1px solid', borderColor: 'grey.100', backgroundColor: '#fff' }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5, color: 'text.secondary', fontSize: '16px' }}>
+        {icon}
+        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+          {title}
+        </Typography>
+      </Stack>
       {children}
     </Paper>
   );
 }
 
-function StatCard({ title, value }) {
+function Row({ label, value }) {
   return (
-    <MotionPaper whileHover={{ scale: 1.03 }} sx={styles.statCard}>
-      <Typography fontSize={12} color="text.secondary">
-        {title}
-      </Typography>
-      <Typography fontSize={26} fontWeight={900}>
-        {value}
-      </Typography>
-    </MotionPaper>
+    <Box sx={{ mb: 1, '&:last-child': { mb: 0 } }}>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem', fontWeight: 500 }}>{label}</Typography>
+      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</Typography>
+    </Box>
   );
 }
-
-/* ---------- STYLES ---------- */
-
-const styles = {
-  page: {
-    minHeight: '100vh',
-    p: 4,
-    background: 'radial-gradient(circle at top, #eef2ff, #f8fafc)'
-  },
-
-  bgGlow: {
-    position: 'absolute',
-    width: 500,
-    height: 500,
-    background: 'radial-gradient(circle, rgba(59,130,246,0.25), transparent)', // 🔵 só azul
-    filter: 'blur(100px)',
-    top: -100,
-    right: -100,
-    zIndex: 0
-  },
-
-  center: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '70vh'
-  },
-
-  header: {
-    height: 220,
-    borderRadius: 6,
-    background: 'linear-gradient(135deg,#6366f1,#3b82f6)', // 🔵 removido verde
-    boxShadow: '0 25px 60px rgba(0,0,0,0.2)'
-  },
-
-  profileCard: {
-    mt: -10,
-    p: 4,
-    borderRadius: 6,
-    backdropFilter: 'blur(20px)',
-    background: 'rgba(255,255,255,0.7)',
-    boxShadow: '0 25px 80px rgba(0,0,0,0.08)',
-    position: 'relative',
-    zIndex: 2
-  },
-
-  avatar: {
-    width: 150,
-    height: 150,
-    border: '5px solid white',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
-  },
-
-  chip: {
-    background: 'linear-gradient(135deg,#4f46e5,#3b82f6)',
-    color: 'white',
-    fontWeight: 700
-  },
-
-  button: {
-    borderRadius: 4,
-    px: 4,
-    py: 1.5,
-    fontWeight: 800,
-    background: 'linear-gradient(135deg,#6366f1,#3b82f6)'
-  },
-
-  card: {
-    flex: 1,
-    p: 3,
-    borderRadius: 5,
-    background: 'rgba(255,255,255,0.7)',
-    backdropFilter: 'blur(10px)',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.06)'
-  },
-
-  statCard: {
-    flex: 1,
-    p: 3,
-    borderRadius: 5,
-    background: 'white',
-    boxShadow: '0 15px 40px rgba(0,0,0,0.08)'
-  }
-};

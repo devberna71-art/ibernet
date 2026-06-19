@@ -26,7 +26,6 @@ import {
   Alert,
   Switch,
   FormControlLabel,
-  Slide,
   Fade,
   Dialog,
   DialogTitle,
@@ -96,7 +95,7 @@ export default function GestaoIgrejas() {
 
   const [modalFilhalOpen, setModalFilhalOpen] = useState(false);
   const [selectedSede, setSelectedSede] = useState(null);
-  const [selectedFilialParaUsuario, setSelectedFilialParaUsuario] = useState(null); // ✨ Novo estado para vincular usuário extra
+  const [selectedFilialParaUsuario, setSelectedFilialParaUsuario] = useState(null); 
 
   const [modalSedeOpen, setModalSedeOpen] = useState(false);
   const [novaSede, setNovaSede] = useState({
@@ -130,7 +129,7 @@ export default function GestaoIgrejas() {
 
   const handleOpenFilhalModal = (sede, filhal = null) => {
     setSelectedSede(sede);
-    setSelectedFilialParaUsuario(filhal); // Se passado, faremos apenas o cadastro do usuário
+    setSelectedFilialParaUsuario(filhal); 
     setModalFilhalOpen(true);
   };
 
@@ -143,29 +142,33 @@ export default function GestaoIgrejas() {
   const handleOpenSedeModal = () => setModalSedeOpen(true);
   const handleCloseSedeModal = () => setModalSedeOpen(false);
 
-  const atualizarStatus = async ({ tipo, id }, novoStatus) => {
-    try {
-      await api.patch(`/${tipo}/${id}/status`, { status: novoStatus });
-      setSedes((prev) =>
-        prev.map((sede) => {
-          if (tipo === "sedes" && sede.id === id) return { ...sede, status: novoStatus };
-          if (sede.Filhals) {
-            return {
-              ...sede,
-              Filhals: sede.Filhals.map((f) =>
-                tipo === "filhais" && f.id === id ? { ...f, status: novoStatus } : f
-              ),
-            };
-          }
-          return sede;
-        })
-      );
-      setSnack({ open: true, message: "Status updated.", severity: "success" });
-    } catch (err) {
-      console.error(err);
-      setSnack({ open: true, message: "Error updating status.", severity: "error" });
-    }
-  };
+  // FUNÇÃO CORRIGIDA: Agora utiliza diretamente a propriedade 'tipo' enviada ('sedes' ou 'filhais')
+const atualizarStatus = async ({ tipo, id }, novoStatus) => {
+  try {
+    // Alinha a rota com o tipo correto enviado
+    await api.patch(`/${tipo}/${id}/status`, { status: novoStatus });
+    
+    setSedes((prev) =>
+      prev.map((sede) => {
+        if (tipo === "sedes" && sede.id === id) return { ...sede, status: novoStatus };
+        if (sede.Filhals) {
+          return {
+            ...sede,
+            Filhals: sede.Filhals.map((f) =>
+              // Corrigido aqui: o IconButton envia "filhais"
+              tipo === "filhais" && f.id === id ? { ...f, status: novoStatus } : f
+            ),
+          };
+        }
+        return sede;
+      })
+    );
+    setSnack({ open: true, message: "Status atualizado com sucesso.", severity: "success" });
+  } catch (err) {
+    console.error(err);
+    setSnack({ open: true, message: "Erro ao atualizar status.", severity: "error" });
+  }
+};
 
   const handleDeleteSede = async () => {
     const sede = confirmDelete.sede;
@@ -300,80 +303,109 @@ export default function GestaoIgrejas() {
                 </Box>
               )}
 
-              {sedes.map((sede) => (
-                <Box key={sede.id}>
-                  <GlassCard>
-                    <CardContent>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                          <Avatar sx={{ width: 64, height: 64, fontSize: 24, bgcolor: "primary.main" }}>
-                            {sede.nome ? sede.nome.charAt(0).toUpperCase() : "S"}
-                          </Avatar>
-                          <Box>
-                            <Typography variant="h5" sx={{ fontWeight: 800 }}>{sede.nome} ({sede.quantidadeMembros || 0} membros)</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{sede.endereco || "-"}</Typography>
+              {sedes.map((sede) => {
+                const sedeStatusClean = (sede.status || "pendente").toLowerCase();
+                return (
+                  <Box key={sede.id}>
+                    <GlassCard>
+                      <CardContent>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Avatar sx={{ width: 64, height: 64, fontSize: 24, bgcolor: "primary.main" }}>
+                              {sede.nome ? sede.nome.charAt(0).toUpperCase() : "S"}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="h5" sx={{ fontWeight: 800 }}>{sede.nome} ({sede.quantidadeMembros || 0} membros)</Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{sede.endereco || "-"}</Typography>
+                            </Box>
+                          </Box>
+
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Chip label={statusProps[sedeStatusClean]?.label || "—"} color={statusProps[sedeStatusClean]?.color || "default"} icon={statusProps[sedeStatusClean]?.icon || <></>} sx={{ fontWeight: 700 }} />
+                            {Object.keys(statusProps).map((st) => st !== sedeStatusClean && (
+                              <IconButton key={st} onClick={() => atualizarStatus({ tipo: "sedes", id: sede.id }, st)} color="primary">{statusProps[st].icon}</IconButton>
+                            ))}
+                            <IconButton onClick={() => setConfirmDelete({ open: true, sede })} sx={{ color: "#fff", bgcolor: "#d32f2f", "&:hover": { bgcolor: "#b71c1c" } }}><DeleteForever /></IconButton>
+                            <Button variant="contained" onClick={() => handleOpenFilhalModal(sede, null)} startIcon={<Add />} sx={{ ml: 1, borderRadius: 10, textTransform: "none" }}>
+                              Adicionar Filial
+                            </Button>
                           </Box>
                         </Box>
 
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Chip label={statusProps[sede.status]?.label || "—"} color={statusProps[sede.status]?.color || "default"} icon={statusProps[sede.status]?.icon || <></>} sx={{ fontWeight: 700 }} />
-                          {Object.keys(statusProps).map((st) => st !== sede.status && (
-                            <IconButton key={st} onClick={() => atualizarStatus({ tipo: "sedes", id: sede.id }, st)} color="primary">{statusProps[st].icon}</IconButton>
-                          ))}
-                          <IconButton onClick={() => setConfirmDelete({ open: true, sede })} sx={{ color: "#fff", bgcolor: "#d32f2f", "&:hover": { bgcolor: "#b71c1c" } }}><DeleteForever /></IconButton>
-                          <Button variant="contained" onClick={() => handleOpenFilhalModal(sede, null)} startIcon={<Add />} sx={{ ml: 1, borderRadius: 10, textTransform: "none" }}>
-                            Adicionar Filial
-                          </Button>
-                        </Box>
-                      </Box>
+                        <Divider sx={{ my: 2 }} />
 
-                      <Divider sx={{ my: 2 }} />
-
-                      <Accordion defaultExpanded sx={{ borderRadius: 2, background: "transparent", boxShadow: "none" }}>
-                        <AccordionSummary expandIcon={<ExpandMore />}><Typography sx={{ fontWeight: 700 }}>Filiais ({sede.Filhals ? sede.Filhals.length : 0})</Typography></AccordionSummary>
-                        <AccordionDetails>
-                          {sede.Filhals && sede.Filhals.length > 0 ? (
-                            <List disablePadding>
-                              {sede.Filhals.map((filhal) => (
-                                <React.Fragment key={filhal.id}>
-                                  <ListItem sx={{ borderRadius: 2, mb: 1, bgcolor: (theme) => theme.palette.mode === "dark" ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.03)" }}
-                                    secondaryAction={
-                                      <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                                        <Chip label={statusProps[filhal.status]?.label || "—"} color={statusProps[filhal.status]?.color || "default"} size="small" sx={{ fontWeight: 700 }} />
+                        <Accordion defaultExpanded sx={{ borderRadius: 2, background: "transparent", boxShadow: "none" }}>
+                          <AccordionSummary expandIcon={<ExpandMore />}><Typography sx={{ fontWeight: 700 }}>Filiais ({sede.Filhals ? sede.Filhals.length : 0})</Typography></AccordionSummary>
+                          <AccordionDetails>
+                            {sede.Filhals && sede.Filhals.length > 0 ? (
+                              <List disablePadding>
+                                {sede.Filhals.map((filhal) => {
+                                  const filhalStatusClean = (filhal.status || "pendente").toLowerCase();
+                                  
+                                  return (
+                                    <React.Fragment key={filhal.id}>
+                                      <ListItem 
+                                        sx={{ 
+                                          display: "flex",
+                                          justifyContent: "space-between",
+                                          alignItems: "center",
+                                          flexWrap: "wrap",
+                                          gap: 2,
+                                          borderRadius: 2, 
+                                          mb: 1, 
+                                          p: 2,
+                                          bgcolor: (theme) => theme.palette.mode === "dark" ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.03)" 
+                                        }}
+                                      >
+                                        <ListItemText 
+                                          primary={<Typography sx={{ fontWeight: 700 }}>{filhal.nome} ({filhal.quantidadeMembros || 0} membros)</Typography>} 
+                                          secondary={`End: ${filhal.endereco || "-"} • Tel: ${filhal.telefone || "-"}`} 
+                                        />
                                         
-                                        {/* ✨ NOVO BOTÃO EXTRA: Inserir usuário na filial já existente */}
-                                        <Tooltip title="Cadastrar mais um Usuário nesta Filial">
-                                          <Button
-                                            size="small"
-                                            variant="contained"
-                                            color="info"
-                                            onClick={() => handleOpenFilhalModal(sede, filhal)}
-                                            startIcon={<PersonAdd sx={{ fontSize: 14 }} />}
-                                            sx={{ borderRadius: 2, textTransform: "none", fontSize: "0.75rem", px: 1.5 }}
-                                          >
-                                            + Usuário
-                                          </Button>
-                                        </Tooltip>
+                                        <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+                                          <Chip label={statusProps[filhalStatusClean]?.label || "—"} color={statusProps[filhalStatusClean]?.color || "default"} size="small" sx={{ fontWeight: 700 }} />
+                                          
+                                          {Object.keys(statusProps).map((st) => st !== filhalStatusClean && (
+                                            <Tooltip key={st} title={`Mudar para ${statusProps[st].label}`}>
+                                              <IconButton size="small" onClick={() => atualizarStatus({ tipo: "filhais", id: filhal.id }, st)} color="primary">
+                                                {statusProps[st].icon}
+                                              </IconButton>
+                                            </Tooltip>
+                                          ))}
 
-                                        <Button size="small" variant="outlined" onClick={() => { setSelectedFilial(filhal); setSelectedSedeValidade(sede); setValidadeOpen(true); }} sx={{ borderRadius: 2, textTransform: "none" }}>Validade</Button>
-                                        <IconButton size="small" onClick={() => setConfirmDelete({ open: true, sede: null, filhal })} sx={{ color: "#fff", bgcolor: "#d32f2f" }}><DeleteForever fontSize="small" /></IconButton>
-                                      </Box>
-                                    }
-                                  >
-                                    <ListItemText primary={<Typography sx={{ fontWeight: 700 }}>{filhal.nome} ({filhal.quantidadeMembros || 0} membros)</Typography>} secondary={`End: ${filhal.endereco || "-"} • Tel: ${filhal.telefone || "-"}`} />
-                                  </ListItem>
-                                </React.Fragment>
-                              ))}
-                            </List>
-                          ) : (
-                            <Typography color="text.secondary">Nenhuma filial cadastrada.</Typography>
-                          )}
-                        </AccordionDetails>
-                      </Accordion>
-                    </CardContent>
-                  </GlassCard>
-                </Box>
-              ))}
+                                          <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 1 }} />
+
+                                          <Tooltip title="Cadastrar mais um Usuário nesta Filial">
+                                            <Button
+                                              size="small"
+                                              variant="contained"
+                                              color="info"
+                                              onClick={() => handleOpenFilhalModal(sede, filhal)}
+                                              startIcon={<PersonAdd sx={{ fontSize: 14 }} />}
+                                              sx={{ borderRadius: 2, textTransform: "none", fontSize: "0.75rem", px: 1.5 }}
+                                            >
+                                              + Usuário
+                                            </Button>
+                                          </Tooltip>
+
+                                          <Button size="small" variant="outlined" onClick={() => { setSelectedFilial(filhal); setSelectedSedeValidade(sede); setValidadeOpen(true); }} sx={{ borderRadius: 2, textTransform: "none" }}>Validade</Button>
+                                          <IconButton size="small" onClick={() => setConfirmDelete({ open: true, sede: null, filhal })} sx={{ color: "#fff", bgcolor: "#d32f2f", "&:hover": { bgcolor: "#b71c1c" } }}><DeleteForever fontSize="small" /></IconButton>
+                                        </Box>
+                                      </ListItem>
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </List>
+                            ) : (
+                              <Typography color="text.secondary">Nenhuma filial cadastrada.</Typography>
+                            )}
+                          </AccordionDetails>
+                        </Accordion>
+                      </CardContent>
+                    </GlassCard>
+                  </Box>
+                );
+              })}
             </Stack>
           )}
 
@@ -391,7 +423,7 @@ export default function GestaoIgrejas() {
               {selectedSede && (
                 <CadastrarIgrejaDono 
                   sedeId={selectedSede.id} 
-                  filhalExistenteId={selectedFilialParaUsuario?.id} // ✨ Repassa id da filial se ela já existir
+                  filhalExistenteId={selectedFilialParaUsuario?.id} 
                   onSuccess={() => { fetchSedes(); handleCloseFilhalModal(); }} 
                 />
               )}
