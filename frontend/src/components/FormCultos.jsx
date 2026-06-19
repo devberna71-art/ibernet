@@ -23,6 +23,7 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
+  Alpha,
 } from "@mui/material";
 import {
   Event as EventIcon,
@@ -33,6 +34,9 @@ import {
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import api from "../api/axiosConfig";
+
+// Importação do novo componente criado
+import Resumo from "./Resumo";
 
 export default function FormCultos({ culto, onSuccess, onCancel }) {
   const theme = useTheme();
@@ -60,6 +64,20 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
 
   const isEdit = Boolean(culto?.id);
 
+  // Estilos compartilhados Premium para Inputs
+  const premiumInputStyles = {
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: "#f9fbfd",
+      borderRadius: "10px",
+      transition: "all 0.2s ease-in-out",
+      "& fieldset": { borderColor: "#e2e8f0" },
+      "&:hover fieldset": { borderColor: "#cbd5e1" },
+      "&.Mui-focused fieldset": { borderColor: "#1a1a1a", borderWidth: "1.5px" },
+    },
+    "& .MuiInputLabel-root": { color: "#64748b" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#1a1a1a" },
+  };
+
   // Buscar dados iniciais
   useEffect(() => {
     (async () => {
@@ -70,7 +88,6 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
           api.get("/membros"),
         ]);
         
-        // CORREÇÃO & PROTEÇÃO: Garante que se o backend enviar os dados dentro de um objeto ou formato inesperado, não quebra
         const dadosTiposCulto = Array.isArray(tiposRes.data) ? tiposRes.data : (tiposRes.data?.dados || tiposRes.data?.tipos || []);
         const dadosTiposContrib = Array.isArray(contribRes.data) ? contribRes.data : (contribRes.data?.dados || contribRes.data?.tipos || []);
         const dadosMembros = Array.isArray(membrosRes.data) ? membrosRes.data : (membrosRes.data?.membros || []);
@@ -246,7 +263,7 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
       console.error("Erro ao salvar culto:", error);
       toast.error("Erro ao salvar os dados. Verifique a conexão.");
     } finally {
-      setLoading(false);
+      loading && setLoading(false);
     }
   };
 
@@ -254,280 +271,349 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
     <Paper
       elevation={0}
       sx={{
-        p: isMobile ? 2 : 4,
-        borderRadius: "16px",
-        border: "1px solid #e0e0e0",
+        p: isMobile ? 3 : 5,
+        borderRadius: "24px",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
         backgroundColor: "#ffffff",
-        maxWidth: "1200px",
+        maxWidth: "1250px",
         margin: "0 auto",
+        border: "1px solid #f1f5f9",
       }}
     >
       {/* Cabeçalho Premium */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 5, borderBottom: "1px solid #f1f5f9", pb: 3 }}>
         <Typography
           variant={isMobile ? "h5" : "h4"}
-          fontWeight="700"
-          sx={{ color: "#1a1a1a", letterSpacing: "-0.5px" }}
+          fontWeight="800"
+          sx={{ color: "#0f172a", letterSpacing: "-0.8px", mb: 1 }}
         >
           {isEdit ? "Editar Detalhes do Culto" : "Novo Registro de Culto"}
         </Typography>
-        <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-          Preencha os dados de participação e finanças da sessão.
+        <Typography variant="body1" sx={{ color: "#64748b", fontWeight: "400" }}>
+          Gerencie e documente a frequência corporativa e os fluxos financeiros deste culto.
         </Typography>
       </Box>
 
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
+        <Grid container spacing={4}>
           
-          {/* Sessão 1: Informações Gerais */}
-          <Grid item xs={12} md={6}>
-            <Card variant="outlined" sx={{ borderRadius: "12px", height: "100%" }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight="600"
-                  display="flex"
-                  alignItems="center"
-                  gap={1}
-                  sx={{ color: "#2c3e50", mb: 3 }}
+          {/* LADO ESQUERDO: Formulários de Preenchimento */}
+          <Grid item xs={12} md={8}>
+            <Grid container spacing={4}>
+              
+              {/* Sessão 1: Informações Gerais */}
+              <Grid item xs={12}>
+                <Card 
+                  elevation={0} 
+                  sx={{ 
+                    borderRadius: "16px", 
+                    backgroundColor: "#ffffff", 
+                    border: "1px solid #f1f5f9",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.01)" 
+                  }}
                 >
-                  <EventIcon fontSize="small" color="action" /> Dados Gerais
-                </Typography>
-                
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Data e Hora"
-                      type="datetime-local"
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-                      value={formData.dataHora}
-                      onChange={(e) => handleChange("dataHora", e.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      select
-                      label="Tipo de Culto"
-                      fullWidth
-                      value={formData.tipoCultoId}
-                      onChange={(e) => handleChange("tipoCultoId", e.target.value)}
+                  <CardContent sx={{ p: 4 }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="700"
+                      display="flex"
+                      alignItems="center"
+                      gap={1.5}
+                      sx={{ color: "#1e293b", mb: 3, letterSpacing: "-0.2px" }}
                     >
-                      {/* Adicionado Fallback de segurança (|| []) */}
-                      {(tiposCulto || []).map((tipo) => (
-                        <MenuItem key={tipo.id} value={tipo.id}>
-                          {tipo.nome}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
+                      <Box sx={{ p: 1, bgcolor: "#f1f5f9", borderRadius: "8px", display: "flex" }}>
+                        <EventIcon fontSize="small" sx={{ color: "#475569" }} />
+                      </Box>
+                      Dados Gerais Básicos
+                    </Typography>
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Data e Hora"
+                          type="datetime-local"
+                          fullWidth
+                          InputLabelProps={{ shrink: true }}
+                          value={formData.dataHora}
+                          onChange={(e) => handleChange("dataHora", e.target.value)}
+                          sx={premiumInputStyles}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          select
+                          label="Tipo de Culto"
+                          fullWidth
+                          value={formData.tipoCultoId}
+                          onChange={(e) => handleChange("tipoCultoId", e.target.value)}
+                          sx={premiumInputStyles}
+                        >
+                          {(tiposCulto || []).map((tipo) => (
+                            <MenuItem key={tipo.id} value={tipo.id} sx={{ py: 1.5, borderRadius: "8px", mx: 1, my: 0.5 }}>
+                              {tipo.nome}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          {/* Sessão 2: Frequência/Participantes */}
-          <Grid item xs={12} md={6}>
-            <Card variant="outlined" sx={{ borderRadius: "12px", height: "100%" }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight="600"
-                  display="flex"
-                  alignItems="center"
-                  gap={1}
-                  sx={{ color: "#2c3e50", mb: 3 }}
+              {/* Sessão 2: Frequência/Participantes */}
+              <Grid item xs={12}>
+                <Card 
+                  elevation={0} 
+                  sx={{ 
+                    borderRadius: "16px", 
+                    backgroundColor: "#ffffff", 
+                    border: "1px solid #f1f5f9",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.01)" 
+                  }}
                 >
-                  <PeopleIcon fontSize="small" color="action" /> Frequência de Membros
-                </Typography>
+                  <CardContent sx={{ p: 4 }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="700"
+                      display="flex"
+                      alignItems="center"
+                      gap={1.5}
+                      sx={{ color: "#1e293b", mb: 3, letterSpacing: "-0.2px" }}
+                    >
+                      <Box sx={{ p: 1, bgcolor: "#f1f5f9", borderRadius: "8px", display: "flex" }}>
+                        <PeopleIcon fontSize="small" sx={{ color: "#475569" }} />
+                      </Box>
+                      Frequência & Presença
+                    </Typography>
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      type="number"
-                      label="Homens"
-                      fullWidth
-                      value={formData.homens}
-                      onChange={(e) => handleChange("homens", e.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      type="number"
-                      label="Mulheres"
-                      fullWidth
-                      value={formData.mulheres}
-                      onChange={(e) => handleChange("mulheres", e.target.value)}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      type="number"
-                      label="Crianças"
-                      fullWidth
-                      value={formData.criancas}
-                      onChange={(e) => handleChange("criancas", e.target.value)}
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Sessão 3: Finanças/Contribuições */}
-          <Grid item xs={12}>
-            <Card variant="outlined" sx={{ borderRadius: "12px" }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight="600"
-                  display="flex"
-                  alignItems="center"
-                  gap={1}
-                  sx={{ color: "#2c3e50", mb: 3 }}
-                >
-                  <MoneyIcon fontSize="small" color="action" /> Gestão Financeira (Contribuições)
-                </Typography>
-
-                <Grid container spacing={3}>
-                  {/* Adicionado Proteção opcional para tiposContribuicao */}
-                  {(tiposContribuicao || []).map((tipo) => (
-                    <Grid item xs={12} md={6} key={tipo.id}>
-                      <Paper 
-                        elevation={0} 
-                        sx={{ p: 2, bgcolor: "#f8f9fa", borderRadius: "8px", border: "1px solid #eaeded" }}
-                      >
-                        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2} gap={1}>
-                          <Typography fontWeight="600" variant="body1" color="#1a1a1a">
-                            {tipo.nome}
-                          </Typography>
-                          <Button
-                            size="small"
-                            variant="text"
-                            startIcon={<AddIcon />}
-                            onClick={() => {
-                              setModalTipoId(tipo.id);
-                              setOpenModal(true);
-                            }}
-                            sx={{ textTransform: "none", fontWeight: "600" }}
-                          >
-                            Filtrar Membro
-                          </Button>
-                        </Box>
-
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={4}>
                         <TextField
                           type="number"
-                          label="Valor Geral / Anónimo"
+                          label="Homens"
                           fullWidth
-                          size="small"
-                          value={formData.contribuicoes[tipo.id] || ""}
-                          onChange={(e) => handleContribuicaoChange(tipo.id, e.target.value)}
-                          InputProps={{
-                            startAdornment: <Typography variant="body2" sx={{ mr: 1, color: "text.secondary" }}>Kz</Typography>,
-                          }}
-                          sx={{ bgcolor: "#ffffff" }}
+                          value={formData.homens}
+                          onChange={(e) => handleChange("homens", e.target.value)}
+                          sx={premiumInputStyles}
                         />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          type="number"
+                          label="Mulheres"
+                          fullWidth
+                          value={formData.mulheres}
+                          onChange={(e) => handleChange("mulheres", e.target.value)}
+                          sx={premiumInputStyles}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          type="number"
+                          label="Crianças"
+                          fullWidth
+                          value={formData.criancas}
+                          onChange={(e) => handleChange("criancas", e.target.value)}
+                          sx={premiumInputStyles}
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-                        {/* Total consolidado */}
-                        <Box display="flex" justifyContent="space-between" mt={1.5} px={0.5}>
-                          <Typography variant="caption" color="textSecondary">Total Combinado:</Typography>
-                          <Typography variant="caption" fontWeight="700" color="primary.main">
-                            {getVisualTotal(tipo.id).toLocaleString()} Kz
-                          </Typography>
-                        </Box>
+              {/* Sessão 3: Finanças/Contribuições */}
+              <Grid item xs={12}>
+                <Card 
+                  elevation={0} 
+                  sx={{ 
+                    borderRadius: "16px", 
+                    backgroundColor: "#ffffff", 
+                    border: "1px solid #f1f5f9",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.01)" 
+                  }}
+                >
+                  <CardContent sx={{ p: 4 }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="700"
+                      display="flex"
+                      alignItems="center"
+                      gap={1.5}
+                      sx={{ color: "#1e293b", mb: 3, letterSpacing: "-0.2px" }}
+                    >
+                      <Box sx={{ p: 1, bgcolor: "#f1f5f9", borderRadius: "8px", display: "flex" }}>
+                        <MoneyIcon fontSize="small" sx={{ color: "#475569" }} />
+                      </Box>
+                      Gestão Financeira Avançada
+                    </Typography>
 
-                        {/* Listagem de Membros Responsiva */}
-                        {formData.membrosContribuicoes[tipo.id] &&
-                          Object.keys(formData.membrosContribuicoes[tipo.id]).length > 0 && (
-                            <Box sx={{ mt: 2, borderTop: "1px dashed #d5dbdb", pt: 1 }}>
-                              {isMobile ? (
-                                Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
-                                  const membro = (membros || []).find((m) => m.id === parseInt(membroId));
-                                  return (
-                                    <Box 
-                                      key={membroId} 
-                                      display="flex" 
-                                      justifyContent="space-between" 
-                                      alignItems="center"
-                                      sx={{ bgcolor: "#fff", p: 1, my: 0.5, borderRadius: "6px", border: "1px solid #e5e8e8" }}
-                                    >
-                                      <Box>
-                                        <Typography variant="body2" fontWeight="600" sx={{ textTransform: "capitalize" }}>
-                                          {membro?.nome || "Membro"}
-                                        </Typography>
-                                        <Typography variant="caption" color="textSecondary">{valor} Kz</Typography>
-                                      </Box>
-                                      <IconButton 
-                                        size="small" 
-                                        color="error"
-                                        onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
-                                      >
-                                        <DeleteIcon fontSize="small" />
-                                      </IconButton>
-                                    </Box>
-                                  );
-                                })
-                              ) : (
-                                <Table size="small">
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell sx={{ pl: 0 }}><Typography variant="caption" fontWeight="600">Membro</Typography></TableCell>
-                                      <TableCell><Typography variant="caption" fontWeight="600">Quantia</Typography></TableCell>
-                                      <TableCell align="right"></TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    {Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
+                    <Grid container spacing={3}>
+                      {(tiposContribuicao || []).map((tipo) => (
+                        <Grid item xs={12} key={tipo.id}>
+                          <Paper 
+                            elevation={0} 
+                            sx={{ 
+                              p: 3, 
+                              bgcolor: "#f8fbc20", 
+                              borderRadius: "14px", 
+                              border: "1px solid #f1f5f9",
+                              backgroundImage: "linear-gradient(to right, #fafafa, #ffffff)"
+                            }}
+                          >
+                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2.5}>
+                              <Typography fontWeight="700" variant="body1" color="#0f172a">
+                                {tipo.nome}
+                              </Typography>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<AddIcon />}
+                                onClick={() => {
+                                  setModalTipoId(tipo.id);
+                                  setOpenModal(true);
+                                }}
+                                sx={{ 
+                                  textTransform: "none", 
+                                  fontWeight: "600",
+                                  borderRadius: "8px",
+                                  borderColor: "#e2e8f0",
+                                  color: "#334155",
+                                  bgcolor: "#fff",
+                                  "&:hover": { borderColor: "#cbd5e1", bgcolor: "#f8fafc" }
+                                }}
+                              >
+                                Vincular Membro
+                              </Button>
+                            </Box>
+
+                            <TextField
+                              type="number"
+                              label="Valor Geral / Colecta Anónima"
+                              fullWidth
+                              size="medium"
+                              value={formData.contribuicoes[tipo.id] || ""}
+                              onChange={(e) => handleContribuicaoChange(tipo.id, e.target.value)}
+                              InputProps={{
+                                startAdornment: <Typography variant="body2" sx={{ mr: 1.5, color: "#94a3b8", fontWeight: "600" }}>Kz</Typography>,
+                              }}
+                              sx={premiumInputStyles}
+                            />
+
+                            <Box display="flex" justifyContent="space-between" mt={2} px={1}>
+                              <Typography variant="body2" sx={{ color: "#64748b" }}>Total Combinado:</Typography>
+                              <Typography variant="body2" fontWeight="700" color="#0f172a">
+                                {getVisualTotal(tipo.id).toLocaleString()} Kz
+                              </Typography>
+                            </Box>
+
+                            {formData.membrosContribuicoes[tipo.id] &&
+                              Object.keys(formData.membrosContribuicoes[tipo.id]).length > 0 && (
+                                <Box sx={{ mt: 2.5, borderTop: "1px dashed #e2e8f0", pt: 2 }}>
+                                  {isMobile ? (
+                                    Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
                                       const membro = (membros || []).find((m) => m.id === parseInt(membroId));
                                       return (
-                                        <TableRow key={membroId} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                          <TableCell sx={{ pl: 0, py: 0.5, textTransform: "capitalize", fontSize: "0.85rem" }}>
-                                            {membro?.nome || "Membro"}
-                                          </TableCell>
-                                          <TableCell sx={{ py: 0.5, fontSize: "0.85rem", fontWeight: "600" }}>
-                                            {valor} Kz
-                                          </TableCell>
-                                          <TableCell align="right" sx={{ pr: 0, py: 0.5 }}>
-                                            <IconButton 
-                                              size="small" 
-                                              color="error" 
-                                              onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
-                                            >
-                                              <DeleteIcon fontSize="small" />
-                                            </IconButton>
-                                          </TableCell>
-                                        </TableRow>
+                                        <Box 
+                                          key={membroId} 
+                                          display="flex" 
+                                          justifyContent="space-between" 
+                                          alignItems="center"
+                                          sx={{ bgcolor: "#fff", p: 1.5, my: 1, borderRadius: "10px", border: "1px solid #e2e8f0" }}
+                                        >
+                                          <Box>
+                                            <Typography variant="body2" fontWeight="600" color="#334155" sx={{ textTransform: "capitalize" }}>
+                                              {membro?.nome || "Membro"}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ color: "#64748b", fontWeight: "500" }}>{valor} Kz</Typography>
+                                          </Box>
+                                          <IconButton 
+                                            size="small" 
+                                            onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
+                                            sx={{ color: "#ef4444", "&:hover": { bgcolor: "#fef2f2" } }}
+                                          >
+                                            <DeleteIcon fontSize="small" />
+                                          </IconButton>
+                                        </Box>
                                       );
-                                    })}
-                                  </TableBody>
-                                </Table>
+                                    })
+                                  ) : (
+                                    <Table size="small">
+                                      <TableHead>
+                                        <TableRow>
+                                          <TableCell sx={{ pl: 1, borderColor: "#f1f5f9" }}><Typography variant="caption" fontWeight="700" color="#64748b">MEMBRO IDENTIFICADO</Typography></TableCell>
+                                          <TableCell sx={{ borderColor: "#f1f5f9" }}><Typography variant="caption" fontWeight="700" color="#64748b">VALOR DECLARADO</Typography></TableCell>
+                                          <TableCell align="right" sx={{ pr: 1, borderColor: "#f1f5f9" }}></TableCell>
+                                        </TableRow>
+                                      </TableHead>
+                                      <TableBody>
+                                        {Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
+                                          const membro = (membros || []).find((m) => m.id === parseInt(membroId));
+                                          return (
+                                            <TableRow key={membroId} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                              <TableCell sx={{ pl: 1, py: 1.5, textTransform: "capitalize", fontSize: "0.875rem", color: "#334155", fontWeight: "500", borderColor: "#f1f5f9" }}>
+                                                {membro?.nome || "Membro"}
+                                              </TableCell>
+                                              <TableCell sx={{ py: 1.5, fontSize: "0.875rem", fontWeight: "700", color: "#0f172a", borderColor: "#f1f5f9" }}>
+                                                {valor?.toLocaleString()} Kz
+                                              </TableCell>
+                                              <TableCell align="right" sx={{ pr: 1, py: 1.5, borderColor: "#f1f5f9" }}>
+                                                <IconButton 
+                                                  size="small" 
+                                                  onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
+                                                  sx={{ color: "#disabled", "&:hover": { color: "#ef4444", bgcolor: "#fef2f2" } }}
+                                                >
+                                                  <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                              </TableCell>
+                                            </TableRow>
+                                          );
+                                        })}
+                                      </TableBody>
+                                    </Table>
+                                  )}
+                                </Box>
                               )}
-                            </Box>
-                          )}
-                      </Paper>
+                          </Paper>
+                        </Grid>
+                      ))}
                     </Grid>
-                  ))}
-                </Grid>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Grid>
+
+          {/* LADO DIREITO: Componente Resumo Acoplado */}
+          <Grid item xs={12} md={4}>
+            <Box sx={{ position: "sticky", top: "24px" }}>
+              <Resumo 
+                formData={formData} 
+                tiposCulto={tiposCulto} 
+                tiposContribuicao={tiposContribuicao} 
+                membros={membros} 
+              />
+            </Box>
           </Grid>
 
           {/* Botões de Ação do Formulário */}
-          <Grid item xs={12} display="flex" flexDirection={isMobile ? "column-reverse" : "row"} justifyContent="flex-end" gap={2} sx={{ mt: 2 }}>
+          <Grid item xs={12} display="flex" flexDirection={isMobile ? "column-reverse" : "row"} justifyContent="flex-end" gap={2} sx={{ mt: 3, borderTop: "1px solid #f1f5f9", pt: 4 }}>
             <Button
               variant="text"
               onClick={onCancel}
               fullWidth={isMobile}
               sx={{
                 px: 4,
-                py: 1.2,
-                borderRadius: "8px",
-                fontWeight: "600",
-                color: "#566573",
+                py: 1.6,
+                borderRadius: "12px",
+                fontWeight: "700",
+                color: "#64748b",
                 textTransform: "none",
+                fontSize: "0.95rem",
+                "&:hover": { backgroundColor: "#f1f5f9", color: "#334155" }
               }}
             >
-              Cancelar
+              Cancelar Operação
             </Button>
             <Button
               type="submit"
@@ -537,15 +623,17 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
               disabled={loading}
               sx={{
                 px: 5,
-                py: 1.2,
-                borderRadius: "8px",
-                fontWeight: "600",
-                backgroundColor: "#1a1a1a",
+                py: 1.6,
+                borderRadius: "12px",
+                fontWeight: "700",
+                backgroundColor: "#0f172a",
                 textTransform: "none",
-                "&:hover": { backgroundColor: "#333333" },
+                fontSize: "0.95rem",
+                boxShadow: "0 4px 12px rgba(15,23,42,0.15)",
+                "&:hover": { backgroundColor: "#1e293b", boxShadow: "0 6px 20px rgba(15,23,42,0.2)" },
               }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : isEdit ? "Atualizar Registro" : "Confirmar e Salvar"}
+              {loading ? <CircularProgress size={24} color="inherit" /> : isEdit ? "Atualizar Registro" : "Finalizar e Lançar"}
             </Button>
           </Grid>
         </Grid>
@@ -557,33 +645,47 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
         onClose={() => setOpenModal(false)}
         fullWidth
         maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: "12px", p: 1 } }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: "20px", 
+            p: 2,
+            boxShadow: "0 20px 50px rgba(0,0,0,0.1)"
+          } 
+        }}
       >
-        <DialogTitle sx={{ fontWeight: "700", pb: 1, fontSize: "1.1rem" }}>
-          Vincular Membro à Contribuição
+        <DialogTitle sx={{ fontWeight: "800", pb: 1, fontSize: "1.25rem", color: "#0f172a", letterSpacing: "-0.4px" }}>
+          Vincular Membro Ativo
         </DialogTitle>
         <DialogContent sx={{ py: 1 }}>
+          <Typography variant="body2" color="#64748b" sx={{ mb: 3 }}>
+            Selecione o membro na base de dados para atribuir um valor nominal específico.
+          </Typography>
           <Autocomplete
             options={membros || []}
             getOptionLabel={(option) => option.nome || ""}
             value={selectedMembro}
             onChange={(e, newValue) => setSelectedMembro(newValue)}
-            renderInput={(params) => <TextField {...params} label="Procurar membro..." variant="outlined" />}
-            sx={{ mb: 2.5, mt: 1 }}
+            renderInput={(params) => <TextField {...params} label="Procurar membro pelo nome..." variant="outlined" />}
+            sx={{ mb: 3, ...premiumInputStyles }}
           />
           <TextField
             type="number"
-            label="Valor do Contributo"
+            label="Quantia do Contributo"
             fullWidth
             value={valorMembro}
             onChange={(e) => setValorMembro(e.target.value)}
             InputProps={{
-              startAdornment: <Typography variant="body2" sx={{ mr: 1, color: "text.secondary" }}>Kz</Typography>,
+              startAdornment: <Typography variant="body2" sx={{ mr: 1.5, color: "#94a3b8", fontWeight: "600" }}>Kz</Typography>,
             }}
+            sx={premiumInputStyles}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={() => setOpenModal(false)} color="inherit" sx={{ textTransform: "none", fontWeight: "600" }}>
+        <DialogActions sx={{ p: 2, gap: 1, mt: 2 }}>
+          <Button 
+            onClick={() => setOpenModal(false)} 
+            color="inherit" 
+            sx={{ textTransform: "none", fontWeight: "700", borderRadius: "10px", color: "#64748b" }}
+          >
             Voltar
           </Button>
           <Button
@@ -592,12 +694,14 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
             onClick={handleAddMembroContribuicao}
             sx={{
               textTransform: "none",
-              fontWeight: "600",
-              backgroundColor: "#1a1a1a",
-              "&:hover": { backgroundColor: "#333333" },
+              fontWeight: "700",
+              borderRadius: "10px",
+              backgroundColor: "#0f172a",
+              px: 3,
+              "&:hover": { backgroundColor: "#1e293b" },
             }}
           >
-            Adicionar à lista
+            Confirmar Vínculo
           </Button>
         </DialogActions>
       </Dialog>
