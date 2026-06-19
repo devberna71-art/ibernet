@@ -10,7 +10,7 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Badge // 🌟 Importado para fazer o contador premium
+  Badge 
 } from "@mui/material";
 
 import {
@@ -25,8 +25,10 @@ import {
   SpaceDashboardRounded,
   ExpandLess,
   ExpandMore,
-  ForumRounded, // Ícone do Chat
-  LogoutRounded
+  ForumRounded, 
+  LogoutRounded,
+  SettingsRounded,
+  HistoryEduRounded 
 } from "@mui/icons-material";
 
 import NotificationBell from "../components/Contador";
@@ -35,7 +37,7 @@ import UserBadge from "../components/UserMiniProfile";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logoBernet from "../assets/Logo-Bernet.png";
 import api from "../api/axiosConfig";
-import { io } from "socket.io-client"; // 🌟 Importação do cliente do socket
+import { io } from "socket.io-client"; 
 
 export default function NavbarDesktop() {
   const navigate = useNavigate();
@@ -47,7 +49,6 @@ export default function NavbarDesktop() {
   const [userRole, setUserRole] = useState(null);
   const [membro, setMembro] = useState(null);
   
-  // 🌟 Estado do contador de novas mensagens
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const [eventosOpen, setEventosOpen] = useState(false);
@@ -55,7 +56,6 @@ export default function NavbarDesktop() {
   const [financeiroOpen, setFinanceiroOpen] = useState(false);
   const [relatoriosFinanceirosOpen, setRelatoriosFinanceirosOpen] = useState(false);
 
-  // Zera o contador automaticamente se o usuário entrar na página de listagem de chats
   useEffect(() => {
     if (location.pathname === "/chat/list") {
       setUnreadMessagesCount(0);
@@ -96,16 +96,12 @@ export default function NavbarDesktop() {
     fetchPerfil();
   }, []);
 
-  // 🌟 CONEXÃO COM O SOCKET PARA RECONHECER NOVAS MENSAGENS EM TEMPO REAL
   useEffect(() => {
-    // Altere a URL abaixo para a URL correspondente ao seu servidor backend (ex: http://localhost:4000)
     const socket = io("http://localhost:4000", {
       auth: { token: localStorage.getItem("token") }
     });
 
     socket.on("global_new_message", (data) => {
-      // Regra 1: Só incrementa se o usuário NÃO estiver visualizando a lista de chats no momento
-      // Regra 2: Só incrementa se a mensagem veio de OUTRO membro (não incrementa as minhas próprias)
       if (location.pathname !== "/chat/list" && membro && Number(data.MembroId) !== Number(membro.id)) {
         setUnreadMessagesCount((prev) => prev + 1);
       }
@@ -121,11 +117,6 @@ export default function NavbarDesktop() {
     sessionStorage.clear();
     navigate("/login");
   };
-
-  const eventosSubmenus = [
-    { path: "/TabelaCulto", label: "Agenda de Cultos", icon: <EventNoteRounded /> },
-    { path: "/gestao/RelatorioPresencas", label: "Relatório de Frequência", icon: <AssessmentRounded /> },
-  ];
 
   const membrosSubmenus = [
     { path: "/gestao/membros", label: "Relação de Membros", icon: <PeopleAltRounded /> },
@@ -269,6 +260,43 @@ export default function NavbarDesktop() {
             padding-left: 12px;
           }
 
+          .peculiar-btn-culto {
+            margin: 12px 18px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+            border: 1px dashed rgba(56, 189, 248, 0.3);
+            color: #E2E8F0;
+            transition: all 0.3s ease;
+          }
+
+          .peculiar-btn-culto:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
+            border: 1px solid #38BDF8;
+            box-shadow: 0px 4px 12px rgba(56, 189, 248, 0.15);
+            color: #FFFFFF;
+          }
+
+          .peculiar-btn-culto.active-link {
+            background: linear-gradient(135deg, #2563EB 0%, #0284C7 100%);
+            border: 1px solid #38BDF8;
+            color: #FFFFFF !important;
+            box-shadow: 0px 4px 15px rgba(37, 99, 235, 0.4);
+          }
+
+          .peculiar-btn-culto.active-link .MuiListItemIcon-root {
+            color: #FFFFFF !important;
+          }
+
+          .peculiar-btn-culto .MuiListItemIcon-root {
+            color: #38BDF8;
+            min-width: 38px;
+          }
+
+          .peculiar-btn-culto:hover .MuiListItemIcon-root {
+            color: #FFFFFF;
+          }
+
           .premium-btn.active-link .MuiListItemIcon-root {
             color: #38BDF8;
           }
@@ -283,7 +311,7 @@ export default function NavbarDesktop() {
             color: #F8FAFC;
           }
 
-          .premium-btn .MuiTypography-root {
+          .premium-btn .MuiTypography-root, .peculiar-btn-culto .MuiTypography-root {
             font-size: 14px;
             font-weight: 500;
             letter-spacing: 0.3px;
@@ -385,50 +413,72 @@ export default function NavbarDesktop() {
               to="/" 
               className={`premium-btn ${isActived("/") ? "active-link" : ""}`}
             >
+              <Typography sx={{ display: 'none' }}>{userRole}</Typography>
               <ListItemIcon><HomeRounded /></ListItemIcon>
               <ListItemText primary="Início" />
             </ListItemButton>
 
+            {/* 💬 COMUNICAÇÃO (USUARIO, ADMIN E MODERADOR) */}
+            {(userRole === "admin" || userRole === "usuario" || userRole === "moderador") && (
+              <ListItemButton 
+                component={Link} 
+                to="/chat/list" 
+                className={`premium-btn ${isActived("/chat/list") ? "active-link" : ""}`}
+              >
+                <ListItemIcon>
+                  <Badge 
+                    badgeContent={unreadMessagesCount} 
+                    color="error"
+                    max={99}
+                    sx={{
+                      "& .MuiBadge-badge": {
+                        fontSize: "10px",
+                        height: "18px",
+                        minWidth: "18px",
+                        fontWeight: "bold"
+                      }
+                    }}
+                  >
+                    <ForumRounded />
+                  </Badge>
+                </ListItemIcon>
+                <ListItemText primary="Canal de Comunicação" />
+              </ListItemButton>
+            )}
+
+            {/* 📜 ATA DO CULTO apontando para /listaCultos (ADMIN E MODERADOR) */}
+            {(userRole === "admin" || userRole === "moderador") && (
+              <ListItemButton 
+                component={Link} 
+                to="/listaCultos" 
+                className={`peculiar-btn-culto ${isActived("/listaCultos") ? "active-link" : ""}`}
+              >
+                <ListItemIcon><HistoryEduRounded /></ListItemIcon>
+                <ListItemText 
+                  primary="Ata do Culto" 
+                  primaryTypographyProps={{ sx: { fontWeight: '600 !important' } }}
+                />
+              </ListItemButton>
+            )}
+
+            {/* 🛡️ PAINEL ESTATÍSTICO (EXCLUSIVO ADMIN) */}
             {userRole === "admin" && (
+              <ListItemButton 
+                component={Link} 
+                to="/dashboard" 
+                className={`premium-btn ${isActived("/dashboard") ? "active-link" : ""}`}
+              >
+                <ListItemIcon><SpaceDashboardRounded /></ListItemIcon>
+                <ListItemText primary="Painel Estatístico" />
+              </ListItemButton>
+            )}
+
+            {/* 🌐 MENUS COMPARTILHADOS ENTRE ADMIN E MODERADOR (COM RESTRIÇÕES) */}
+            {(userRole === "admin" || userRole === "moderador") && (
               <>
-                <ListItemButton 
-                  component={Link} 
-                  to="/dashboard" 
-                  className={`premium-btn ${isActived("/dashboard") ? "active-link" : ""}`}
-                >
-                  <ListItemIcon><SpaceDashboardRounded /></ListItemIcon>
-                  <ListItemText primary="Painel Estatístico" />
-                </ListItemButton>
-
-                {/* 💬 MENU BATE-PAPO ATUALIZADO COM CONTADOR EM TEMPO REAL */}
-                <ListItemButton 
-                  component={Link} 
-                  to="/chat/list" 
-                  className={`premium-btn ${isActived("/chat/list") ? "active-link" : ""}`}
-                >
-                  <ListItemIcon>
-                    <Badge 
-                      badgeContent={unreadMessagesCount} 
-                      color="error"
-                      max={99}
-                      sx={{
-                        "& .MuiBadge-badge": {
-                          fontSize: "10px",
-                          height: "18px",
-                          minWidth: "18px",
-                          fontWeight: "bold"
-                        }
-                      }}
-                    >
-                      <ForumRounded />
-                    </Badge>
-                  </ListItemIcon>
-                  <ListItemText primary="Canal de Comunicação" />
-                </ListItemButton>
-
                 <Typography className="menu-section-label">Módulos Administrativos</Typography>
 
-                {/* EVENTOS */}
+                {/* EVENTOS (Condicional para Moderador não ver Relatório de Frequência) */}
                 <ListItemButton 
                   onClick={() => setEventosOpen(!eventosOpen)} 
                   className={`premium-btn ${eventosOpen ? "menu-open" : ""}`}
@@ -440,20 +490,28 @@ export default function NavbarDesktop() {
 
                 <Collapse in={eventosOpen} timeout="auto" unmountOnExit>
                   <Box className="premium-submenu-box">
-                    {eventosSubmenus.map((sub) => (
+                    <ListItemButton
+                      component={Link}
+                      to="/TabelaCulto"
+                      className={`premium-sub-btn ${isActived("/TabelaCulto") ? "active-link" : ""}`}
+                    >
+                      <ListItemText primary="Agenda de Cultos" />
+                    </ListItemButton>
+
+                    {/* Apenas Admin vê o Relatório de Frequência */}
+                    {userRole === "admin" && (
                       <ListItemButton
-                        key={sub.path}
                         component={Link}
-                        to={sub.path}
-                        className={`premium-sub-btn ${isActived(sub.path) ? "active-link" : ""}`}
+                        to="/gestao/RelatorioPresencas"
+                        className={`premium-sub-btn ${isActived("/gestao/RelatorioPresencas") ? "active-link" : ""}`}
                       >
-                        <ListItemText primary={sub.label} />
+                        <ListItemText primary="Relatório de Frequência" />
                       </ListItemButton>
-                    ))}
+                    )}
                   </Box>
                 </Collapse>
 
-                {/* MEMBROS */}
+                {/* SECRETARIA (Acesso Completo para Admin e Moderador) */}
                 <ListItemButton 
                   onClick={() => setMembrosOpen(!membrosOpen)} 
                   className={`premium-btn ${membrosOpen ? "menu-open" : ""}`}
@@ -477,8 +535,12 @@ export default function NavbarDesktop() {
                     ))}
                   </Box>
                 </Collapse>
+              </>
+            )}
 
-                {/* FINANÇAS */}
+            {/* 💰 FINANÇAS (EXCLUSIVO ADMIN) */}
+            {userRole === "admin" && (
+              <>
                 <ListItemButton 
                   onClick={() => setFinanceiroOpen(!financeiroOpen)} 
                   className={`premium-btn ${financeiroOpen ? "menu-open" : ""}`}
@@ -524,6 +586,17 @@ export default function NavbarDesktop() {
                     </Collapse>
                   </Box>
                 </Collapse>
+
+                {/* ⚙️ CONFIGURAÇÕES DO SISTEMA (EXCLUSIVO ADMIN) */}
+                <Typography className="menu-section-label">Sistema</Typography>
+                <ListItemButton 
+                  component={Link} 
+                  to="/configuracoes" 
+                  className={`premium-btn ${isActived("/configuracoes") ? "active-link" : ""}`}
+                >
+                  <ListItemIcon><SettingsRounded /></ListItemIcon>
+                  <ListItemText primary="Configurações" />
+                </ListItemButton>
               </>
             )}
           </List>

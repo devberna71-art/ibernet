@@ -371,7 +371,7 @@ export default function UserMiniProfile({
             },
           }}
         >
-          Segurança
+          Alterar password
         </Button>
 
 

@@ -22,8 +22,10 @@ import {
   SpaceDashboardRounded,
   ExpandLess,
   ExpandMore,
-  AccountCircleRounded,
-  AdminPanelSettingsRounded
+  AdminPanelSettingsRounded,
+  ForumRounded,
+  HistoryEduRounded,
+  SettingsRounded // Importado para o menu de configurações
 } from "@mui/icons-material";
 
 import { Link, useLocation } from "react-router-dom";
@@ -43,11 +45,6 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
   const isActived = (path) => location.pathname === path;
 
   // ================= SUBMENUS =================
-  const eventosSubmenus = [
-    { path: "/TabelaCulto", label: "Agenda de Cultos", icon: <EventNoteRounded /> },
-    { path: "/gestao/RelatorioPresencas", label: "Relatório de Frequência", icon: <AssessmentRounded /> },
-  ];
-
   const membrosSubmenus = [
     { path: "/gestao/membros", label: "Relação de Membros", icon: <PeopleAltRounded /> },
     { path: "/cartao/membro", label: "Cartões de Membro", icon: <BadgeRounded /> },
@@ -143,6 +140,45 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
           padding-left: 10px;
         }
 
+        .peculiar-btn-culto-mobile {
+          margin: 10px 14px;
+          padding: 12px 14px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+          border: 1px dashed rgba(56, 189, 248, 0.3);
+          color: #E2E8F0;
+          transition: all 0.3s ease;
+        }
+
+        .peculiar-btn-culto-mobile:hover {
+          background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
+          border: 1px solid #38BDF8;
+          color: #FFFFFF;
+        }
+
+        .peculiar-btn-culto-mobile.active-link {
+          background: linear-gradient(135deg, #2563EB 0%, #0284C7 100%);
+          border: 1px solid #38BDF8;
+          color: #FFFFFF !important;
+        }
+
+        .peculiar-btn-culto-mobile.active-link .MuiListItemIcon-root {
+          color: #FFFFFF !important;
+        }
+
+        .peculiar-btn-culto-mobile .MuiListItemIcon-root {
+          color: #38BDF8;
+          min-width: 34px;
+        }
+
+        .peculiar-btn-culto-mobile .MuiListItemIcon-root svg {
+          font-size: 22px;
+        }
+
+        .peculiar-btn-culto-mobile:hover .MuiListItemIcon-root {
+          color: #FFFFFF;
+        }
+
         .premium-btn-mobile.active-link .MuiListItemIcon-root {
           color: #38BDF8;
         }
@@ -161,7 +197,7 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
           color: #F8FAFC;
         }
 
-        .premium-btn-mobile .MuiTypography-root {
+        .premium-btn-mobile .MuiTypography-root, .peculiar-btn-culto-mobile .MuiTypography-root {
           font-size: 13.5px;
           font-weight: 500;
           letter-spacing: 0.3px;
@@ -247,7 +283,36 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
             <ListItemText primary="Início" />
           </ListItemButton>
 
-          {/* ================= SUPER ADMIN ================= */}
+          {/* 💬 CANAL DE COMUNICAÇÃO (Disponível para admin, usuario e moderador) */}
+          {(userRole === "admin" || userRole === "usuario" || userRole === "moderador") && (
+            <ListItemButton
+              component={Link}
+              to="/chat/list"
+              onClick={toggleDrawer(false)}
+              className={`premium-btn-mobile ${isActived("/chat/list") ? "active-link" : ""}`}
+            >
+              <ListItemIcon><ForumRounded /></ListItemIcon>
+              <ListItemText primary="Canal de Comunicação" />
+            </ListItemButton>
+          )}
+
+          {/* 📜 ATA DO CULTO (ADMIN E MODERADOR) */}
+          {(userRole === "admin" || userRole === "moderador") && (
+            <ListItemButton
+              component={Link}
+              to="/listaCultos"
+              onClick={toggleDrawer(false)}
+              className={`peculiar-btn-culto-mobile ${isActived("/listaCultos") ? "active-link" : ""}`}
+            >
+              <ListItemIcon><HistoryEduRounded /></ListItemIcon>
+              <ListItemText 
+                primary="Ata do Culto" 
+                primaryTypographyProps={{ sx: { fontWeight: '600 !important' } }}
+              />
+            </ListItemButton>
+          )}
+
+          {/* ================= SUPER ADMIN (Mantido da estrutura mobile anterior) ================= */}
           {userRole === "super_admin" && (
             <ListItemButton
               component={Link}
@@ -260,7 +325,7 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
             </ListItemButton>
           )}
 
-          {/* ================= ADMIN MÓDULOS ================= */}
+          {/* 🛡️ PAINEL ESTATÍSTICO (EXCLUSIVO ADMIN) */}
           {userRole === "admin" && (
             <>
               <Box sx={{ px: 2, py: 1, display: "flex", alignItems: "center" }}>
@@ -276,22 +341,17 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
                 <ListItemIcon><SpaceDashboardRounded /></ListItemIcon>
                 <ListItemText primary="Painel Estatístico" />
               </ListItemButton>
+            </>
+          )}
 
-              <ListItemButton
-                component={Link}
-                to="/listaCultos"
-                onClick={toggleDrawer(false)}
-                className={`premium-btn-mobile ${isActived("/listaCultos") ? "active-link" : ""}`}
-              >
-                <ListItemIcon><EventNoteRounded /></ListItemIcon>
-                <ListItemText primary="Registrar Culto" />
-              </ListItemButton>
-
+          {/* 🌐 MENUS COMPARTILHADOS ENTRE ADMIN E MODERADOR */}
+          {(userRole === "admin" || userRole === "moderador") && (
+            <>
               <Typography className="menu-section-label-mobile">Módulos Administrativos</Typography>
 
               {/* EVENTOS */}
-              <ListItemButton
-                onClick={() => setEventosOpen(!eventosOpen)}
+              <ListItemButton 
+                onClick={() => setEventosOpen(!eventosOpen)} 
                 className="premium-btn-mobile"
               >
                 <ListItemIcon><EventNoteRounded /></ListItemIcon>
@@ -301,23 +361,32 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
 
               <Collapse in={eventosOpen} timeout="auto" unmountOnExit>
                 <Box className="premium-submenu-box-mobile">
-                  {eventosSubmenus.map((sub) => (
+                  <ListItemButton
+                    component={Link}
+                    to="/TabelaCulto"
+                    onClick={toggleDrawer(false)}
+                    className={`premium-sub-btn-mobile ${isActived("/TabelaCulto") ? "active-link" : ""}`}
+                  >
+                    <ListItemText primary="Agenda de Cultos" />
+                  </ListItemButton>
+
+                  {/* Apenas Admin vê o Relatório de Frequência */}
+                  {userRole === "admin" && (
                     <ListItemButton
-                      key={sub.path}
                       component={Link}
-                      to={sub.path}
+                      to="/gestao/RelatorioPresencas"
                       onClick={toggleDrawer(false)}
-                      className={`premium-sub-btn-mobile ${isActived(sub.path) ? "active-link" : ""}`}
+                      className={`premium-sub-btn-mobile ${isActived("/gestao/RelatorioPresencas") ? "active-link" : ""}`}
                     >
-                      <ListItemText primary={sub.label} />
+                      <ListItemText primary="Relatório de Frequência" />
                     </ListItemButton>
-                  ))}
+                  )}
                 </Box>
               </Collapse>
 
-              {/* MEMBROS */}
-              <ListItemButton
-                onClick={() => setMembrosOpen(!membrosOpen)}
+              {/* SECRETARIA */}
+              <ListItemButton 
+                onClick={() => setMembrosOpen(!membrosOpen)} 
                 className="premium-btn-mobile"
               >
                 <ListItemIcon><PeopleAltRounded /></ListItemIcon>
@@ -340,10 +409,14 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
                   ))}
                 </Box>
               </Collapse>
+            </>
+          )}
 
-              {/* FINANÇAS */}
-              <ListItemButton
-                onClick={() => setFinanceiroOpen(!financeiroOpen)}
+          {/* 💰 FINANÇAS E CONFIGURAÇÕES (EXCLUSIVO ADMIN) */}
+          {userRole === "admin" && (
+            <>
+              <ListItemButton 
+                onClick={() => setFinanceiroOpen(!financeiroOpen)} 
                 className="premium-btn-mobile"
               >
                 <ListItemIcon><AccountBalanceWalletRounded /></ListItemIcon>
@@ -389,32 +462,17 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
                   </Collapse>
                 </Box>
               </Collapse>
-            </>
-          )}
 
-          {/* ================= MEMBRO ================= */}
-          {userRole === "membro" && (
-            <>
-              <Typography className="menu-section-label-mobile">Área do Membro</Typography>
-              
-              <ListItemButton
-                component={Link}
-                to="/cadastro/membro"
+              {/* ⚙️ CONFIGURAÇÕES DO SISTEMA (ADICIONADO E RESTRITO A ADMIN) */}
+              <Typography className="menu-section-label-mobile">Sistema</Typography>
+              <ListItemButton 
+                component={Link} 
+                to="/configuracoes" 
                 onClick={toggleDrawer(false)}
-                className={`premium-btn-mobile ${isActived("/cadastro/membro") ? "active-link" : ""}`}
+                className={`premium-btn-mobile ${isActived("/configuracoes") ? "active-link" : ""}`}
               >
-                <ListItemIcon><PeopleAltRounded /></ListItemIcon>
-                <ListItemText primary="Cadastro" />
-              </ListItemButton>
-
-              <ListItemButton
-                component={Link}
-                to="/perfil/membro"
-                onClick={toggleDrawer(false)}
-                className={`premium-btn-mobile ${isActived("/perfil/membro") ? "active-link" : ""}`}
-              >
-                <ListItemIcon><AccountCircleRounded /></ListItemIcon>
-                <ListItemText primary="Meu Perfil" />
+                <ListItemIcon><SettingsRounded /></ListItemIcon>
+                <ListItemText primary="Configurações" />
               </ListItemButton>
             </>
           )}

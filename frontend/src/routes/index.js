@@ -50,6 +50,7 @@ const Cartao = lazy(() => import('../pages/Cartao'));
 
 const ChatList = lazy(() => import('../pages/Chat/MembersChat'));
 const ChatPage = lazy(() => import('../pages/Chat/ChatPage'));
+const Configuracoes =  lazy(() => import('../pages/Configuracoes'))
 
 /* =========================
    FUNÇÃO AUXILIAR PARA DECODIFICAR JWT
@@ -204,6 +205,7 @@ export default function AppRoutes() {
               <Route path="/listaCultos" element={<ListaCultos />} />
               <Route path="/gestao/departamentos" element={<GestaoDepartamento />} />
               <Route path="/gestao/gestaoigrejas" element={<GestaoIgrejas />} />
+              <Route path="/configuracoes" element={< Configuracoes/>} />
             </Route>
             
           </Route>

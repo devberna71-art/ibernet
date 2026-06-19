@@ -578,7 +578,6 @@ router.get('/tabela-comprimisso', auth, async (req, res) => {
 
 
 
-
 // 📘 Rota para listar cultos (com contexto de Sede ou Filhal)
 router.get("/tabela-cultos", auth, async (req, res) => {
   try {
@@ -3404,119 +3403,6 @@ router.post('/atribuir-cargos', async (req, res) => {
 const Sequelize = require("sequelize")
 
 
-// Rota - Listar tipos de contribuição filtrados pelo usuário logado com dados para os Cards e Gráficos
-router.get('/lista/tipos-contribuicao', auth, async (req, res) => {
-  try {
-    console.log(`Usuário logado: ID=${req.usuario.id}, Nome=${req.usuario.nome}`);
-
-    const { SedeId, FilhalId } = req.usuario;
-
-    // Define o filtro inicial com base na hierarquia
-    let filtro = {};
-    if (FilhalId) {
-      filtro.FilhalId = FilhalId;
-    } else if (SedeId) {
-      filtro.SedeId = SedeId;
-    }
-
-    // Buscar tipos de contribuição filtrados
-    const tipos = await TipoContribuicao.findAll({
-      where: filtro,
-      attributes: ['id', 'nome', 'ativo', 'createdAt'],
-    });
-
-    // Criamos um Set global para armazenar IDs únicos de membros que contribuíram no contexto filtrado
-    const membrosUnicosGerais = new Set();
-    
-    let receitaTotalGeral = 0;
-    let maiorContribuicaoGeral = 0;
-    let totalContribuicoesGeral = 0;
-    let tiposAtivos = 0;
-    let tiposInativos = 0;
-
-    // Para cada tipo, buscamos os dados financeiros agregados
-    const tiposComTotais = await Promise.all(
-      tipos.map(async (tipo) => {
-        const resultado = await Contribuicao.findOne({
-          attributes: [
-            [Sequelize.fn('COUNT', Sequelize.col('id')), 'totalContribuicoes'],
-            [Sequelize.fn('SUM', Sequelize.col('valor')), 'receitaTotal'],
-            [Sequelize.fn('AVG', Sequelize.col('valor')), 'receitaMedia'],
-            [Sequelize.fn('MAX', Sequelize.col('valor')), 'maiorContribuicao'],
-          ],
-          where: {
-            TipoContribuicaoId: tipo.id,
-            ...(FilhalId && { FilhalId }),
-            ...(!FilhalId && SedeId && { SedeId })
-          },
-          raw: true,
-        });
-
-        // Buscar todos os MembroId que participaram deste tipo de contribuição específico para consolidar no Set geral
-        const contribuicoesMembros = await Contribuicao.findAll({
-          attributes: ['MembroId'],
-          where: {
-            TipoContribuicaoId: tipo.id,
-            MembroId: { [Sequelize.Op.ne]: null }, // Evita contar registros nulos/anônimos se existirem
-            ...(FilhalId && { FilhalId }),
-            ...(!FilhalId && SedeId && { SedeId })
-          },
-          raw: true
-        });
-
-        // Adiciona os IDs encontrados ao Set global para contagem sem duplicados
-        contribuicoesMembros.forEach(c => membrosUnicosGerais.add(c.MembroId));
-
-        const rTotal = parseFloat(resultado.receitaTotal) || 0;
-        const mContr = parseFloat(resultado.maiorContribuicao) || 0;
-        const tContr = parseInt(resultado.totalContribuicoes, 10) || 0;
-
-        // Acumuladores para os cards globais
-        receitaTotalGeral += rTotal;
-        totalContribuicoesGeral += tContr;
-        if (mContr > maiorContribuicaoGeral) maiorContribuicaoGeral = mContr;
-        
-        if (tipo.ativo) tiposAtivos++;
-        else tiposInativos++;
-
-        return {
-          ...tipo.toJSON(),
-          totalContribuicoes: tContr,
-          receitaTotal: rTotal,
-          receitaMedia: parseFloat(resultado.receitaMedia) || 0,
-          maiorContribuicao: mContr,
-        };
-      })
-    );
-
-    // Ordenar a lista de tipos por receita total (Decrescente) para facilitar a visualização do gráfico no front
-    tiposComTotais.sort((a, b) => b.receitaTotal - a.receitaTotal);
-
-    // Cálculo de contribuição média geral
-    const contribuicaoMediaGeral = totalContribuicoesGeral > 0 ? (receitaTotalGeral / totalContribuicoesGeral) : 0;
-
-    // Resposta estruturada com os dados da lista + dados de resumo do Dashboard
-    res.status(200).json({
-      tipos: tiposComTotais,
-      dashboard: {
-        receitaTotal: receitaTotalGeral,
-        crescimentoMensal: 12, // +12% fixo solicitado
-        totalTipos: tipos.length,
-        tiposAtivos,
-        tiposInativos,
-        numeroMembros: membrosUnicosGerais.size, // Quantidade real de membros únicos que contribuíram
-        maiorContribuicao: maiorContribuicaoGeral,
-        contribuicaoMedia: contribuicaoMediaGeral
-      }
-    });
-
-  } catch (error) {
-    console.error('Erro ao listar tipos de contribuição:', error);
-    res.status(500).json({ message: 'Erro ao buscar tipos de contribuição' });
-  }
-});
-
-
 
 
 // Rota - Criar novo tipo de contribuição com dados do auth (Sede/Filhal)
@@ -5948,32 +5834,6 @@ router.put('/meu-perfil', auth, async (req, res) => {
   }
 });
 
-
-// GET - Listar usuários da mesma Sede e Filhal
-router.get('/gestao-usuarios', auth, async (req, res) => {
-  try {
-    const { SedeId, FilhalId } = req.usuario;
-
-    if (!SedeId && !FilhalId) {
-      return res.status(400).json({ message: 'Usuário não está associado a nenhuma Sede ou Filhal.' });
-    }
-
-    // Buscar usuários da mesma Sede e Filhal
-    const usuarios = await Usuarios.findAll({
-      where: {
-        ...(SedeId && { SedeId }),
-        ...(FilhalId && { FilhalId }),
-      },
-      attributes: ['id', 'nome', 'funcao', 'SedeId', 'FilhalId', 'createdAt', 'updatedAt'],
-      order: [['nome', 'ASC']],
-    });
-
-    res.json({ usuarios });
-  } catch (error) {
-    console.error('Erro ao buscar usuários:', error);
-    res.status(500).json({ message: 'Erro ao buscar usuários.' });
-  }
-});
 
 
 
