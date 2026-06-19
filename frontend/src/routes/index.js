@@ -52,11 +52,31 @@ const ChatList = lazy(() => import('../pages/Chat/MembersChat'));
 const ChatPage = lazy(() => import('../pages/Chat/ChatPage'));
 
 /* =========================
+   FUNÇÃO AUXILIAR PARA DECODIFICAR JWT
+========================= */
+function decodificarToken(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    return null;
+  }
+}
+
+/* =========================
    COMPONENTE DE REDIRECIONAMENTO (ROOT)
 ========================= */
 function HomeRedirect() {
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -65,6 +85,11 @@ function HomeRedirect() {
         try {
           await api.get('/usuario/status', { headers: { Authorization: `Bearer ${token}` } });
           setIsAuthenticated(true);
+          
+          const payload = decodificarToken(token);
+          if (payload && payload.funcao) {
+            setUserRole(payload.funcao);
+          }
         } catch {
           setIsAuthenticated(false);
         }
@@ -75,22 +100,37 @@ function HomeRedirect() {
   }, []);
 
   if (!authChecked) return <FullScreenLoader isDone={false} />;
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Home />;
+  
+  if (isAuthenticated) {
+    // Se for do tipo comum "usuario", redireciona direto para o Chat, senão vai para o Dashboard
+    return userRole === 'usuario' ? <Navigate to="/chat/list" replace /> : <Navigate to="/dashboard" replace />;
+  }
+  
+  return <Home />;
 }
 
 /* =========================
-   AUTH WRAPPER
+   AUTH WRAPPER COM CONTROLE DE FUNÇÃO
 ========================= */
-function AuthWrapper({ children }) {
+function AuthWrapper({ children, permitirApenasAdmin = false }) {
   const [isAllowed, setIsAllowed] = useState(null);
+  const [role, setRole] = useState('');
 
   useEffect(() => {
     const verificarStatus = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) { setIsAllowed(false); return; }
+        
         await api.get('/usuario/status', { headers: { Authorization: `Bearer ${token}` } });
-        setIsAllowed(true);
+        
+        const payload = decodificarToken(token);
+        if (payload && payload.funcao) {
+          setRole(payload.funcao);
+          setIsAllowed(true);
+        } else {
+          setIsAllowed(false);
+        }
       } catch (err) {
         setIsAllowed(false);
       }
@@ -100,6 +140,12 @@ function AuthWrapper({ children }) {
 
   if (isAllowed === null) return <FullScreenLoader isDone={false} />;
   if (!isAllowed) return <Navigate to="/login" replace />;
+
+  // 🔥 REGRA: Se a rota exige privilégios de admin/mod e o usuário atual for da função "usuario"
+  if (permitirApenasAdmin && role === 'usuario') {
+    return <Navigate to="/chat/list" replace />;
+  }
+
   return children;
 }
 
@@ -131,10 +177,16 @@ export default function AppRoutes() {
             <Route path="/perfil/membro" element={<PerfilMembro />} />
             <Route path="/criar/conta/membro" element={<CriarContaMembro />} />
             <Route path="/cartao/membro" element={<Cartao />} />
-            <Route path="/chat/list" element={<ChatList />} />
-            <Route path="/chat/:id" element={<ChatPage />} />
 
-            <Route element={<AuthWrapper><Outlet /></AuthWrapper>}>
+            {/* 💬 ROTAS DO CHAT E PERFIL: Permitidas para QUALQUER usuário logado (incluindo função "usuario") */}
+            <Route element={<AuthWrapper permitirApenasAdmin={false}><Outlet /></AuthWrapper>}>
+              <Route path="/chat/list" element={<ChatList />} />
+              <Route path="/chat/:id" element={<ChatPage />} />
+              <Route path="/perfil" element={<Perfil />} />
+            </Route>
+
+            {/* 🛡️ ROTAS ADMINISTRATIVAS: Bloqueadas para usuários com função "usuario" */}
+            <Route element={<AuthWrapper permitirApenasAdmin={true}><Outlet /></AuthWrapper>}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/membros" element={<Membros />} />
               <Route path="/ministerios" element={<Ministerios />} />
@@ -152,8 +204,8 @@ export default function AppRoutes() {
               <Route path="/listaCultos" element={<ListaCultos />} />
               <Route path="/gestao/departamentos" element={<GestaoDepartamento />} />
               <Route path="/gestao/gestaoigrejas" element={<GestaoIgrejas />} />
-              <Route path="/perfil" element={<Perfil />} />
             </Route>
+            
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

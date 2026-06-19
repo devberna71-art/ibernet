@@ -337,6 +337,9 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'berna12890i'; // ⚠️ Coloque uma senha mais segura para produção
 
 // Rota de login atualizada
+
+
+// Rota de login atualizada e unificada na tabela de Usuarios
 router.post('/login', async (req, res) => {
   const { nome, senha } = req.body;
 
@@ -345,69 +348,44 @@ router.post('/login', async (req, res) => {
   }
 
   try {
+    const bcrypt = require("bcrypt");
+
     // ---------------------------------------------------------
-    // 1️⃣ TENTAR LOGAR COMO USUÁRIO NORMAL
+    // 1️⃣ BUSCAR DIRETAMENTE NA TABELA UNIFICADA DE USUARIOS
     // ---------------------------------------------------------
-    let usuario = await Usuarios.findOne({ where: { nome } });
+    const usuario = await Usuarios.findOne({ where: { nome } });
 
-    if (usuario) {
-      const senhaValida = await bcrypt.compare(senha, usuario.senha);
-      if (!senhaValida) {
-        return res.status(401).json({ message: 'Usuário ou senha inválidos.' });
-      }
-
-      const payload = {
-        id: usuario.id,
-        nome: usuario.nome,
-        funcao: usuario.funcao,
-        SedeId: usuario.SedeId || null,
-        FilhalId: usuario.FilhalId || null,
-        tipo: "usuario"
-      };
-
-      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
-
-      return res.status(200).json({
-        message: "Login realizado com sucesso!",
-        token,
-        usuario: payload
-      });
+    // Se o usuário não for encontrado no banco
+    if (!usuario) {
+      return res.status(401).json({ message: 'Usuário ou senha inválidos.' });
     }
 
     // ---------------------------------------------------------
-    // 2️⃣ USUÁRIO NÃO EXISTE → VERIFICAR MembroUser
+    // 2️⃣ VALIDAR A SENHA (COMPARAÇÃO DO BCRYPT)
     // ---------------------------------------------------------
-    const membroUser = await MembroUser.findOne({ 
-      where: { nome, status: 'aprovado' } // apenas membros aprovados
-    });
-
-    if (!membroUser) {
-      return res.status(403).json({ message: "Usuário não encontrado ou conta ainda não aprovada." });
-    }
-
-    // ---------------------------------------------------------
-    // 3️⃣ VALIDAR SENHA DO MembroUser
-    // ---------------------------------------------------------
-    const senhaValida = await bcrypt.compare(senha, membroUser.senha);
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
     if (!senhaValida) {
-      return res.status(401).json({ message: "Usuário ou senha inválidos." });
+      return res.status(401).json({ message: 'Usuário ou senha inválidos.' });
     }
 
     // ---------------------------------------------------------
-    // 4️⃣ GERAR TOKEN PARA MEMBRO
+    // 3️⃣ GERAR PAYLOAD E TOKEN JWT
     // ---------------------------------------------------------
     const payload = {
-      id: membroUser.id,
-      nome: membroUser.nome,
-      funcao: membroUser.funcao,
-      MembroId: membroUser.MembroId || null,
-      SedeId: membroUser.SedeId || null,
-      FilhalId: membroUser.FilhalId || null,
-      tipo: "membro"
+      id: usuario.id,
+      nome: usuario.nome,
+      funcao: usuario.funcao, // Pode ser 'super_admin', 'admin', 'moderador' ou 'usuario'
+      MembroId: usuario.MembroId || null, // 👈 IMPORTANTE: Adicionado para vincular as ações ao membro logado
+      SedeId: usuario.SedeId || null,
+      FilhalId: usuario.FilhalId || null,
+      tipo: "usuario"
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
 
+    // ---------------------------------------------------------
+    // 4️⃣ RESPOSTA DE SUCESSO
+    // ---------------------------------------------------------
     return res.status(200).json({
       message: "Login realizado com sucesso!",
       token,
@@ -3033,8 +3011,6 @@ router.get('/completos-membros/:id', auth, async (req, res) => {
 
 
 
-
-
 // Rota para cadastrar membros com foto, departamentos e tabelas relacionadas
 router.post('/membros', auth, upload.single('foto'), async (req, res) => {
   try {
@@ -3081,30 +3057,40 @@ router.post('/membros', auth, upload.single('foto'), async (req, res) => {
 
     const fotoCaminho = req.file ? `/uploads/fotos/${req.file.filename}` : null;
 
-    // ==============================
-    // 🔐 GERAR SENHA INICIAL (IMPORTANTE)
-    // ==============================
-
-    const ultimoNumero = await NumeroMembro.findOne({
-      where: {
-        SedeId: req.usuario.SedeId || null,
-        FilhalId: req.usuario.FilhalId || null
-      },
-      order: [['numero', 'DESC']]
-    });
-
-    let proximoNumero = 1;
-
-    if (ultimoNumero) {
-      proximoNumero = parseInt(ultimoNumero.numero, 10) + 1;
+    // ==========================================================
+    // 🏛️ BUSCAR NOME DA SEDE DINAMICAMENTE
+    // ==========================================================
+    let prefixoSede = 'SEDE';
+    
+    if (req.usuario && req.usuario.SedeId) {
+      const sede = await Sede.findByPk(req.usuario.SedeId);
+      if (sede && sede.nome) {
+        // Remove espaços vazios e transforma em letras maiúsculas
+        prefixoSede = sede.nome.toUpperCase().replace(/\s+/g, '');
+      }
     }
 
-    const numeroFormatado = String(proximoNumero).padStart(5, '0');
+    // ==========================================================
+    // 🔐 GERAR SENHA ALEATÓRIA E ÚNICA (NOME DA SEDE + NÚMERO)
+    // ==========================================================
+    let senhaInicial;
+    let senhaExiste = true;
 
-    // 👉 senha inicial visível apenas 1x
-    const senhaInicial = `IGREJA-${numeroFormatado}`;
+    // Garante que a senha gerada aleatoriamente não está em uso por ninguém
+    while (senhaExiste) {
+      const numeroAleatorio = Math.floor(1000 + Math.random() * 9000); // Gera número de 4 dígitos (1000-9999)
+      senhaInicial = `${prefixoSede}-${numeroAleatorio}`;
 
-    // 👉 hash para banco
+      const usuarioComEssaSenha = await Usuarios.findOne({
+        where: { senha: senhaInicial }
+      });
+
+      if (!usuarioComEssaSenha) {
+        senhaExiste = false;
+      }
+    }
+
+    // 👉 Gerar hash para salvar com segurança no banco
     const senhaHash = await bcrypt.hash(senhaInicial, 10);
 
     // Cadastro do membro
@@ -3126,34 +3112,26 @@ router.post('/membros', auth, upload.single('foto'), async (req, res) => {
       batizado: batizado === true || batizado === 'true',
       data_batismo,
       ativo: ativo === false || ativo === 'false' ? false : true,
-      senha: senhaHash, // 👈 ADICIONADO AQUI
+      senha: senhaHash,
       SedeId: req.usuario.SedeId || null,
       FilhalId: req.usuario.FilhalId || null
     });
 
     const novoMembro = await Membros.create(dados);
 
-    // Criar utilizador do membro automaticamente
-await MembroUser.create({
-  nome: novoMembro.nome,
-  senha: senhaHash,
-  funcao: 'membro',
-  status: 'aprovado', // ou 'pendente'
-  MembroId: novoMembro.id,
-  SedeId: req.usuario.SedeId || null,
-  FilhalId: req.usuario.FilhalId || null
-});
-
-    // Guarda número de membro
-    await NumeroMembro.create({
-      numero: numeroFormatado,
-      usado: true,
+    // ==========================================================
+    // 👤 CRIAR USUÁRIO DIRETAMENTE NA TABELA DE USUARIOS
+    // ==========================================================
+    await Usuarios.create({
+      nome: novoMembro.nome,
+      senha: senhaHash, // Salva o hash da senha gerada
+      funcao: 'usuario', // Conforme especificado por você
       MembroId: novoMembro.id,
       SedeId: req.usuario.SedeId || null,
       FilhalId: req.usuario.FilhalId || null
     });
 
-    // Atualiza usuário vinculado
+    // Atualiza usuário vinculado caso venha na requisição antiga
     if (MembroIdUsuario) {
       await Usuarios.update(
         { MembroId: novoMembro.id },
@@ -3209,13 +3187,12 @@ await MembroUser.create({
     // ==============================
     // 🔥 RESPOSTA FINAL (COM SENHA 1X)
     // ==============================
-
     return res.status(201).json({
       message: 'Membro cadastrado com sucesso!',
       membro: novoMembro,
       credenciais: {
         nome: novoMembro.nome,
-        senhaInicial // 👈 SÓ APARECE UMA VEZ
+        senhaInicial // Envia a senha em texto limpo para o Card capturar e exibir apenas esta vez
       }
     });
 
@@ -3224,8 +3201,6 @@ await MembroUser.create({
     return res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 });
-
-
 
 
 

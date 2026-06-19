@@ -79,7 +79,7 @@ export default function Resumo({ formData, tiposCulto, tiposContribuicao, membro
               fontWeight="800"
               sx={{ color: "#1a1a1a", letterSpacing: "1px", textTransform: "uppercase", fontSize: "0.75rem" }}
             >
-              Sumário Executivo
+              RESUMO
             </Typography>
           </Box>
           
@@ -275,7 +275,7 @@ export default function Resumo({ formData, tiposCulto, tiposContribuicao, membro
                 Balanço Consolidado
               </Typography>
               <Typography variant="body2" fontWeight="600" sx={{ color: "#ffffff", opacity: 0.9, mt: 0.2 }}>
-                Ativo Líquido
+                Total geral
               </Typography>
             </Box>
             <Typography variant="h5" fontWeight="900" sx={{ letterSpacing: "-0.5px", color: "#fff", fontFamily: "monospace" }}>
