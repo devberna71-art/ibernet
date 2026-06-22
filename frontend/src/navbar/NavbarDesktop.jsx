@@ -96,21 +96,35 @@ export default function NavbarDesktop() {
     fetchPerfil();
   }, []);
 
+ 
+
+
+
   useEffect(() => {
-    const socket = io("http://localhost:4000", {
-      auth: { token: localStorage.getItem("token") }
-    });
+  const socket = io("https://api.ibernet.online", {
+    auth: {
+      token: localStorage.getItem("token"),
+    },
+    transports: ["websocket"],
+  });
 
-    socket.on("global_new_message", (data) => {
-      if (location.pathname !== "/chat/list" && membro && Number(data.MembroId) !== Number(membro.id)) {
-        setUnreadMessagesCount((prev) => prev + 1);
-      }
-    });
+  socket.on("global_new_message", (data) => {
+    if (
+      location.pathname !== "/chat/list" &&
+      membro &&
+      Number(data.MembroId) !== Number(membro.id)
+    ) {
+      setUnreadMessagesCount((prev) => prev + 1);
+    }
+  });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [location.pathname, membro]);
+  return () => {
+    socket.disconnect();
+  };
+}, [location.pathname, membro]);
+
+
+
 
   const logout = () => {
     localStorage.clear();
