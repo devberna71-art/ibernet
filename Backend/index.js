@@ -14,10 +14,18 @@ const auth = require('./middlewere/auth');
 // 1. Criamos o servidor HTTP encapsulando o app do Express antes das rotas
 const server = http.createServer(app);
 
-// 2. Inicializamos o Socket.io anexado ao servidor HTTP com tratamento completo de CORS
+// 🌟 LISTA DE ORIGENS PERMITIDAS (Local e Produção)
+const origensPermitidas = [
+  'http://localhost:3000',
+  'https://ibernet.online',
+  'https://www.ibernet.online',
+  'https://api.ibernet.online'
+];
+
+// 2. Inicializamos o Socket.io anexado ao servidor HTTP com tratamento completo de CORS dinâmico
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: origensPermitidas,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   }
@@ -25,9 +33,10 @@ const io = new Server(server, {
 
 // 3. Configuração global do CORS para o Express (Axios)
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: origensPermitidas,
   credentials: true
 }));
+
 
 // 🔥 MIDDLEWARE ESSENCIAL: Disponibiliza o 'io' em qualquer Controller através de 'req.io'
 app.use((req, res, next) => {

@@ -1,9 +1,13 @@
 // src/api/axiosConfig.js
 import axios from 'axios';
 
+// Detecta automaticamente o ambiente
+const baseURL = process.env.NODE_ENV === 'production'
+  ? 'https://api.ibernet.online' // URL da API que configuraremos no Docploy
+  : 'http://localhost:8000';      // URL local do seu PC
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: baseURL,
 });
 
 

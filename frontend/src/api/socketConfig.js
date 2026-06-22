@@ -1,12 +1,16 @@
 import { io } from "socket.io-client";
 
-const URL = "http://localhost:8000"; 
+
+
+// Detecta automaticamente se conecta na nuvem ou no PC local
+const URL = process.env.NODE_ENV === 'production'
+  ? 'https://api.ibernet.online' // Endereço do seu Back-end no Docploy
+  : 'http://localhost:8000';      // Endereço local
 
 const socket = io(URL, {
   autoConnect: false, // Conecte manualmente no seu useEffect do ChatPage
   reconnection: true,
   reconnectionAttempts: 5,
-  // Remova a linha 'transports' para permitir a negociação correta
 });
 
 socket.on("connect", () => {

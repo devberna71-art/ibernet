@@ -57,7 +57,7 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
+      "&gt;0.2%",
       "not dead",
       "not op_mini all"
     ],
@@ -70,5 +70,8 @@
   "devDependencies": {
     "autoprefixer": "^10.4.24",
     "postcss": "^8.5.6"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
