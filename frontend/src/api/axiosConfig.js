@@ -2,10 +2,8 @@
 import axios from 'axios';
 
 // Detecta automaticamente o ambiente
-const baseURL = process.env.NODE_ENV === 'production'
-  'https://api.ibernet.online' // URL da API que configuraremos no Docploy
- 
-
+const baseURL = 'https://api.ibernet.online' // URL da API que configuraremos no Docploy
+  
 const api = axios.create({
   baseURL: baseURL,
 });
