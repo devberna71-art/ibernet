@@ -37,6 +37,8 @@ import UserBadge from "../components/UserMiniProfile";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logoBernet from "../assets/Logo-Bernet.png";
 import api from "../api/axiosConfig";
+import socket from "../api/socketConfig";
+
 import { io } from "socket.io-client"; 
 
 export default function NavbarDesktop() {
@@ -99,15 +101,14 @@ export default function NavbarDesktop() {
  
 
 
+useEffect(() => {
+  // Se o seu socketConfig não conecta automaticamente, você pode forçar a abertura/autenticação aqui:
+  if (!socket.connected) {
+    socket.auth = { token: localStorage.getItem("token") };
+    socket.connect();
+  }
 
-  useEffect(() => {
-  const socket = io("https://api.ibernet.online", {
-    auth: {
-      token: localStorage.getItem("token"),
-    },
-    transports: ["websocket"],
-  });
-
+  // Ouvir o evento global usando a instância importada padrão
   socket.on("global_new_message", (data) => {
     if (
       location.pathname !== "/chat/list" &&
@@ -118,11 +119,11 @@ export default function NavbarDesktop() {
     }
   });
 
+  // Limpeza do listener ao desmontar o componente
   return () => {
-    socket.disconnect();
+    socket.off("global_new_message");
   };
 }, [location.pathname, membro]);
-
 
 
 
