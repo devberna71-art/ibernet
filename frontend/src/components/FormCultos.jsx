@@ -23,8 +23,12 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  Alpha,
+  // ❌ Removi o Alpha daqui de dentro
 } from "@mui/material";
+
+// ✅ Importação correta do alpha (minúsculo) vinda do styles do MUI
+import { alpha } from "@mui/material/styles";
+
 import {
   Event as EventIcon,
   MonetizationOn as MoneyIcon,
@@ -33,6 +37,7 @@ import {
   AddCircleOutline as AddIcon,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
+
 import api from "../api/axiosConfig";
 
 // Importação do novo componente criado
