@@ -16,7 +16,6 @@ const server = http.createServer(app);
 
 // 🌟 LISTA DE ORIGENS PERMITIDAS (Local e Produção)
 const origensPermitidas = [
-  'http://localhost:3000',
   'https://ibernet.online',
   'https://www.ibernet.online',
   'https://api.ibernet.online'

@@ -1,33 +1,21 @@
-// src/api/axiosConfig.js
-import axios from 'axios';
+import axios from "axios";
 
-// Detecta automaticamente o ambiente
-const baseURL = process.env.NODE_ENV === 'production'
-  ? 'https://api.ibernet.online' // URL da API que configuraremos no Docploy
-  : 'http://localhost:8000';      // URL local do seu PC
+console.log("AXIOS CARREGADO - PRODUCAO");
 
 const api = axios.create({
-  baseURL: baseURL,
+  baseURL: "https://api.ibernet.online",
 });
 
+api.interceptors.request.use((config) => {
+  console.log("REQUISICAO:", config.baseURL, config.url);
 
-// Interceptor para enviar o token automaticamente em todas as requisições
-api.interceptors.request.use(
-  config => {
-    // Pega o token do localStorage
-    const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
-    if (token) {
-      // Adiciona o header Authorization no formato Bearer
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  error => {
-    // Qualquer erro na requisição
-    return Promise.reject(error);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+
+  return config;
+});
 
 export default api;
