@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Container,
   TextField,
   Button,
   Typography,
@@ -10,9 +9,22 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { Visibility, VisibilityOff, Login as LoginIcon, LockOutlined } from "@mui/icons-material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Lock, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import api from "../api/axiosConfig";
+
+const inputSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "10px",
+    backgroundColor: "#F6F1E9",
+  },
+  "& .MuiInputLabel-root": { color: "#8B8378" },
+  "& .MuiOutlinedInput-root.Mui-focused fieldset": {
+    borderColor: "#D97A4D",
+  },
+};
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ nome: "", senha: "" });
@@ -50,119 +62,41 @@ export default function LoginPage() {
 
   return (
     <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "radial-gradient(circle at 30% 20%, #4f46e5, #312e81 80%)",
-        overflow: "hidden",
-        position: "relative",
-        fontFamily: "'Poppins', sans-serif",
-      }}
+      className="min-h-screen flex items-center justify-center px-4 py-10 bg-bg relative overflow-hidden"
+      component={motion.div}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
     >
-      {/* Efeito de fundo luminoso */}
-      <motion.div
-        style={{
-          position: "absolute",
-          width: "1300px",
-          height: "1300px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%)",
-          top: "-350px",
-          left: "-200px",
-          filter: "blur(100px)",
-        }}
-        animate={{ scale: [1, 1.15, 1] }}
-        transition={{ duration: 10, repeat: Infinity }}
-      />
+      <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primarySoft/40 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-surfaceMuted/60 blur-3xl pointer-events-none" />
 
-      {/* Card de login */}
-      <Container
+      <Box
         component={motion.div}
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        maxWidth="sm"
-        sx={{
-          p: 6,
-          borderRadius: 6,
-          bgcolor: "white",
-          boxShadow: "0 40px 80px rgba(0,0,0,0.2)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          zIndex: 2,
-          backdropFilter: "blur(30px)",
-        }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 w-full max-w-md bg-surface rounded-lg shadow-soft border border-surfaceMuted p-8 md:p-10"
       >
-        {/* Ícone e título */}
-        <Box sx={{ textAlign: "center", mb: 3 }}>
-          <LockOutlined
-            sx={{
-              fontSize: 50,
-              color: "#4f46e5",
-              mb: 1,
-            }}
-          />
+        <Box sx={{ textAlign: "center", mb: 4 }}>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-sm bg-primarySoft text-primary mb-4">
+            <Lock size={26} strokeWidth={1.75} />
+          </div>
           <Typography
             variant="h4"
             component="h1"
-            sx={{
-              fontWeight: 800,
-              color: "#1e1b4b",
-              mb: 1,
-              textTransform: "uppercase",
-              letterSpacing: "1px",
-            }}
+            sx={{ fontWeight: 700, color: "#211D19", fontSize: "28px", mb: 1 }}
           >
             Entrar no Sistema
           </Typography>
-
-          {/* Linha gradiente abaixo do título */}
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: "80%" }}
-            transition={{ duration: 1 }}
-            style={{
-              height: "4px",
-              background: "linear-gradient(90deg, #4f46e5, #6366f1, #a78bfa)",
-              borderRadius: "2px",
-              margin: "0 auto",
-            }}
-          />
+          <Typography sx={{ color: "#8B8378", fontSize: "14px" }}>
+            Acesse sua conta para continuar
+          </Typography>
         </Box>
 
-        {/* Mensagens de alerta */}
-        {error && (
-          <Alert
-            severity="error"
-            sx={{
-              mb: 2,
-              borderRadius: 2,
-              boxShadow: "0 4px 20px rgba(255,0,0,0.2)",
-              fontWeight: "bold",
-            }}
-          >
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert
-            severity="success"
-            sx={{
-              mb: 2,
-              borderRadius: 2,
-              boxShadow: "0 4px 20px rgba(0,255,0,0.2)",
-              fontWeight: "bold",
-            }}
-          >
-            {success}
-          </Alert>
-        )}
+        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: "10px" }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2, borderRadius: "10px" }}>{success}</Alert>}
 
-        {/* Formulário */}
-        <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }} noValidate>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
             fullWidth
             label="Nome de Usuário"
@@ -171,19 +105,7 @@ export default function LoginPage() {
             onChange={handleChange}
             required
             margin="normal"
-            variant="outlined"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 3,
-                backgroundColor: "#f9fafb",
-                transition: "all 0.3s",
-              },
-              "& .MuiInputLabel-root": { color: "#4f46e5" },
-              "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                borderColor: "#4f46e5",
-                boxShadow: "0 0 12px rgba(79,70,229,0.4)",
-              },
-            }}
+            sx={inputSx}
           />
 
           <TextField
@@ -195,7 +117,7 @@ export default function LoginPage() {
             onChange={handleChange}
             required
             margin="normal"
-            variant="outlined"
+            sx={{ ...inputSx, mb: 3 }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -205,78 +127,53 @@ export default function LoginPage() {
                 </InputAdornment>
               ),
             }}
-            sx={{
-              mb: 3,
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 3,
-                backgroundColor: "#f9fafb",
-                transition: "all 0.3s",
-              },
-              "& .MuiInputLabel-root": { color: "#4f46e5" },
-              "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                borderColor: "#4f46e5",
-                boxShadow: "0 0 12px rgba(79,70,229,0.4)",
-              },
-            }}
           />
 
           <Button
             type="submit"
             fullWidth
             variant="contained"
+            disabled={loading}
             startIcon={
-              loading ? <CircularProgress size={20} sx={{ color: "white" }} /> : <LoginIcon />
+              loading ? <CircularProgress size={18} sx={{ color: "white" }} /> : <LogIn size={18} />
             }
             sx={{
-              mt: 3,
-              py: 1.6,
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              borderRadius: 4,
+              py: 1.5,
+              borderRadius: "10px",
               textTransform: "none",
-              background: "linear-gradient(135deg, #4f46e5 0%, #312e81 100%)",
-              boxShadow: "0 10px 40px rgba(79,70,229,0.4)",
-              "&:hover": {
-                transform: "translateY(-3px) scale(1.03)",
-                boxShadow: "0 20px 60px rgba(79,70,229,0.6)",
-              },
+              fontWeight: 600,
+              fontSize: "15px",
+              backgroundColor: "#D97A4D",
+              boxShadow: "none",
+              "&:hover": { backgroundColor: "#C56A3F", boxShadow: "none" },
             }}
-            disabled={loading}
           >
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </Box>
 
-        {/* Seção de criar conta */}
         <Box sx={{ mt: 4, textAlign: "center" }}>
-          <Typography
-            variant="body1"
-            sx={{ mb: 1, fontWeight: 500, color: "#4338ca", fontSize: "0.95rem" }}
-          >
+          <Typography sx={{ mb: 1.5, color: "#8B8378", fontSize: "14px" }}>
             Ainda não tem conta?
           </Typography>
           <Button
+            component={Link}
+            to="/criar-usuarios"
             variant="outlined"
-            href="/criar-usuarios"
             sx={{
-              borderColor: "#4f46e5",
-              color: "#4f46e5",
-              fontWeight: "bold",
-              py: 1,
-              px: 3,
-              borderRadius: 4,
+              borderColor: "#D97A4D",
+              color: "#D97A4D",
+              borderRadius: "10px",
               textTransform: "none",
-              fontSize: "0.95rem",
-              "&:hover": {
-                backgroundColor: "rgba(79,70,229,0.08)",
-                transform: "translateY(-2px)",
-              },
+              fontWeight: 600,
+              px: 3,
+              "&:hover": { backgroundColor: "#FBE3CF", borderColor: "#D97A4D" },
             }}
           >
             Criar Conta
           </Button>
         </Box>
-      </Container>
+      </Box>
     </Box>
   );
 }

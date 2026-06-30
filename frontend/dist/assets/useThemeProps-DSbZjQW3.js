@@ -1,0 +1,1 @@
+import{$ as e,m as t}from"./Box-OHZSlcke.js";import{t as n}from"./useThemeProps-D0AbfSf6.js";function r({props:r,name:i}){return n({props:r,name:i,defaultTheme:t,themeId:e})}export{r as t};

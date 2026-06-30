@@ -1,204 +1,172 @@
 import React, { useState, useEffect } from "react";
 import {
-  AppBar,
-  Toolbar,
   Box,
   IconButton,
   Drawer,
   useMediaQuery,
   CircularProgress,
   GlobalStyles,
+  Toolbar,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import { Menu } from "lucide-react";
 import { useTheme } from "@mui/material/styles";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import api from "../api/axiosConfig";
+import socket from "../api/socketConfig";
 import logoBernet from "../assets/Logo-Bernet.png";
-
-import NavbarVisitor from "./NavbarVisitor";
-import NavbarMobile from "./NavbarMobile";
-import NavbarDesktop from "./NavbarDesktop";
+import Sidebar, { SIDEBAR_WIDTH } from "../components/ui/Sidebar";
 import UserBadge from "../components/UserMiniProfile";
-
-// Deve ser igual à largura real da sidebar
-const DESKTOP_NAV_WIDTH = 340;
+import NavbarVisitor from "./NavbarVisitor";
 
 export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userRole, setUserRole] = useState(undefined);
   const [membro, setMembro] = useState(null);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const toggleDrawer = (open) => () => {
-    setDrawerOpen(open);
-  };
+  const showDesktopSidebar = !isMobile && userRole;
 
-  // ================= ROLE =================
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
         const token = localStorage.getItem("token");
-
         if (!token) {
           setUserRole(null);
           return;
         }
-
         const res = await api.get("/usuario/status", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
         setUserRole(res.data?.usuario?.funcao ?? null);
-      } catch (error) {
-        console.error(error);
+      } catch {
         setUserRole(null);
       }
     };
-
     fetchUserRole();
   }, []);
 
-  // ================= PERFIL =================
   useEffect(() => {
     const fetchPerfil = async () => {
       try {
         const res = await api.get("/meu-perfil");
-
         setMembro(res.data?.usuario?.membro || null);
       } catch (error) {
         console.error(error);
       }
     };
+    if (userRole) fetchPerfil();
+  }, [userRole]);
 
-    fetchPerfil();
-  }, []);
+  useEffect(() => {
+    if (!userRole || !membro) return;
 
-  // ================= LOADING =================
+    if (!socket.connected) {
+      socket.auth = { token: localStorage.getItem("token") };
+      socket.connect();
+    }
+
+    const handler = (data) => {
+      if (
+        location.pathname !== "/chat/list" &&
+        Number(data.MembroId) !== Number(membro.id)
+      ) {
+        setUnreadMessagesCount((prev) => prev + 1);
+      }
+    };
+
+    socket.on("global_new_message", handler);
+    return () => socket.off("global_new_message", handler);
+  }, [userRole, membro]);
+
+  useEffect(() => {
+    if (location.pathname === "/chat/list") {
+      setUnreadMessagesCount(0);
+    }
+  }, [location.pathname]);
+
   if (userRole === undefined) {
     return (
       <Box
         sx={{
           position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
+          inset: 0,
           zIndex: 9999,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          py: 2,
-          background: "#1e3a8a",
+          background: "#F6F1E9",
         }}
       >
-        <CircularProgress
-          size={24}
-          sx={{
-            color: "#fff",
-          }}
-        />
+        <CircularProgress size={28} />
       </Box>
     );
   }
 
-  // Lógica para determinar se a barra lateral do desktop está visível
-  const showDesktopSidebar = !isMobile && userRole;
+  const sidebarProps = {
+    userRole,
+    membro,
+    unreadMessagesCount,
+    onNavigate: () => setDrawerOpen(false),
+    onProfileClick: () => {
+      setDrawerOpen(false);
+      navigate("/perfil");
+    },
+  };
 
   return (
     <>
-      {/* Corrige o deslocamento do conteúdo dinamicamente */}
       <GlobalStyles
         styles={{
-          html: {
-            margin: 0,
-            padding: 0,
-          },
           body: {
-            margin: 0,
-            padding: 0,
-            // Se NÃO for mobile E for utilizador logado, adiciona o espaço à esquerda. Caso contrário, expande (0)
-            paddingLeft: showDesktopSidebar ? `${DESKTOP_NAV_WIDTH}px` : 0,
+            paddingLeft: showDesktopSidebar ? `${SIDEBAR_WIDTH}px` : 0,
             transition: "padding-left .25s ease",
             overflowX: "hidden",
-          },
-          "#root": {
-            margin: 0,
-            padding: 0,
           },
         }}
       />
 
-      {/* ================= MOBILE ================= */}
+      {/* Desktop sidebar */}
+      {showDesktopSidebar && <Sidebar {...sidebarProps} />}
+
+      {/* Desktop visitor navbar */}
+      {!isMobile && !userRole && <NavbarVisitor />}
+
+      {/* Mobile header */}
       {isMobile && (
-        <AppBar
-          position="fixed"
-          elevation={1}
-          sx={{
-            background: "#ffffff",
-            color: "#1e293b",
-            borderBottom: "1px solid rgba(0, 0, 0, 0.08)",
-          }}
-        >
-          <Toolbar sx={{ minHeight: { xs: 80, sm: 80 } }}> 
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={toggleDrawer(true)}
-            >
-              <MenuIcon />
+        <header className="fixed top-0 left-0 right-0 z-[1200] bg-surface border-b border-surfaceMuted">
+          <Toolbar sx={{ minHeight: { xs: 64, sm: 64 }, px: 2, justifyContent: "space-between" }}>
+            <IconButton edge="start" onClick={() => setDrawerOpen(true)} aria-label="Abrir menu">
+              <Menu size={22} strokeWidth={1.75} className="text-text" />
             </IconButton>
-
-            <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", pl: 1 }}>
-              <Box
-                component="img"
-                src={logoBernet}
-                alt="Logo"
-                sx={{
-                  height: 55,
-                  display: "block",
-                }}
-              />
-            </Box>
-
-            {userRole && <UserBadge membro={membro} />}
+            <img src={logoBernet} alt="Logo" className="h-10 object-contain" />
+            {userRole && membro ? <UserBadge membro={membro} /> : <div className="w-10" />}
           </Toolbar>
-        </AppBar>
+        </header>
       )}
 
-      {/* ================= DESKTOP ================= */}
-      {!isMobile &&
-        (userRole ? (
-          <NavbarDesktop
-            userRole={userRole}
-            membro={membro}
-          />
-        ) : (
-          <NavbarVisitor />
-        ))}
-
-      {/* ================= DRAWER MOBILE ================= */}
+      {/* Mobile drawer */}
       <Drawer
         anchor="left"
         open={drawerOpen}
-        onClose={toggleDrawer(false)}
+        onClose={() => setDrawerOpen(false)}
+        PaperProps={{
+          sx: { width: SIDEBAR_WIDTH, background: "#FFFFFF", border: "none" },
+        }}
       >
         {userRole ? (
-          <NavbarMobile
-            userRole={userRole}
-            toggleDrawer={toggleDrawer}
-          />
+          <Sidebar {...sidebarProps} className="relative !w-full" />
         ) : (
-          <NavbarVisitor
-            toggleDrawer={toggleDrawer}
-          />
+          <NavbarVisitor toggleDrawer={() => setDrawerOpen(false)} />
         )}
       </Drawer>
 
-      {/* Espaço dinâmico para empurrar o conteúdo abaixo da AppBar Mobile alterada */}
-      {isMobile && <Toolbar sx={{ minHeight: { xs: 80, sm: 80 } }} />}
+      {isMobile && userRole && <Toolbar sx={{ minHeight: { xs: 64, sm: 64 } }} />}
     </>
   );
 }

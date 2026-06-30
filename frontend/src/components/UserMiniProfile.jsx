@@ -34,38 +34,12 @@ import api from "../api/axiosConfig";
 
 const StyledBadge = styled(Badge)(() => ({
   "& .MuiBadge-badge": {
-    background:
-      "linear-gradient(135deg, #00ff99, #00c853)",
-    color: "#00ff99",
-    boxShadow:
-      "0 0 0 3px white, 0 0 15px rgba(0,255,153,.8)",
-    width: 14,
-    height: 14,
+    background: "#5C8A5C",
+    color: "#5C8A5C",
+    boxShadow: "0 0 0 2px white",
+    width: 10,
+    height: 10,
     borderRadius: "50%",
-
-    "&::after": {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      borderRadius: "50%",
-      border: "2px solid currentColor",
-      content: '""',
-      animation: "ripple 1.8s infinite",
-    },
-  },
-
-  "@keyframes ripple": {
-    "0%": {
-      transform: "scale(.7)",
-      opacity: 1,
-    },
-
-    "100%": {
-      transform: "scale(2.8)",
-      opacity: 0,
-    },
   },
 }));
 
@@ -132,25 +106,17 @@ export default function UserMiniProfile({
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 1.8,
+          gap: 1.5,
           px: 1.5,
           py: 1,
           cursor: "pointer",
-          borderRadius: "20px",
-          background:
-            "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.85))",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.7)",
-          boxShadow:
-            "0 10px 35px rgba(15,23,42,.12)",
-          transition: "all .35s ease",
-          
+          borderRadius: "10px",
+          background: "#FFFFFF",
+          border: "1px solid #ECE5D8",
+          boxShadow: "0 2px 8px rgba(33,29,25,0.05)",
+          transition: "all .2s ease",
           "&:hover": {
-            transform: "translateY(-3px)",
-            boxShadow:
-              "0 18px 45px rgba(15,23,42,.18)",
-            background:
-              "linear-gradient(135deg,#ffffff,#f8fafc)",
+            background: "#FBE3CF",
           },
         }}
       >
@@ -190,10 +156,9 @@ export default function UserMiniProfile({
 
           <Typography
             sx={{
-              fontWeight: 800,
-              fontSize: ".92rem",
-              color: "#0f172a",
-              letterSpacing: ".3px",
+              fontWeight: 600,
+              fontSize: ".875rem",
+              color: "#211D19",
             }}
           >
             {membro.nome}
@@ -202,9 +167,9 @@ export default function UserMiniProfile({
 
           <Typography
             sx={{
-              color: "#10b981",
+              color: "#5C8A5C",
               fontSize: ".75rem",
-              fontWeight: 700,
+              fontWeight: 500,
               mt: .3,
             }}
           >
@@ -216,7 +181,7 @@ export default function UserMiniProfile({
 
         <KeyboardArrowDownIcon
           sx={{
-            color: "#64748b",
+            color: "#8B8378",
             fontSize: 26,
             transition: ".3s",
 
@@ -253,17 +218,9 @@ export default function UserMiniProfile({
             p: 1.5,
             borderRadius: "24px",
 
-            background:
-              "rgba(255,255,255,.75)",
-
-            backdropFilter:
-              "blur(25px)",
-
-            border:
-              "1px solid rgba(255,255,255,.8)",
-
-            boxShadow:
-              "0 25px 60px rgba(15,23,42,.20)",
+            background: "#FFFFFF",
+            border: "1px solid #ECE5D8",
+            boxShadow: "0 2px 8px rgba(33,29,25,0.05)",
 
             overflow: "hidden",
           }
@@ -329,11 +286,10 @@ export default function UserMiniProfile({
             borderRadius: "15px",
             textTransform: "none",
             fontWeight: 700,
-            color: "#334155",
+            color: "#211D19",
 
             "&:hover": {
-              background:
-                "rgba(59,130,246,.12)",
+              background: "#FBE3CF",
               transform:
                 "translateX(5px)",
             },
@@ -361,11 +317,10 @@ export default function UserMiniProfile({
             borderRadius: "15px",
             textTransform: "none",
             fontWeight: 700,
-            color: "#334155",
+            color: "#211D19",
 
             "&:hover": {
-              background:
-                "rgba(168,85,247,.12)",
+              background: "#FBE3CF",
               transform:
                 "translateX(5px)",
             },
@@ -394,7 +349,7 @@ export default function UserMiniProfile({
             borderRadius: "15px",
             textTransform: "none",
             fontWeight: 800,
-            color: "#ef4444",
+            color: "#B5332C",
 
             "&:hover": {
               background:
@@ -447,7 +402,7 @@ export default function UserMiniProfile({
         <Box
           sx={{
             background:
-              "linear-gradient(135deg, #0f172a, #2563eb, #06b6d4)",
+              "#D97A4D",
             color: "white",
             textAlign: "center",
             py: 3,
@@ -679,28 +634,9 @@ export default function UserMiniProfile({
                     fontWeight: 800,
                     fontSize: ".95rem",
 
-                    background:
-                      "linear-gradient(135deg,#0f172a,#2563eb)",
-
-                    boxShadow:
-                      "0 12px 30px rgba(37,99,235,.45)",
-
-                    textTransform:
-                      "none",
-
-                    transition:
-                      ".35s",
-
-                    "&:hover": {
-                      transform:
-                        "translateY(-3px)",
-
-                      boxShadow:
-                        "0 18px 40px rgba(37,99,235,.55)",
-
-                      background:
-                        "linear-gradient(135deg,#020617,#1d4ed8)",
-                    },
+                    background: "#D97A4D",
+                    boxShadow: "none",
+                    "&:hover": { background: "#C56A3F", boxShadow: "none" },
 
                   }}
 

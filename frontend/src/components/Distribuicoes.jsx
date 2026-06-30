@@ -59,7 +59,7 @@ const numberStyle = {
   fontFamily: '"Inter", sans-serif',
   fontSize: "3rem",
   fontWeight: 800,
-  color: "#0f172a",
+  color: "#211D19",
   lineHeight: 1,
   transition: "all 0.4s ease"
 };
@@ -92,7 +92,7 @@ export default function Distribuicoes({ dados }) {
       {/* Header com design de Dashboard Moderno */}
       <Box sx={{ mb: 8, maxWidth: "600px" }}>
         <Typography sx={{ fontSize: "0.7rem", fontWeight: 900, color: "#64748b", mb: 1, letterSpacing: "0.25em" }}>ESTATÍSTICAS EM TEMPO REAL</Typography>
-        <Typography sx={{ fontSize: { xs: "2rem", md: "2.5rem" }, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1.2 }}>
+        <Typography sx={{ fontSize: { xs: "2rem", md: "2.5rem" }, fontWeight: 800, color: "#211D19", letterSpacing: "-0.03em", lineHeight: 1.2 }}>
           Segmentação Demográfica
         </Typography>
       </Box>

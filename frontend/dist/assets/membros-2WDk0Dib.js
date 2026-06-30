@@ -1,0 +1,1 @@
+import"./chunk-Cyuzqnbw.js";import{n as e,t}from"./jsx-runtime-CnYwEvd9.js";e();var n=t();function r(){return(0,n.jsx)(`h1`,{children:`Membros`})}export{r as default};

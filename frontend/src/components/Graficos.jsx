@@ -65,7 +65,7 @@ const emptyStateStyle = {
   fontFamily: '"Inter", sans-serif'
 };
 
-const CoresDonut = ["#4f46e5", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+const CoresDonut = ["#D97A4D", "#5C8A5C", "#8B8378", "#B5332C", "#C4A882", "#A66B47"];
 
 export default function Graficos() {
   const [dados, setDados] = useState(null);
@@ -98,7 +98,7 @@ export default function Graficos() {
   if (loading) {
     return (
       <Box sx={{ height: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <CircularProgress size={45} thickness={4} sx={{ color: "#4f46e5" }} />
+        <CircularProgress size={45} thickness={4} sx={{ color: "#D97A4D" }} />
       </Box>
     );
   }
@@ -130,14 +130,14 @@ export default function Graficos() {
         <Box sx={cardStyle}>
           <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" spacing={2} sx={{ mb: 4 }}>
             <Stack direction="row" spacing={2} alignItems="center">
-              <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #4f46e5, #8b5cf6)", boxShadow: "0 8px 16px -4px rgba(79, 70, 229, 0.4)" }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #D97A4D, #A66B47)", boxShadow: "0 8px 16px -4px rgba(79, 70, 229, 0.4)" }}>
                 <TrendingUpRoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
               </Box>
               <Box>
-                <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", fontFamily: '"Inter", sans-serif' }}>
+                <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#211D19", fontFamily: '"Inter", sans-serif' }}>
                   Resumo Financeiro
                 </Typography>
-                <Typography sx={{ color: "#64748b", fontSize: "0.82rem", fontWeight: 500 }}>
+                <Typography sx={{ color: "#8B8378", fontSize: "0.82rem", fontWeight: 500 }}>
                   Evolução das contribuições ao longo do tempo
                 </Typography>
               </Box>
@@ -171,18 +171,18 @@ export default function Graficos() {
                 <AreaChart data={ultimosMeses} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.01} />
+                      <stop offset="5%" stopColor="#D97A4D" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#D97A4D" stopOpacity={0.01} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="6 6" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="mes" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} style={{ fontWeight: 600 }} />
-                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
+                  <XAxis dataKey="mes" stroke="#8B8378" fontSize={11} tickLine={false} axisLine={false} style={{ fontWeight: 600 }} />
+                  <YAxis stroke="#8B8378" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
                   <ChartTooltip 
                     formatter={(val) => [`${Number(val).toLocaleString()} Kz`, "Contribuições"]}
                     contentStyle={{ fontFamily: '"Inter", sans-serif', borderRadius: '8px', borderColor: '#e2e8f0' }}
                   />
-                  <Area type="monotone" dataKey="valor" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorValor)" />
+                  <Area type="monotone" dataKey="valor" stroke="#D97A4D" strokeWidth={4} fillOpacity={1} fill="url(#colorValor)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -199,14 +199,14 @@ export default function Graficos() {
       <Grid item xs={12} xl={4}>
         <Box sx={cardStyle}>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #06b6d4, #4f46e5)", boxShadow: "0 8px 16px -4px rgba(6, 182, 212, 0.4)" }}>
+            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #5C8A5C, #D97A4D)", boxShadow: "0 8px 16px -4px rgba(6, 182, 212, 0.4)" }}>
               <DonutLargeRoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
             </Box>
             <Box>
-              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", fontFamily: '"Inter", sans-serif' }}>
+              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#211D19", fontFamily: '"Inter", sans-serif' }}>
                 Contribuições
               </Typography>
-              <Typography sx={{ color: "#64748b", fontSize: "0.82rem", fontWeight: 500 }}>
+              <Typography sx={{ color: "#8B8378", fontSize: "0.82rem", fontWeight: 500 }}>
                 Divisão proporcional por categoria
               </Typography>
             </Box>
@@ -248,14 +248,14 @@ export default function Graficos() {
       <Grid item xs={12}>
         <Box sx={cardStyle}>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #8b5cf6, #4f46e5)", boxShadow: "0 8px 16px -4px rgba(139, 92, 246, 0.4)" }}>
+            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #C4A882, #D97A4D)", boxShadow: "0 8px 16px -4px rgba(139, 92, 246, 0.4)" }}>
               <Groups2RoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
             </Box>
             <Box>
-              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", fontFamily: '"Inter", sans-serif' }}>
+              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#211D19", fontFamily: '"Inter", sans-serif' }}>
                 Demografia de Membros
               </Typography>
-              <Typography sx={{ color: "#64748b", fontSize: "0.82rem", fontWeight: 500 }}>
+              <Typography sx={{ color: "#8B8378", fontSize: "0.82rem", fontWeight: 500 }}>
                 Distribuição volumétrica por faixas etárias
               </Typography>
             </Box>
@@ -266,10 +266,10 @@ export default function Graficos() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dadosBarraFormatados} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="6 6" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="faixa" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} style={{ fontWeight: 600 }} />
-                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
+                  <XAxis dataKey="faixa" stroke="#8B8378" fontSize={11} tickLine={false} axisLine={false} style={{ fontWeight: 600 }} />
+                  <YAxis stroke="#8B8378" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
                   <ChartTooltip contentStyle={{ fontFamily: '"Inter", sans-serif', borderRadius: '8px', borderColor: '#e2e8f0' }} />
-                  <Bar dataKey="Membros" fill="#4f46e5" radius={[8, 8, 0, 0]} maxBarSize={45} />
+                  <Bar dataKey="Membros" fill="#D97A4D" radius={[8, 8, 0, 0]} maxBarSize={45} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
