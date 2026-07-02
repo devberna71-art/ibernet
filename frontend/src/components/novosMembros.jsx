@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CircularProgress } from "@mui/material";
+import { Loader2 } from "lucide-react";
 import api from "../api/axiosConfig";
 import ListCard from "./ui/ListCard";
 import Badge from "./ui/Badge";
@@ -7,7 +7,6 @@ import Badge from "./ui/Badge";
 export default function NovosMembros() {
   const [dados, setDados] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [verTodos, setVerTodos] = useState(false);
 
   useEffect(() => {
     api
@@ -19,13 +18,13 @@ export default function NovosMembros() {
 
   if (loading) {
     return (
-      <div className="bg-surface rounded-lg shadow-soft border border-surfaceMuted/60 h-80 flex items-center justify-center">
-        <CircularProgress size={28} />
+      <div className="bg-surface rounded-md border border-border h-48 flex items-center justify-center">
+        <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
       </div>
     );
   }
 
-  const membrosExibidos = verTodos ? dados : dados.slice(0, 4);
+  const membrosExibidos = dados.slice(0, 5);
 
   return (
     <ListCard
@@ -42,17 +41,17 @@ export default function NovosMembros() {
             })
           : "";
         return (
-          <div key={membro.id} className="flex items-center gap-4 py-2">
+          <div key={membro.id} className="flex items-center gap-3 py-2">
             <img
               src={
                 membro.foto ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(membro.nome)}&background=FBE3CF&color=D97A4D`
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(membro.nome)}&background=EEF0FE&color=4F5EF7&size=64`
               }
               alt={membro.nome}
-              className="w-11 h-11 rounded-sm object-cover shrink-0"
+              className="w-9 h-9 rounded-full object-cover shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-body font-semibold text-text truncate">{membro.nome}</p>
+              <p className="text-[13px] font-semibold text-text truncate">{membro.nome}</p>
               <p className="text-muted text-textMuted mt-0.5">Adicionado em {date}</p>
             </div>
             <Badge variant="success">Novo</Badge>

@@ -22,24 +22,25 @@ import {
   SIDEBAR_WIDTH,
 } from "../../navbar/navConfig";
 
+/** Item de navegação principal */
 function NavItem({ to, icon: Icon, label, active, badge, onClick, className = "" }) {
   const base =
-    "flex items-center gap-3 px-4 py-2.5 mx-3 rounded-sm text-body font-medium transition-colors duration-200";
+    "flex items-center gap-2.5 px-3 py-2 mx-2 rounded-sm text-body font-medium transition-colors duration-150";
   const state = active
     ? "bg-primarySoft text-primary"
-    : "text-textMuted hover:text-text hover:bg-primarySoft/50";
+    : "text-textMuted hover:text-text hover:bg-bgSection";
 
   const content = (
     <>
       <span className="relative shrink-0">
-        <Icon size={20} strokeWidth={1.75} />
+        <Icon size={16} strokeWidth={1.75} />
         {badge > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-danger text-white text-[10px] font-bold">
+          <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5 flex items-center justify-center rounded-full bg-danger text-white text-[9px] font-bold">
             {badge > 99 ? "99+" : badge}
           </span>
         )}
       </span>
-      <span className="truncate">{label}</span>
+      <span className="truncate text-[13px]">{label}</span>
     </>
   );
 
@@ -52,20 +53,23 @@ function NavItem({ to, icon: Icon, label, active, badge, onClick, className = ""
   }
 
   return (
-    <button type="button" onClick={onClick} className={`${base} ${state} w-[calc(100%-24px)] ${className}`}>
+    <button type="button" onClick={onClick} className={`${base} ${state} w-[calc(100%-16px)] ${className}`}>
       {content}
     </button>
   );
 }
 
+/** Item de submenu */
 function SubNavItem({ to, label, active, onClick }) {
   return (
     <Link
       to={to}
       onClick={onClick}
       className={[
-        "block py-2 pl-11 pr-4 mx-3 rounded-sm text-muted transition-colors",
-        active ? "text-primary font-semibold bg-primarySoft/60" : "text-textMuted hover:text-text hover:bg-primarySoft/40",
+        "block py-1.5 pl-9 pr-3 mx-2 rounded-sm text-[12px] transition-colors duration-150",
+        active
+          ? "text-primary font-semibold bg-primarySoft"
+          : "text-textMuted hover:text-text hover:bg-bgSection",
       ].join(" ")}
     >
       {label}
@@ -73,26 +77,28 @@ function SubNavItem({ to, label, active, onClick }) {
   );
 }
 
+/** Seção colapsável */
 function CollapsibleSection({ label, icon: Icon, open, onToggle, children }) {
   return (
-    <div className="mb-1">
+    <div className="mb-0.5">
       <button
         type="button"
         onClick={onToggle}
-        className="flex items-center gap-3 px-4 py-2.5 mx-3 w-[calc(100%-24px)] rounded-sm text-body font-medium text-textMuted hover:text-text hover:bg-primarySoft/50 transition-colors"
+        className="flex items-center gap-2.5 px-3 py-2 mx-2 w-[calc(100%-16px)] rounded-sm text-[13px] font-medium text-textMuted hover:text-text hover:bg-bgSection transition-colors duration-150"
       >
-        <Icon size={20} strokeWidth={1.75} />
+        <Icon size={16} strokeWidth={1.75} />
         <span className="flex-1 text-left truncate">{label}</span>
-        {open ? <ChevronDown size={16} strokeWidth={1.75} /> : <ChevronRight size={16} strokeWidth={1.75} />}
+        {open ? <ChevronDown size={13} strokeWidth={2} /> : <ChevronRight size={13} strokeWidth={2} />}
       </button>
-      {open && <div className="mt-1 mb-2 space-y-0.5">{children}</div>}
+      {open && <div className="mt-0.5 mb-1 space-y-0.5">{children}</div>}
     </div>
   );
 }
 
+/** Label de seção */
 function SectionLabel({ children }) {
   return (
-    <p className="px-7 pt-5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-textMuted">
+    <p className="px-5 pt-4 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-textMuted/70">
       {children}
     </p>
   );
@@ -129,23 +135,24 @@ export default function Sidebar({
   return (
     <aside
       className={[
-        "fixed top-0 left-0 z-[1200] flex flex-col h-screen bg-surface border-r border-surfaceMuted overflow-hidden",
+        "fixed top-0 left-0 z-[1200] flex flex-col h-screen bg-surface border-r border-border overflow-hidden",
         className,
       ].join(" ")}
       style={{ width: SIDEBAR_WIDTH }}
     >
       {/* Logo */}
-      <div className="flex flex-col items-center px-6 pt-8 pb-6 shrink-0">
-        <img src={logoBernet} alt="Logo Bernet" className="h-12 object-contain" />
-        <div className="flex items-center gap-1.5 mt-3 text-primary">
-          <Cross size={14} strokeWidth={1.75} />
-          <span className="text-[11px] font-semibold uppercase tracking-widest text-textMuted">
+      <div className="flex flex-col items-center px-5 pt-6 pb-5 shrink-0">
+        <img src={logoBernet} alt="Logo Bernet" className="h-9 object-contain" />
+        <div className="flex items-center gap-1.5 mt-2.5">
+          <Cross size={11} strokeWidth={2} className="text-primary" />
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-textMuted">
             Gestão Eclesiástica
           </span>
         </div>
       </div>
 
-      <div className="h-px bg-surfaceMuted mx-5 shrink-0" />
+      {/* Divider */}
+      <div className="h-px bg-border mx-4 shrink-0" />
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
@@ -239,10 +246,10 @@ export default function Sidebar({
               <button
                 type="button"
                 onClick={() => setRelatoriosOpen(!relatoriosOpen)}
-                className="flex items-center justify-between w-[calc(100%-24px)] py-2 pl-11 pr-4 mx-3 rounded-sm text-muted text-textMuted hover:text-text hover:bg-primarySoft/40"
+                className="flex items-center justify-between w-[calc(100%-16px)] py-1.5 pl-9 pr-3 mx-2 rounded-sm text-[12px] text-textMuted hover:text-text hover:bg-bgSection transition-colors duration-150"
               >
                 <span>Relatórios de Auditoria</span>
-                {relatoriosOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {relatoriosOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               </button>
 
               {relatoriosOpen &&
@@ -252,10 +259,10 @@ export default function Sidebar({
                     to={sub.path}
                     onClick={handleNav}
                     className={[
-                      "block py-2 pl-14 pr-4 mx-3 rounded-sm text-[12px] transition-colors",
+                      "block py-1.5 pl-12 pr-3 mx-2 rounded-sm text-[11px] transition-colors duration-150",
                       isActive(sub.path)
-                        ? "text-primary font-semibold bg-primarySoft/60"
-                        : "text-textMuted hover:text-text hover:bg-primarySoft/40",
+                        ? "text-primary font-semibold bg-primarySoft"
+                        : "text-textMuted hover:text-text hover:bg-bgSection",
                     ].join(" ")}
                   >
                     {sub.label}
@@ -276,32 +283,35 @@ export default function Sidebar({
       </nav>
 
       {/* User profile footer */}
-      <div className="shrink-0 border-t border-surfaceMuted p-4">
+      <div className="shrink-0 border-t border-border p-3">
         {membro ? (
           <button
             type="button"
             onClick={onProfileClick}
-            className="flex items-center gap-3 w-full p-2 rounded-sm hover:bg-primarySoft/50 transition-colors text-left"
+            className="flex items-center gap-2.5 w-full p-2 rounded-sm hover:bg-bgSection transition-colors text-left"
           >
             <img
-              src={membro.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(membro.nome)}&background=FBE3CF&color=D97A4D`}
+              src={
+                membro.foto ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(membro.nome)}&background=EEF0FE&color=4F5EF7&size=80`
+              }
               alt={membro.nome}
-              className="w-10 h-10 rounded-sm object-cover shrink-0"
+              className="w-8 h-8 rounded-sm object-cover shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-body font-semibold text-text truncate">{membro.nome}</p>
-              <p className="text-muted text-textMuted truncate">Ver perfil</p>
+              <p className="text-[13px] font-semibold text-text truncate">{membro.nome}</p>
+              <p className="text-[11px] text-textMuted truncate">Ver perfil</p>
             </div>
-            <ChevronDown size={18} strokeWidth={1.75} className="text-textMuted shrink-0" />
+            <ChevronDown size={14} strokeWidth={2} className="text-textMuted shrink-0" />
           </button>
         ) : (
           <button
             type="button"
             onClick={logout}
-            className="flex items-center gap-3 w-full p-2 rounded-sm text-danger hover:bg-danger/5 transition-colors"
+            className="flex items-center gap-2.5 w-full p-2 rounded-sm text-danger hover:bg-danger/5 transition-colors"
           >
-            <LogOut size={20} strokeWidth={1.75} />
-            <span className="text-body font-medium">Encerrar sessão</span>
+            <LogOut size={16} strokeWidth={1.75} />
+            <span className="text-[13px] font-medium">Encerrar sessão</span>
           </button>
         )}
       </div>

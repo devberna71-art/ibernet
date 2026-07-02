@@ -1,26 +1,15 @@
-// src/components/AtribuirCargoMembro.jsx
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  Snackbar,
-  Alert,
-  Paper,
-} from "@mui/material";
-import { motion } from "framer-motion";
+import { Loader2, AlertCircle, CheckCircle2, UserCheck } from "lucide-react";
 import api from "../api/axiosConfig";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
 
 export default function AtribuirCargoMembro({ cargos }) {
   const [membros, setMembros] = useState([]);
   const [membroSelecionado, setMembroSelecionado] = useState("");
   const [cargoSelecionado, setCargoSelecionado] = useState("");
   const [loading, setLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [toast, setToast] = useState(null); // { message, type }
 
   useEffect(() => {
     const fetchMembros = async () => {
@@ -28,158 +17,116 @@ export default function AtribuirCargoMembro({ cargos }) {
         const res = await api.get("/membros");
         setMembros(res.data);
       } catch {
-        setSnackbar({ open: true, message: "Erro ao carregar membros.", severity: "error" });
+        showToast("Erro ao carregar membros.", "error");
       }
     };
     fetchMembros();
   }, []);
 
-  const handleAtribuir = async () => {
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleAtribuir = async (e) => {
+    e.preventDefault();
     if (!membroSelecionado || !cargoSelecionado) {
-      setSnackbar({ open: true, message: "Selecione membro e cargo.", severity: "warning" });
+      showToast("Selecione o membro e o cargo correspondentes.", "error");
       return;
     }
     setLoading(true);
     try {
       await api.post("/atribuir-cargos", { membroId: membroSelecionado, cargoId: cargoSelecionado });
-      setSnackbar({ open: true, message: "Cargo atribuído com sucesso!", severity: "success" });
+      showToast("Cargo atribuído ao membro com sucesso!");
       setMembroSelecionado("");
       setCargoSelecionado("");
     } catch {
-      setSnackbar({ open: true, message: "Erro ao atribuir cargo.", severity: "error" });
+      showToast("Erro ao atribuir cargo.", "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-      <Paper
-        elevation={8}
-        sx={{
-          mt: 6,
-          p: { xs: 3, md: 5 },
-          borderRadius: 4,
-          background: "linear-gradient(135deg, rgba(124,77,255,0.06), rgba(0,229,255,0.06))",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 700,
-            mb: 3,
-            background: "linear-gradient(90deg,#7c4dff,#00e5ff)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            fontSize: { xs: "1.5rem", md: "1.8rem" },
-          }}
-        >
+    <Card padding="p-5 md:p-6" className="mt-6 border-primary/10">
+      {/* Toast popup */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+          toast.type === "error"
+            ? "bg-danger/5 border-danger/20 text-danger"
+            : "bg-successSoft border-success/20 text-success"
+        }`}>
+          {toast.message}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border">
+        <UserCheck size={16} className="text-primary" />
+        <h3 className="text-xs font-bold text-text uppercase tracking-wide">
           Atribuir Cargo a Membro
-        </Typography>
+        </h3>
+      </div>
 
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
-          <FormControl
-            sx={{
-              minWidth: 200,
-              flexGrow: 1,
-              background: "rgba(255,255,255,0.02)",
-              borderRadius: 2,
-              "& .MuiInputBase-root": { color: "#e6eef8" },
-            }}
-          >
-            <InputLabel id="label-membro" sx={{ color: "rgba(230,238,248,0.7)" }}>
-              Membro
-            </InputLabel>
-            <Select
-              labelId="label-membro"
-              value={membroSelecionado}
-              label="Membro"
-              onChange={(e) => setMembroSelecionado(e.target.value)}
-              disabled={loading}
-              sx={{ color: "#e6eef8" }}
-            >
-              {membros.map((membro) => (
-                <MenuItem key={membro.id} value={membro.id}>
-                  {membro.nome}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl
-            sx={{
-              minWidth: 200,
-              flexGrow: 1,
-              background: "rgba(255,255,255,0.02)",
-              borderRadius: 2,
-              "& .MuiInputBase-root": { color: "#e6eef8" },
-            }}
-          >
-            <InputLabel id="label-cargo" sx={{ color: "rgba(230,238,248,0.7)" }}>
-              Cargo
-            </InputLabel>
-            <Select
-              labelId="label-cargo"
-              value={cargoSelecionado}
-              label="Cargo"
-              onChange={(e) => setCargoSelecionado(e.target.value)}
-              disabled={loading}
-              sx={{ color: "#e6eef8" }}
-            >
-              {cargos.map((cargo) => (
-                <MenuItem key={cargo.id} value={cargo.id}>
-                  {cargo.nome}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Button
-            variant="contained"
-            onClick={handleAtribuir}
+      <form onSubmit={handleAtribuir} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+        {/* Selecionar Membro */}
+        <div>
+          <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+            Membro
+          </label>
+          <select
+            value={membroSelecionado}
+            onChange={(e) => setMembroSelecionado(e.target.value)}
             disabled={loading}
-            sx={{
-              px: 4,
-              py: 1.5,
-              fontWeight: 700,
-              borderRadius: "999px",
-              background: "linear-gradient(90deg,#7c4dff,#00e5ff)",
-              boxShadow: "0 8px 30px rgba(124,77,255,0.18)",
-              color: "#fff",
-              textTransform: "none",
-              "&:hover": { transform: "translateY(-2px) scale(1.02)", boxShadow: "0 18px 50px rgba(124,77,255,0.28)" },
-            }}
+            className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           >
-            Atribuir Cargo
-          </Button>
-        </Box>
+            <option value="">Selecione um membro</option>
+            {membros.map((membro) => (
+              <option key={membro.id} value={membro.id}>
+                {membro.nome}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert
-            severity={snackbar.severity}
-            sx={{
-              width: "100%",
-              fontWeight: 700,
-              background:
-                snackbar.severity === "success"
-                  ? "linear-gradient(90deg,#2ecc71,#10ac84)"
-                  : snackbar.severity === "error"
-                  ? "linear-gradient(90deg,#ff6b6b,#ff4d4d)"
-                  : "linear-gradient(90deg,#f1c40f,#f39c12)",
-              color: "#fff",
-            }}
+        {/* Selecionar Cargo */}
+        <div>
+          <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+            Cargo
+          </label>
+          <select
+            value={cargoSelecionado}
+            onChange={(e) => setCargoSelecionado(e.target.value)}
+            disabled={loading}
+            className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Paper>
-    </motion.div>
+            <option value="">Selecione um cargo</option>
+            {cargos.map((cargo) => (
+              <option key={cargo.id} value={cargo.id}>
+                {cargo.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            disabled={loading}
+            className="w-full justify-center"
+          >
+            {loading ? (
+              <>
+                <Loader2 size={14} className="animate-spin shrink-0" />
+                Atribuindo...
+              </>
+            ) : (
+              'Atribuir Cargo'
+            )}
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }

@@ -3,7 +3,7 @@ import Topbar from "./Topbar";
 
 /**
  * Wrapper padrão para páginas autenticadas.
- * Aplica fundo, padding e header opcional com saudação.
+ * Fundo bg branco, padding lateral e topbar opcional.
  */
 export default function AppPage({
   children,
@@ -17,7 +17,7 @@ export default function AppPage({
   className = "",
 }) {
   return (
-    <div className={`min-h-screen bg-bg pb-10 ${className}`}>
+    <div className={`min-h-screen bg-bg pb-12 ${className}`}>
       {showTopbar && (
         <Topbar
           membro={membro}
@@ -27,7 +27,7 @@ export default function AppPage({
           actions={actions}
         />
       )}
-      <div className="px-6 md:px-8">{children}</div>
+      <div className="px-6 md:px-8 pt-6">{children}</div>
     </div>
   );
 }

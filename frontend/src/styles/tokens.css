@@ -1,18 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
+
 :root {
-  --color-bg: #F6F1E9;
-  --color-surface: #FFFFFF;
-  --color-surface-muted: #ECE5D8;
-  --color-primary: #D97A4D;
-  --color-primary-soft: #FBE3CF;
-  --color-text: #211D19;
-  --color-text-muted: #8B8378;
-  --color-danger: #B5332C;
-  --color-success: #5C8A5C;
+  --bg: #FFFFFF;
+  --bg-section: #F8F9FB;
+  --surface: #FFFFFF;
+  --border: #E8E8ED;
+  --primary: #4F5EF7;
+  --primary-hover: #3B4AE8;
+  --primary-soft: #EEF0FE;
+  --text: #0D0D12;
+  --text-secondary: #4A4A5A;
+  --text-muted: #8C8CA1;
+  --success: #16A34A;
+  --success-soft: #DCFCE7;
+  --danger: #EF4444;
+  --danger-soft: #FEE2E2;
+  --warning: #D97706;
+  --warning-soft: #FEF3C7;
 
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 
-  --shadow-soft: 0 2px 8px rgba(33, 29, 25, 0.05);
-  --sidebar-width: 230px;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+
+  --sidebar-width: 220px;
+  --topbar-height: 60px;
 }

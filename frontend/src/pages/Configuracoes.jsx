@@ -1,50 +1,59 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import {
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Chip,
-  Avatar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  Button,
-  Stack,
-  Grid,
-  InputAdornment,
-  TablePagination
-} from "@mui/material";
-
-import { PieChart } from '@mui/x-charts/PieChart';
+  ShieldAlert,
+  Search,
+  Filter,
+  UserPlus,
+  Pencil,
+  Trash2,
+  Users as UsersIcon,
+  TrendingUp,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Loader2,
+} from "lucide-react";
 
 import api from "../api/axiosConfig";
-import {
-  AdminPanelSettingsRounded,
-  EditRounded,
-  DeleteRounded,
-  PeopleAltRounded,
-  DateRangeRounded,
-  TrendingUpRounded,
-  SearchRounded,
-  FilterListRounded,
-  AddRounded
-} from "@mui/icons-material";
-
-// Importação do seu componente de cadastro
 import CadastrarIgrejaDono from "../components/CadastrarIgrejaDono";
+import AppPage from "../components/ui/AppPage";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+
+/** Modal genérico leve */
+function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div
+        className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
+          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+          >
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function Configuracoes() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState({
     totalUsuarios: 0,
     usuariosNovosSemana: 0,
@@ -70,8 +79,9 @@ export default function Configuracoes() {
   const API_URL = "/gestao-usuarios";
   const API_USUARIOS_URL = "/usuarios";
 
-  // Buscar usuários com paginação e filtros acoplados
+  // Buscar usuários com paginação e filtros
   const fetchUsuarios = useCallback(async () => {
+    setLoading(true);
     try {
       const response = await api.get(API_URL, {
         params: {
@@ -104,6 +114,8 @@ export default function Configuracoes() {
       setUsers(mappedUsers);
     } catch (error) {
       console.error("Erro de conexão com a API:", error);
+    } finally {
+      setLoading(false);
     }
   }, [page, rowsPerPage, busca, filtroFuncao]);
 
@@ -118,15 +130,6 @@ export default function Configuracoes() {
 
   const handleFiltroFuncaoChange = (e) => {
     setFiltroFuncao(e.target.value);
-    setPage(0);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
@@ -169,358 +172,319 @@ export default function Configuracoes() {
     }
   };
 
-  // Cores Premium em tom Pastel/Soft com bordas elegantes
-  const getRoleChip = (role) => {
-    const configs = {
-      super_admin: { label: "Super Admin", bg: "#FEF2F2", text: "#EF4444", border: "#FEE2E2" },
-      admin: { label: "Admin", bg: "#EEF2FF", text: "#4F46E5", border: "#E0E7FF" },
-      moderador: { label: "Moderador", bg: "#FFFBEB", text: "#D97706", border: "#FEF3C7" },
-      usuario: { label: "Usuário", bg: "#F0FDF4", text: "#16A34A", border: "#DCFCE7" },
-    };
-    const current = configs[role] || { label: role || "N/A", bg: "#F8FAFC", text: "#64748B", border: "#E2E8F0" };
-    return (
-      <Chip 
-        label={current.label} 
-        sx={{ 
-          bgcolor: current.bg, 
-          color: current.text, 
-          border: `1px solid ${current.border}`,
-          fontWeight: 600,
-          fontSize: "0.75rem",
-          height: "24px"
-        }} 
-      />
-    );
+  const getRoleBadge = (role) => {
+    switch (role) {
+      case "super_admin":
+        return <Badge variant="danger">Super Admin</Badge>;
+      case "admin":
+        return <Badge variant="primary">Admin</Badge>;
+      case "moderador":
+        return <Badge variant="secondary">Moderador</Badge>;
+      default:
+        return <Badge variant="muted">Usuário</Badge>;
+    }
   };
 
-  const colorsPalette = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#6366F1'];
-
-  const pieChartData = Object.entries(metrics.usuariosPorFuncao).map(([funcao, qtd], index) => ({
-    id: index,
-    value: qtd,
-    label: `${funcao}`,
-    color: colorsPalette[index % colorsPalette.length]
-  }));
+  const roleColors = {
+    super_admin: "bg-danger",
+    admin: "bg-primary",
+    moderador: "bg-purple-500",
+    usuario: "bg-success",
+  };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 5 }, bgcolor: "#F8FAFC", minHeight: "100vh", fontFamily: "'Inter', sans-serif" }}>
-      
-      {/* HEADER DA PÁGINA */}
-      <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: 2, mb: 5 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: "#0F172A", display: "flex", alignItems: "center", gap: 1.5, letterSpacing: "-0.02em" }}>
-            <Box sx={{ bgcolor: "#4F46E5", p: 1, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(79, 70, 229, 0.2)" }}>
-              <AdminPanelSettingsRounded sx={{ color: "#FFFFFF", fontSize: 26 }} />
-            </Box> 
-            Controle & Auditoria
-          </Typography>
-          <Typography variant="body2" sx={{ color: "#64748B", mt: 1, fontSize: "0.9rem" }}>
-            Gerencie permissões de acesso, audite perfis e monitore o crescimento geral dos usuários.
-          </Typography>
-        </Box>
+    <AppPage subtitle="Gerencie permissões de acesso, audite perfis e monitore o crescimento geral dos usuários.">
+      {/* Header com Ações */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-primarySoft flex items-center justify-center text-primary">
+            <ShieldAlert size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Controle & Auditoria</h2>
+            <p className="text-muted text-textMuted mt-0.5">Gerencie os níveis de acesso dos usuários.</p>
+          </div>
+        </div>
         <Button
-          variant="contained"
-          startIcon={<AddRounded />}
+          variant="primary"
+          size="md"
           onClick={() => setOpenCadastroModal(true)}
-          sx={{ 
-            bgcolor: "#4F46E5", 
-            fontWeight: 600, 
-            textTransform: "none", 
-            borderRadius: "12px", 
-            px: 3, 
-            py: 1.2, 
-            boxShadow: "0 4px 14px rgba(79, 70, 229, 0.3)",
-            transition: "all 0.2s ease-in-out",
-            '&:hover': { bgcolor: "#4338CA", boxShadow: "0 6px 20px rgba(79, 70, 229, 0.4)", transform: "translateY(-1px)" } 
-          }}
         >
+          <UserPlus size={15} className="w-4 h-4 shrink-0" />
           Novo Usuário
         </Button>
-      </Box>
+      </div>
 
-      {/* MÉTRICAS & DASHBOARD */}
-      <Grid container spacing={3} sx={{ mb: 5 }}>
-        <Grid item xs={12} lg={8}>
-          <Grid container spacing={3}>
-            {/* Card 1 */}
-            <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 3, borderRadius: "16px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.02)", display: "flex", alignItems: "center", justifyContent: "space-between", height: "100%", transition: "transform 0.2s", '&:hover': { transform: "translateY(-2px)" } }}>
-                <Box>
-                  <Typography variant="body2" sx={{ color: "#94A3B8", fontWeight: 700, textTransform: "uppercase", fontSize: "0.65rem", letterSpacing: "0.05em" }}>Total de Usuários</Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: "#0F172A", mt: 1, letterSpacing: "-0.03em" }}>{metrics.totalUsuarios}</Typography>
-                </Box>
-                <Avatar sx={{ bgcolor: "rgba(79, 70, 229, 0.08)", color: "#4F46E5", width: 52, height: 52, borderRadius: "14px" }}>
-                  <PeopleAltRounded sx={{ fontSize: 26 }} />
-                </Avatar>
-              </Paper>
-            </Grid>
+      {/* Grid de Métricas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Total de Usuários</span>
+            <p className="text-xl font-bold text-text mt-1">{metrics.totalUsuarios}</p>
+          </div>
+          <div className="w-10 h-10 rounded-sm bg-primarySoft text-primary flex items-center justify-center">
+            <UsersIcon size={18} />
+          </div>
+        </Card>
 
-            {/* Card 2 */}
-            <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 3, borderRadius: "16px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.02)", display: "flex", alignItems: "center", justifyContent: "space-between", height: "100%", transition: "transform 0.2s", '&:hover': { transform: "translateY(-2px)" } }}>
-                <Box>
-                  <Typography variant="body2" sx={{ color: "#94A3B8", fontWeight: 700, textTransform: "uppercase", fontSize: "0.65rem", letterSpacing: "0.05em" }}>Novos (7 dias)</Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: "#10B981", mt: 1, letterSpacing: "-0.03em" }}>+{metrics.usuariosNovosSemana}</Typography>
-                </Box>
-                <Avatar sx={{ bgcolor: "rgba(16, 185, 129, 0.08)", color: "#10B981", width: 52, height: 52, borderRadius: "14px" }}>
-                  <TrendingUpRounded sx={{ fontSize: 26 }} />
-                </Avatar>
-              </Paper>
-            </Grid>
+        <Card className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Novos (7 dias)</span>
+            <p className="text-xl font-bold text-success mt-1">+{metrics.usuariosNovosSemana}</p>
+          </div>
+          <div className="w-10 h-10 rounded-sm bg-successSoft text-success flex items-center justify-center">
+            <TrendingUp size={18} />
+          </div>
+        </Card>
 
-            {/* Card 3 */}
-            <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 3, borderRadius: "16px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.02)", display: "flex", alignItems: "center", justifyContent: "space-between", height: "100%", transition: "transform 0.2s", '&:hover': { transform: "translateY(-2px)" } }}>
-                <Box>
-                  <Typography variant="body2" sx={{ color: "#94A3B8", fontWeight: 700, textTransform: "uppercase", fontSize: "0.65rem", letterSpacing: "0.05em" }}>Novos (30 dias)</Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: "#F59E0B", mt: 1, letterSpacing: "-0.03em" }}>+{metrics.usuariosNovosMes}</Typography>
-                </Box>
-                <Avatar sx={{ bgcolor: "rgba(245, 158, 11, 0.08)", color: "#F59E0B", width: 52, height: 52, borderRadius: "14px" }}>
-                  <DateRangeRounded sx={{ fontSize: 26 }} />
-                </Avatar>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Grid>
+        <Card className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Novos (30 dias)</span>
+            <p className="text-xl font-bold text-warning mt-1">+{metrics.usuariosNovosMes}</p>
+          </div>
+          <div className="w-10 h-10 rounded-sm bg-warning/10 text-warning flex items-center justify-center">
+            <CalendarDays size={18} />
+          </div>
+        </Card>
 
-        {/* Gráfico de Rosca Estilizado */}
-        <Grid item xs={12} lg={4}>
-          <Paper sx={{ p: 3, borderRadius: "16px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.02)", display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
-            <Typography variant="caption" sx={{ color: "#94A3B8", fontWeight: 700, mb: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>Distribuição de Funções</Typography>
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", minHeight: 110 }}>
-              {pieChartData.length > 0 ? (
-                <PieChart
-                  series={[{
-                    data: pieChartData,
-                    innerRadius: 28,
-                    outerRadius: 46,
-                    paddingAngle: 4,
-                    cornerRadius: 6,
-                  }]}
-                  legend={{ 
-                    position: { vertical: 'middle', horizontal: 'right' }, 
-                    labelStyle: { fontSize: 12, fontWeight: 600, fill: '#475569' },
-                    itemGap: 8
-                  }}
-                  width={280}
-                  height={110}
-                />
-              ) : (
-                <Typography variant="caption" sx={{ color: "#94A3B8" }}>Nenhum dado analítico encontrado</Typography>
-              )}
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
+        {/* Distribuição de Funções com barras visuais (Substitui o PieChart do MUI) */}
+        <Card className="flex flex-col justify-center">
+          <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide mb-2.5">Distribuição de Funções</span>
+          <div className="space-y-1.5">
+            {Object.entries(metrics.usuariosPorFuncao).map(([funcao, qtd]) => {
+              const percentage = metrics.totalUsuarios ? (qtd / metrics.totalUsuarios) * 100 : 0;
+              const colorClass = roleColors[funcao] || "bg-textMuted";
+              return (
+                <div key={funcao} className="flex items-center gap-2 text-xs">
+                  <span className="w-16 truncate font-medium text-textSecondary capitalize">{funcao.replace("_", " ")}</span>
+                  <div className="flex-1 bg-border h-1.5 rounded-full overflow-hidden">
+                    <div style={{ width: `${percentage}%` }} className={`h-full rounded-full ${colorClass}`} />
+                  </div>
+                  <span className="w-5 text-right font-bold text-text">{qtd}</span>
+                </div>
+              );
+            })}
+            {Object.keys(metrics.usuariosPorFuncao).length === 0 && (
+              <span className="text-xs text-textMuted italic">Sem dados</span>
+            )}
+          </div>
+        </Card>
+      </div>
 
-      {/* FILTROS AVANÇADOS */}
-      <Paper sx={{ p: 2.5, mb: 4, borderRadius: "16px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.01)", bgcolor: "#FFFFFF" }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={8}>
-            <TextField
-              fullWidth
-              size="small"
-              variant="outlined"
+      {/* Filtros */}
+      <Card className="mb-6" padding="p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="sm:col-span-2 relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted pointer-events-none" />
+            <input
+              type="text"
               placeholder="Buscar por nome de usuário..."
               value={busca}
               onChange={handleBuscaChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRounded sx={{ color: "#94A3B8", fontSize: 20 }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className="w-full pl-8 pr-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label="Filtrar por Acesso"
+          </div>
+
+          <div className="relative">
+            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted pointer-events-none" />
+            <select
               value={filtroFuncao}
               onChange={handleFiltroFuncaoChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <FilterListRounded sx={{ color: "#4F46E5", fontSize: 18 }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className="w-full pl-8 pr-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             >
-              <MenuItem value="">Todos os Níveis</MenuItem>
-              <MenuItem value="admin">Administrador</MenuItem>
-              <MenuItem value="moderador">Moderador</MenuItem>
-              <MenuItem value="usuario">Usuário Comum</MenuItem>
-            </TextField>
-          </Grid>
-        </Grid>
-      </Paper>
+              <option value="">Todos os Níveis</option>
+              <option value="admin">Administrador</option>
+              <option value="moderador">Moderador</option>
+              <option value="usuario">Usuário Comum</option>
+            </select>
+          </div>
+        </div>
+      </Card>
 
-      {/* TABELA DE LISTAGEM */}
-      <TableContainer component={Paper} sx={{ borderRadius: "16px", boxShadow: "0 4px 24px rgba(0, 0, 0, 0.02)", border: "1px solid #E2E8F0", bgcolor: "#FFFFFF", overflow: "hidden" }}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead sx={{ bgcolor: "#F8FAFC" }}>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 700, color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", py: 2 }}>Usuário / Membro</TableCell>
-              <TableCell sx={{ fontWeight: 700, color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", py: 2 }}>Nível de Acesso</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", py: 2, pr: 3 }}>Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} align="center" sx={{ py: 8, color: "#94A3B8", fontSize: "0.9rem" }}>
-                  Nenhum usuário atende aos critérios de filtro aplicados.
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => (
-                <TableRow key={user.id} sx={{ transition: "all 0.2s", '&:hover': { background: 'linear-gradient(90deg, rgba(238,242,255,0.3) 0%, rgba(255,255,255,0) 100%)' } }}>
-                  <TableCell sx={{ py: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Avatar 
-                        src={user.foto} 
-                        alt={user.name} 
-                        sx={{ 
-                          width: 44, 
-                          height: 44, 
-                          background: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)", 
-                          fontWeight: 700,
-                          fontSize: "0.95rem",
-                          boxShadow: "0 2px 8px rgba(79, 70, 229, 0.15)"
-                        }}
-                      >
-                        {user.name?.charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Box>
-                        <Typography sx={{ fontWeight: 600, color: "#0F172A", fontSize: "0.95rem" }}>{user.name}</Typography>
-                        {user.cargos && user.cargos.length > 0 && (
-                          <Stack direction="row" sx={{ mt: 0.5, flexWrap: "wrap", gap: 0.5 }}>
-                            {user.cargos.map((cargo) => (
-                              <Chip key={cargo.id} label={cargo.nome} size="small" variant="outlined" sx={{ fontSize: "0.65rem", height: "18px", color: "#64748B", borderColor: "#E2E8F0", bgcolor: "#F8FAFC" }} />
-                            ))}
-                          </Stack>
-                        )}
-                      </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell sx={{ py: 2 }}>{getRoleChip(user.role)}</TableCell>
-                  <TableCell align="right" sx={{ py: 2, pr: 3 }}>
-                    <IconButton 
-                      onClick={() => handleOpenModal(user)} 
-                      sx={{ 
-                        color: "#4F46E5", 
-                        bgcolor: "rgba(79, 70, 229, 0.04)", 
-                        mr: 1, 
-                        borderRadius: "10px",
-                        transition: "all 0.2s",
-                        '&:hover': { bgcolor: "rgba(79, 70, 229, 0.1)" }
-                      }}
-                    >
-                      <EditRounded fontSize="small" />
-                    </IconButton>
-                    <IconButton 
-                      onClick={() => handleDeleteUser(user.id)} 
-                      sx={{ 
-                        color: "#EF4444", 
-                        bgcolor: "rgba(239, 68, 68, 0.04)", 
-                        borderRadius: "10px",
-                        transition: "all 0.2s",
-                        '&:hover': { bgcolor: "rgba(239, 68, 68, 0.1)" }
-                      }}
-                    >
-                      <DeleteRounded fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      {/* Tabela de Usuários */}
+      <Card padding="p-0" className="overflow-hidden mb-6">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="border-b border-border bg-bgSection text-[10px] font-bold text-textMuted uppercase tracking-wide">
+                <th className="px-5 py-3">Usuário / Membro</th>
+                <th className="px-5 py-3">Nível de Acesso</th>
+                <th className="px-5 py-3 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border text-body">
+              {loading ? (
+                <tr>
+                  <td colSpan={3} className="px-5 py-12 text-center text-textMuted">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 size={16} className="animate-spin text-primary" />
+                      <span>Buscando usuários...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-5 py-12 text-center text-textMuted">
+                    Nenhum usuário atende aos critérios de filtro aplicados.
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id} className="hover:bg-bgSection/30 transition-colors">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=EEF0FE&color=4F5EF7`}
+                          alt={user.name}
+                          className="w-9 h-9 rounded-full object-cover border border-border"
+                        />
+                        <div>
+                          <p className="font-semibold text-text">{user.name}</p>
+                          {user.cargos && user.cargos.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {user.cargos.map((cargo) => (
+                                <span
+                                  key={cargo.id}
+                                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-bgSection border border-border text-textSecondary"
+                                >
+                                  {cargo.nome}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">{getRoleBadge(user.role)}</td>
+                    <td className="px-5 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleOpenModal(user)}
+                          className="p-1.5 rounded-sm text-textMuted hover:text-primary hover:bg-primarySoft transition-colors"
+                          title="Alterar nível"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="p-1.5 rounded-sm text-textMuted hover:text-danger hover:bg-danger/5 transition-colors"
+                          title="Excluir"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={totalFiltrados}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Linhas por página:"
-          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
-          sx={{ borderTop: "1px solid #E2E8F0", color: "#64748B", fontWeight: 500 }}
-        />
-      </TableContainer>
+        {/* Paginação */}
+        <div className="px-5 py-3 border-t border-border flex items-center justify-between text-xs text-textMuted bg-bgSection/20">
+          <div className="flex items-center gap-2">
+            <span>Linhas por página:</span>
+            <select
+              value={rowsPerPage}
+              onChange={(e) => {
+                setRowsPerPage(Number(e.target.value));
+                setPage(0);
+              }}
+              className="bg-bg border border-border rounded-sm py-0.5 px-1.5 focus:outline-none"
+            >
+              {[5, 10, 25].map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>
+              {page * rowsPerPage + 1}–{Math.min((page + 1) * rowsPerPage, totalFiltrados)} de {totalFiltrados}
+            </span>
+            <div className="flex gap-1">
+              <button
+                disabled={page === 0}
+                onClick={() => setPage(page - 1)}
+                className="p-1 rounded-sm border border-border bg-bg hover:bg-bgSection disabled:opacity-40 disabled:hover:bg-bg transition-colors"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                disabled={(page + 1) * rowsPerPage >= totalFiltrados}
+                onClick={() => setPage(page + 1)}
+                className="p-1 rounded-sm border border-border bg-bg hover:bg-bgSection disabled:opacity-40 disabled:hover:bg-bg transition-colors"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </Card>
 
-      {/* MODAL: ALTERAR PERMISSÃO */}
-      <Dialog 
-        open={openModal} 
-        onClose={handleCloseModal} 
-        fullWidth 
-        maxWidth="xs" 
-        PaperProps={{ sx: { borderRadius: "16px", p: 1, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" } }}
+      {/* Modal: Alterar Nível de Acesso */}
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        title="Alterar Nível de Acesso"
+        maxWidth="max-w-sm"
       >
-        <form onSubmit={handleSave}>
-          <DialogTitle sx={{ fontWeight: 800, color: "#0F172A", letterSpacing: "-0.02em" }}>Alterar Nível de Acesso</DialogTitle>
-          <DialogContent dividers sx={{ borderTop: "1px solid #F1F5F9", borderBottom: "1px solid #F1F5F9", py: 3 }}>
-            <TextField
-              select
-              fullWidth
-              label="Nível de Acesso"
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+              Selecione o nível de permissão
+            </label>
+            <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              sx={{ mt: 1, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             >
-              <MenuItem value="admin">Administrador</MenuItem>
-              <MenuItem value="moderador">Moderador</MenuItem>
-              <MenuItem value="usuario">Usuário Comum</MenuItem>
-            </TextField>
-          </DialogContent>
-          <DialogActions sx={{ p: 2.5, gap: 1 }}>
-            <Button onClick={handleCloseModal} sx={{ color: "#64748B", fontWeight: 600, textTransform: "none" }}>Cancelar</Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              sx={{ bgcolor: "#4F46E5", fontWeight: 600, textTransform: "none", borderRadius: "10px", px: 3, '&:hover': { bgcolor: "#4338CA" } }}
+              <option value="admin">Administrador</option>
+              <option value="moderador">Moderador</option>
+              <option value="usuario">Usuário Comum</option>
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCloseModal}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
             >
               Confirmar
             </Button>
-          </DialogActions>
+          </div>
         </form>
-      </Dialog>
+      </Modal>
 
-      {/* MODAL: CADASTRO */}
-      <Dialog 
-        open={openCadastroModal} 
-        onClose={() => setOpenCadastroModal(false)} 
-        fullWidth 
-        maxWidth="sm" 
-        PaperProps={{ sx: { borderRadius: "20px", p: 1.5, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" } }}
+      {/* Modal: Novo Usuário */}
+      <Modal
+        open={openCadastroModal}
+        onClose={() => setOpenCadastroModal(false)}
+        title="Cadastrar Novo Usuário"
+        maxWidth="max-w-xl"
       >
-        <DialogTitle sx={{ fontWeight: 800, pb: 0, color: "#0F172A", letterSpacing: "-0.02em" }}>Cadastrar Novo Usuário</DialogTitle>
-        <DialogContent sx={{ mt: 1 }}>
+        <div className="py-2">
           <CadastrarIgrejaDono 
             sedeId={currentSedeId} 
             filhalExistenteId={null} 
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 2, borderTop: "1px solid #F1F5F9", mt: 2 }}>
-          <Button 
-            onClick={() => {
+            onSuccess={() => {
               setOpenCadastroModal(false);
               fetchUsuarios();
-            }} 
-            variant="outlined"
-            sx={{ color: "#475569", borderColor: "#E2E8F0", fontWeight: 600, textTransform: "none", borderRadius: "10px", px: 3, '&:hover': { bgcolor: "#F8FAFC", borderColor: "#CBD5E1" } }}
-          >
-            Fechar Janela
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+            }}
+          />
+        </div>
+      </Modal>
+    </AppPage>
   );
 }

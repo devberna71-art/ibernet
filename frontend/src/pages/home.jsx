@@ -1,342 +1,460 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
-  Box,
-  Typography,
-  Button,
-  useTheme,
-  useMediaQuery,
-  Zoom,
-  Modal,
-  Fade,
-  Backdrop,
-} from "@mui/material";
-import { PlayCircle } from "@mui/icons-material";
-import { useLocation, useNavigate } from "react-router-dom";
+  ArrowRight,
+  Users,
+  Wallet,
+  CalendarDays,
+  MessageSquare,
+  BarChart3,
+  Shield,
+  CheckCircle2,
+  Star,
+  ChevronRight,
+  Zap,
+  Globe,
+  Lock,
+} from "lucide-react";
 import heroImage from "../assets/homeimg.jpg";
-import Servicos from "../components/servicos";
-import Footer from "../components/footer";
-import SobreEquipa from "../components/SobreEquipe";
-import Planos from "../components/Planos";
-import Contato from "../components/Contato";
-import Testemunhos from "../components/Testemunhos";
-import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import logoBernet from "../assets/Logo-Bernet.png";
+
+/* ── Utilitários inline ── */
+function Pill({ children }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primarySoft text-primary text-xs font-semibold">
+      {children}
+    </span>
+  );
+}
+
+function FeatureCard({ icon: Icon, title, desc }) {
+  return (
+    <div className="group p-6 rounded-lg border border-border bg-surface hover:border-primary/30 hover:shadow-float transition-all duration-300">
+      <div className="w-10 h-10 rounded-md bg-primarySoft flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+        <Icon size={20} strokeWidth={1.75} className="text-primary" />
+      </div>
+      <h3 className="text-base font-semibold text-text mb-1.5">{title}</h3>
+      <p className="text-sm text-textMuted leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function StatCard({ number, label }) {
+  return (
+    <div className="text-center">
+      <p className="text-3xl font-bold text-text mb-1">{number}</p>
+      <p className="text-sm text-textMuted">{label}</p>
+    </div>
+  );
+}
+
+function PlanCard({ name, price, desc, features, highlighted = false }) {
+  const navigate = useNavigate();
+  return (
+    <div
+      className={`relative flex flex-col rounded-xl border p-7 transition-all duration-300 ${
+        highlighted
+          ? "border-primary bg-primary text-white shadow-lg scale-[1.02]"
+          : "border-border bg-surface hover:border-primary/30 hover:shadow-float"
+      }`}
+    >
+      {highlighted && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white text-primary text-xs font-bold shadow-sm">
+            <Star size={11} fill="currentColor" /> Mais popular
+          </span>
+        </div>
+      )}
+      <div className="mb-5">
+        <p className={`text-sm font-semibold mb-1 ${highlighted ? "text-white/80" : "text-textMuted"}`}>{name}</p>
+        <div className="flex items-end gap-1 mb-2">
+          <span className={`text-4xl font-bold ${highlighted ? "text-white" : "text-text"}`}>{price}</span>
+          {price !== "Grátis" && <span className={`text-sm mb-1 ${highlighted ? "text-white/70" : "text-textMuted"}`}>/mês</span>}
+        </div>
+        <p className={`text-sm ${highlighted ? "text-white/70" : "text-textMuted"}`}>{desc}</p>
+      </div>
+      <ul className="space-y-2.5 flex-1 mb-6">
+        {features.map((f) => (
+          <li key={f} className="flex items-start gap-2.5 text-sm">
+            <CheckCircle2
+              size={15}
+              strokeWidth={2}
+              className={`mt-0.5 shrink-0 ${highlighted ? "text-white/80" : "text-success"}`}
+            />
+            <span className={highlighted ? "text-white/90" : "text-textSecondary"}>{f}</span>
+          </li>
+        ))}
+      </ul>
+      <button
+        onClick={() => navigate("/criar-usuarios")}
+        className={`w-full py-2.5 rounded-md text-sm font-semibold transition-colors ${
+          highlighted
+            ? "bg-white text-primary hover:bg-white/90"
+            : "bg-primary text-white hover:bg-primaryHover"
+        }`}
+      >
+        Começar agora
+      </button>
+    </div>
+  );
+}
+
+function TestimonialCard({ name, role, quote, initials }) {
+  return (
+    <div className="p-6 rounded-lg border border-border bg-surface hover:shadow-float transition-all duration-300">
+      <div className="flex items-center gap-1 mb-4">
+        {[...Array(5)].map((_, i) => (
+          <Star key={i} size={13} strokeWidth={0} fill="#F59E0B" className="text-warning" />
+        ))}
+      </div>
+      <p className="text-sm text-textSecondary leading-relaxed mb-4">"{quote}"</p>
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-primarySoft flex items-center justify-center shrink-0">
+          <span className="text-xs font-bold text-primary">{initials}</span>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-text">{name}</p>
+          <p className="text-xs text-textMuted">{role}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const FEATURES = [
+  { icon: Users,         title: "Gestão de Membros",     desc: "Cadastro completo, cartões, perfis e histórico de cada membro da sua congregação." },
+  { icon: Wallet,        title: "Controlo Financeiro",   desc: "Dízimos, ofertas, despesas e relatórios financeiros completos em tempo real." },
+  { icon: CalendarDays,  title: "Eventos & Cultos",      desc: "Agenda de cultos, atas digitais e relatórios de frequência automatizados." },
+  { icon: MessageSquare, title: "Comunicação Interna",   desc: "Canal seguro de mensagens entre líderes, moderadores e membros." },
+  { icon: BarChart3,     title: "Relatórios & Analytics",desc: "Gráficos, estatísticas e exportações para tomada de decisão estratégica." },
+  { icon: Shield,        title: "Segurança & Controlo",  desc: "Permissões por função, dados criptografados e auditoria de acessos." },
+];
+
+const PLANS = [
+  {
+    name: "Básico",
+    price: "Grátis",
+    desc: "Para igrejas pequenas que estão a começar.",
+    features: ["Até 50 membros", "Gestão básica de membros", "Agenda de cultos", "1 utilizador admin"],
+  },
+  {
+    name: "Crescimento",
+    price: "$29",
+    desc: "Para congregações em expansão.",
+    features: ["Membros ilimitados", "Módulo financeiro completo", "Relatórios avançados", "Chat interno", "5 utilizadores admin"],
+    highlighted: true,
+  },
+  {
+    name: "Igreja",
+    price: "$79",
+    desc: "Para redes de igrejas e sedes múltiplas.",
+    features: ["Múltiplas filiais", "API & integrações", "Suporte prioritário", "Admin ilimitados", "Backup automático"],
+  },
+];
+
+const TESTIMONIALS = [
+  { name: "Pastor Bernardo A.",    role: "Igreja Evangélica, Luanda",    initials: "BA", quote: "O sistema transformou completamente a nossa gestão. Antes perdia horas em planilhas, agora tudo está organizado num só lugar." },
+  { name: "Irmã Maria José",       role: "Secretária, Igreja Baptista",  initials: "MJ", quote: "A gestão de membros e os relatórios financeiros são fantásticos. Recomendo a todas as igrejas que queiram modernizar." },
+  { name: "Diác. António F.",      role: "Tesoureiro, Igreja Pentecostal",initials: "AF", quote: "Controlar as finanças da nossa igreja nunca foi tão simples. Os relatórios automáticos poupam imenso tempo." },
+];
 
 export default function Home() {
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [openModal, setOpenModal] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (location.state?.scrollTo === "servicos") {
-      const el = document.getElementById("servicos");
-      if (el) {
-        setTimeout(() => {
-          window.scrollTo({
-            top: el.getBoundingClientRect().top + window.scrollY - 120,
-            behavior: "smooth",
-          });
-        }, 300);
-      }
-    }
-  }, [location]);
-
   return (
-    <Box>
-      {/* 🔹 HERO SECTION */}
-      <Box
-        sx={{
-          width: "100%",
-          height: isDesktop ? "90vh" : "75vh",
-          position: "relative",
-          backgroundImage: `url(${heroImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: isDesktop ? "center top 60px" : "center center",
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0, 0, 0, 0.55)",
-          },
-        }}
+    <div className="min-h-screen bg-white font-sans overflow-x-hidden">
+
+      {/* ══════════════════════════════ HERO ══════════════════════════════ */}
+      <section
+        id="hero"
+        className="relative min-h-screen flex items-center"
       >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "10%",
-            transform: "translateY(-50%)",
-            maxWidth: isDesktop ? "50%" : "90%",
-            textAlign: "left",
-            zIndex: 1,
-          }}
-        >
-          <Typography
-            variant={isDesktop ? "h2" : "h4"}
-            sx={{
-              fontWeight: 900,
-              color: "#ffffff",
-              mb: 2,
-              lineHeight: 1.1,
-              fontFamily: "'Poppins', sans-serif",
-              "& span": { color: "#66b2ff", fontWeight: 900 },
-            }}
-          >
-            Transforme a gestão da sua igreja com a <span>Bernet@-eclesia</span>
-          </Typography>
-
-          <Typography
-            variant={isDesktop ? "h5" : "body1"}
-            sx={{
-              color: "rgba(255,255,255,0.9)",
-              fontWeight: 400,
-              lineHeight: 1.6,
-              mb: 3,
-              maxWidth: "90%",
-            }}
-          >
-            Facilitamos a administração, o acompanhamento dos membros, finanças,
-            eventos e muito mais — tudo em um único sistema pensado para igrejas.
-          </Typography>
-
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              gap: 2,
-              flexWrap: "wrap",
-            }}
-          >
-            <Button
-              variant="contained"
-              onClick={() => navigate("/criar-usuarios")}
-              sx={{
-                backgroundColor: "#3399FF",
-                color: "#fff",
-                fontWeight: 700,
-                px: 5,
-                py: 2,
-                fontSize: isDesktop ? "1.1rem" : "1rem",
-                borderRadius: "14px",
-                textTransform: "none",
-                minWidth: 0,
-                "&:hover": { backgroundColor: "#2a80d6" },
-              }}
-            >
-              Experimente agora
-            </Button>
-
-            <Button
-              variant="text"
-              onClick={() => setOpenModal(true)}
-              sx={{
-                color: "#fff",
-                fontWeight: 600,
-                px: 4,
-                py: 2,
-                fontSize: isDesktop ? "1.1rem" : "1rem",
-                display: "flex",
-                alignItems: "center",
-                gap: 1.5,
-                textTransform: "none",
-                "&:hover": { color: "#66b2ff" },
-              }}
-            >
-              <PlayCircle sx={{ color: "#3399FF", fontSize: 32 }} />
-              Ver apresentação
-            </Button>
-          </Box>
-        </Box>
-
-        {/* 🔹 MODAL PREMIUM MODERNO */}
-        <Modal
-          open={openModal}
-          onClose={() => setOpenModal(false)}
-          closeAfterTransition
-          slots={{ backdrop: Backdrop }}
-          slotProps={{
-            backdrop: {
-              timeout: 500,
-              sx: { backgroundColor: "rgba(0,0,0,0.85)" },
-            },
-          }}
-        >
-          <Fade in={openModal}>
-            <Box
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: isDesktop ? 480 : 320,
-                bgcolor: "rgba(10,10,30,0.85)",
-                backdropFilter: "blur(12px)",
-                borderRadius: 4,
-                boxShadow: "0 0 60px rgba(0, 150, 255, 0.5)",
-                p: 5,
-                textAlign: "center",
-                color: "#fff",
-                border: "2px solid #3399FF",
-                fontFamily: "'Poppins', sans-serif",
-                transition: "all 0.5s ease",
-              }}
-            >
-              <Typography
-                variant="h5"
-                sx={{
-                  mb: 2,
-                  fontWeight: 800,
-                  fontSize: isDesktop ? "1.8rem" : "1.4rem",
-                  background: "linear-gradient(90deg, #3399FF, #66b2ff)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Em Breve!
-              </Typography>
-              <Typography
-                sx={{
-                  mb: 4,
-                  fontSize: isDesktop ? "1.2rem" : "1rem",
-                  color: "#cce0ff",
-                  lineHeight: 1.6,
-                }}
-              >
-                O vídeo está a ser trabalhado! Assim que estiver pronto poderá reproduzí-lo,
-                obrigado!
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => setOpenModal(false)}
-                sx={{
-                  background:
-                    "linear-gradient(135deg, #3399FF 0%, #66b2ff 100%)",
-                  "&:hover": {
-                    background:
-                      "linear-gradient(135deg, #66b2ff 0%, #3399FF 100%)",
-                    transform: "scale(1.05)",
-                  },
-                  fontWeight: 700,
-                  px: 5,
-                  py: 1.8,
-                  borderRadius: 3,
-                  boxShadow: "0 8px 20px rgba(51,153,255,0.4)",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                Fechar
-              </Button>
-            </Box>
-          </Fade>
-        </Modal>
-      </Box>
-
-      <Box id="servicos">
-        <Servicos />
-      </Box>
-
-      <SobreEquipa />
-      <Testemunhos />
-      <Planos />
-      <Contato />
-      <Footer />
-
-      {/* 🔹 ÍCONE FIXO WHATSAPP PREMIUM COM ONDAS */}
-
-
-      <Zoom in={true}>
-        <Box
-          component="a"
-          href={`https://wa.me/244923519571?text=${encodeURIComponent(
-            "Olá! estou interessado na aplicação e gostaria de começar a usá-la. Poderia me fornecer mais informações?"
-          )}`}
-          target="_blank"
-          sx={(theme) => ({
-            position: "fixed",
-            bottom: 32,
-            right: 32,
-            width: 70,
-            height: 70,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #25D366, #128C7E)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            color: "#fff",
-            boxShadow:
-              "0 12px 28px rgba(0,0,0,0.35), 0 0 15px rgba(37,211,102,0.6)",
-            zIndex: 9999,
-            cursor: "pointer",
-            animation: "premiumPulse 2.5s infinite",
-            "&:hover": {
-              transform: "scale(1.3) rotate(-5deg)",
-              transition: "all 0.4s ease-in-out",
-              boxShadow:
-                "0 15px 35px rgba(0,0,0,0.45), 0 0 25px rgba(37,211,102,0.8), 0 0 40px rgba(37,211,102,0.5)",
-            },
-            "&::before, &::after": {
-              content: '""',
-              position: "absolute",
-              width: "120%",
-              height: "120%",
-              borderRadius: "50%",
-              background: "rgba(37, 211, 102, 0.3)",
-              animation: "wavePremium 2.8s infinite",
-            },
-            "&::after": {
-              animationDelay: "1.4s",
-              background: "rgba(37, 211, 102, 0.2)",
-            },
-
-            [theme.breakpoints.down("md")]: {
-              bottom: 140,
-              width: 65,
-              height: 65,
-            },
-            [theme.breakpoints.down("sm")]: {
-              bottom: 180,
-              right: 16,
-              width: 60,
-              height: 60,
-            },
-          })}
-        >
-          <WhatsAppIcon
-            sx={(theme) => ({
-              fontSize: 36,
-              zIndex: 2,
-              filter:
-                "drop-shadow(0 0 4px #fff) drop-shadow(0 0 6px #25D366)",
-              [theme.breakpoints.down("md")]: {
-                fontSize: 34,
-              },
-              [theme.breakpoints.down("sm")]: {
-                fontSize: 32,
-              },
-            })}
+        {/* Background image com overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={heroImage}
+            alt=""
+            className="w-full h-full object-cover object-center"
           />
-        </Box>
-      </Zoom>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        </div>
 
-      <style>
-        {`
-        @keyframes premiumPulse {
-          0% { transform: scale(1); box-shadow: 0 12px 28px rgba(0,0,0,0.35), 0 0 15px rgba(37,211,102,0.6); }
-          50% { transform: scale(1.1); box-shadow: 0 15px 35px rgba(0,0,0,0.45), 0 0 25px rgba(37,211,102,0.8); }
-          100% { transform: scale(1); box-shadow: 0 12px 28px rgba(0,0,0,0.35), 0 0 15px rgba(37,211,102,0.6); }
-        }
-        @keyframes wavePremium {
-          0% { transform: scale(0.8); opacity: 0.6; }
-          50% { transform: scale(1.6); opacity: 0; }
-          100% { transform: scale(0.8); opacity: 0.6; }
-        }
-      `}
-      </style>
-    </Box>
+        {/* Conteúdo do hero */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-24 pb-20 lg:pt-32">
+          <div className="max-w-2xl">
+            <div className="mb-6 animate-fade-up">
+              <Pill>
+                <Zap size={11} strokeWidth={2.5} />
+                Nova versão disponível
+              </Pill>
+            </div>
+
+            <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight mb-5 animate-fade-up [animation-delay:100ms]">
+              Gerencie sua{" "}
+              <span className="text-[#818CF8]">iglesia</span>{" "}
+              com inteligência
+            </h1>
+
+            <p className="text-lg text-white/75 leading-relaxed mb-8 max-w-xl animate-fade-up [animation-delay:200ms]">
+              Bernet@-Eclesia é o sistema completo de gestão eclesiástica. Membros,
+              finanças, cultos e comunicação — tudo integrado, seguro e simples.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 animate-fade-up [animation-delay:300ms]">
+              <button
+                onClick={() => navigate("/criar-usuarios")}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md bg-primary text-white font-semibold text-sm hover:bg-primaryHover transition-colors"
+              >
+                Começar gratuitamente
+                <ArrowRight size={16} strokeWidth={2} />
+              </button>
+              <button
+                onClick={() => {
+                  document.getElementById("servicos")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md border border-white/30 text-white font-semibold text-sm hover:bg-white/10 transition-colors"
+              >
+                Ver funcionalidades
+              </button>
+            </div>
+
+            {/* Social proof */}
+            <div className="mt-10 flex items-center gap-6 animate-fade-up [animation-delay:400ms]">
+              <div className="flex -space-x-2">
+                {["BA","MJ","AF","CP"].map((i) => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-primary/80 border-2 border-white/20 flex items-center justify-center text-[10px] font-bold text-white">
+                    {i}
+                  </div>
+                ))}
+              </div>
+              <p className="text-white/70 text-sm">
+                <span className="text-white font-semibold">+200 igrejas</span> já usam a plataforma
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+          <div className="w-6 h-9 rounded-full border-2 border-white/30 flex items-start justify-center pt-1.5">
+            <div className="w-1 h-2 rounded-full bg-white/60" />
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════ STATS ══════════════════════════════ */}
+      <section className="py-14 bg-bgSection border-y border-border">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <StatCard number="+200" label="Igrejas cadastradas" />
+            <StatCard number="+15k" label="Membros gerenciados" />
+            <StatCard number="99.9%" label="Disponibilidade" />
+            <StatCard number="+500k" label="Transações processadas" />
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════ FEATURES ══════════════════════════════ */}
+      <section id="servicos" className="py-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          {/* Heading */}
+          <div className="max-w-xl mb-12">
+            <Pill>Funcionalidades</Pill>
+            <h2 className="text-3xl lg:text-4xl font-bold text-text mt-4 mb-3 tracking-tight">
+              Tudo que a sua igreja precisa
+            </h2>
+            <p className="text-base text-textMuted leading-relaxed">
+              Uma plataforma integrada que cobre cada aspecto da gestão eclesiástica,
+              do membro ao balanço financeiro.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map((f) => (
+              <FeatureCard key={f.title} {...f} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════ DESTAQUE ══════════════════════════════ */}
+      <section className="py-20 bg-bgSection border-y border-border" id="sobre">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Texto */}
+            <div>
+              <Pill>Por que escolher Bernet@</Pill>
+              <h2 className="text-3xl lg:text-4xl font-bold text-text mt-4 mb-4 tracking-tight">
+                Desenvolvido por quem{" "}
+                <span className="gradient-text">entende igrejas</span>
+              </h2>
+              <p className="text-base text-textMuted leading-relaxed mb-6">
+                A nossa equipa combina experiência em tecnologia com profundo
+                conhecimento do contexto eclesiástico angolano. Cada funcionalidade
+                foi pensada para resolver problemas reais.
+              </p>
+
+              <ul className="space-y-3 mb-8">
+                {[
+                  { icon: Globe, text: "Interface totalmente em Português europeu e angolano" },
+                  { icon: Lock,  text: "Dados seguros e privados, nunca partilhados" },
+                  { icon: Zap,   text: "Atualizações contínuas sem custo adicional" },
+                ].map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-sm bg-primarySoft flex items-center justify-center shrink-0 mt-0.5">
+                      <Icon size={14} strokeWidth={2} className="text-primary" />
+                    </div>
+                    <span className="text-sm text-textSecondary leading-relaxed">{text}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                to="/criar-usuarios"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-white font-semibold text-sm hover:bg-primaryHover transition-colors"
+              >
+                Criar conta gratuita
+                <ChevronRight size={15} strokeWidth={2} />
+              </Link>
+            </div>
+
+            {/* Imagem / Card decorativo */}
+            <div className="relative">
+              <div className="rounded-xl overflow-hidden border border-border shadow-lg">
+                <img
+                  src={heroImage}
+                  alt="Nossa equipa"
+                  className="w-full h-72 object-cover object-top"
+                />
+              </div>
+              {/* Floating badge */}
+              <div className="absolute -bottom-4 -left-4 bg-surface rounded-lg border border-border shadow-float p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-md bg-successSoft flex items-center justify-center">
+                  <CheckCircle2 size={20} strokeWidth={1.75} className="text-success" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text">Sistema verificado</p>
+                  <p className="text-2xs text-textMuted">SSL + backup automático</p>
+                </div>
+              </div>
+              {/* Stats badge */}
+              <div className="absolute -top-4 -right-4 bg-primary rounded-lg p-4 text-white shadow-lg">
+                <p className="text-2xl font-bold leading-none">200+</p>
+                <p className="text-xs text-white/80 mt-0.5">igrejas ativas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════ PLANOS ══════════════════════════════ */}
+      <section id="planos" className="py-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center max-w-xl mx-auto mb-12">
+            <Pill>Planos</Pill>
+            <h2 className="text-3xl lg:text-4xl font-bold text-text mt-4 mb-3 tracking-tight">
+              Preços simples e transparentes
+            </h2>
+            <p className="text-base text-textMuted">
+              Comece grátis. Sem cartão de crédito. Cancele quando quiser.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+            {PLANS.map((plan) => (
+              <PlanCard key={plan.name} {...plan} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════ TESTEMUNHOS ══════════════════════════════ */}
+      <section className="py-20 bg-bgSection border-y border-border" id="testemunhos">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center max-w-xl mx-auto mb-12">
+            <Pill>Testemunhos</Pill>
+            <h2 className="text-3xl lg:text-4xl font-bold text-text mt-4 mb-3 tracking-tight">
+              O que dizem as igrejas
+            </h2>
+            <p className="text-base text-textMuted">
+              Histórias reais de pastores e líderes que transformaram a sua gestão.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {TESTIMONIALS.map((t) => (
+              <TestimonialCard key={t.name} {...t} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════ CTA FINAL ══════════════════════════════ */}
+      <section className="py-20" id="contacto">
+        <div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primarySoft mb-6">
+            <Zap size={24} strokeWidth={1.75} className="text-primary" />
+          </div>
+          <h2 className="text-3xl lg:text-4xl font-bold text-text mb-4 tracking-tight">
+            Pronto para modernizar sua igreja?
+          </h2>
+          <p className="text-base text-textMuted mb-8 max-w-lg mx-auto">
+            Crie a sua conta gratuitamente em menos de 2 minutos. Sem cartão,
+            sem compromisso — só resultados.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/criar-usuarios"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-md bg-primary text-white font-semibold text-sm hover:bg-primaryHover transition-colors"
+            >
+              Criar conta gratuita
+              <ArrowRight size={16} strokeWidth={2} />
+            </Link>
+            <a
+              href={`https://wa.me/244923519571?text=${encodeURIComponent("Olá! Gostaria de saber mais sobre a plataforma Bernet@-Eclesia.")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-md border border-border text-text font-semibold text-sm hover:bg-bgSection transition-colors"
+            >
+              Falar pelo WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════ FOOTER ══════════════════════════════ */}
+      <footer className="border-t border-border py-10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <img src={logoBernet} alt="Bernet" className="h-7 object-contain" />
+              <span className="text-sm text-textMuted">Gestão Eclesiástica</span>
+            </div>
+            <p className="text-xs text-textMuted">
+              © {new Date().getFullYear()} Bernet@-Eclesia. Todos os direitos reservados.
+            </p>
+            <div className="flex items-center gap-4">
+              <Link to="/login" className="text-xs text-textMuted hover:text-text transition-colors">Entrar</Link>
+              <Link to="/criar-usuarios" className="text-xs text-textMuted hover:text-text transition-colors">Criar conta</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* WhatsApp FAB */}
+      <a
+        href={`https://wa.me/244923519571?text=${encodeURIComponent("Olá! Gostaria de saber mais sobre o Bernet@-Eclesia.")}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-[9999] w-13 h-13 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+        style={{ background: "#25D366", width: 52, height: 52 }}
+        aria-label="WhatsApp"
+      >
+        <svg viewBox="0 0 24 24" fill="white" width="26" height="26">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </a>
+    </div>
   );
 }

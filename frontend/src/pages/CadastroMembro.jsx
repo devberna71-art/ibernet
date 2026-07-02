@@ -1,21 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  TextField,
-  Button,
-  MenuItem,
-  FormControlLabel,
-  Checkbox,
-  Alert,
-  CircularProgress,
-  Typography,
-  Divider,
-  ListItemText,
-  Card,
-  Grid,
-  Avatar
-} from '@mui/material';
+import { Camera, Check, Info, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../api/axiosConfig';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
 
 export default function MeuMembro() {
   const [formData, setFormData] = useState({
@@ -55,8 +43,6 @@ export default function MeuMembro() {
   const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
   const [loading, setLoading] = useState(false);
   const [membroId, setMembroId] = useState(null);
-  const [cargosOpen, setCargosOpen] = useState(false);
-  const [departamentosOpen, setDepartamentosOpen] = useState(false);
 
   const habilitacoesOptions = [
     'Ensino Primário',
@@ -80,16 +66,11 @@ export default function MeuMembro() {
     'Outro',
   ];
 
-  const selectStyles = {
-    MenuProps: { PaperProps: { sx: { bgcolor: '#263238', color: 'black', minWidth: 250 } } },
-    sx: { color: 'white', minWidth: 250 },
-  };
-
   useEffect(() => {
     const fetchCargos = async () => {
       try {
         const res = await api.get('/cargos');
-        setCargos(res.data);
+        setCargos(res.data || []);
       } catch (err) {
         console.error(err);
       }
@@ -97,7 +78,7 @@ export default function MeuMembro() {
     const fetchDepartamentos = async () => {
       try {
         const res = await api.get('/departamentos');
-        setDepartamentos(res.data);
+        setDepartamentos(res.data || []);
       } catch (err) {
         console.error(err);
       }
@@ -165,11 +146,19 @@ export default function MeuMembro() {
     else if (name === 'foto') {
       finalValue = files[0] || null;
       if (files[0]) setPreviewFoto(URL.createObjectURL(files[0]));
-    } else if (name === 'CargosIds' || name === 'DepartamentosIds') {
-      finalValue = typeof value === 'string' ? value.split(',').map(Number) : value.map(Number);
     } else finalValue = value;
     setFormData(prev => ({ ...prev, [name]: finalValue }));
     setMensagem({ tipo: '', texto: '' });
+  };
+
+  const handleMultiSelectToggle = (name, id) => {
+    setFormData(prev => {
+      const current = prev[name] || [];
+      const updated = current.includes(id) 
+        ? current.filter(x => x !== id) 
+        : [...current, id];
+      return { ...prev, [name]: updated };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -194,6 +183,7 @@ export default function MeuMembro() {
       }
 
       setMensagem({ tipo: 'success', texto: res.data.message || 'Dados salvos com sucesso!' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error(err);
       setMensagem({ tipo: 'error', texto: err.response?.data?.message || 'Erro ao salvar dados.' });
@@ -203,227 +193,529 @@ export default function MeuMembro() {
   };
 
   return (
-    <Box sx={{ maxWidth: 950, mx: 'auto', my: 5 }}>
-      {mensagem.texto && <Alert severity={mensagem.tipo} sx={{ mb: 3, borderRadius: 2 }}>{mensagem.texto}</Alert>}
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+      {mensagem.texto && (
+        <div className={`px-4 py-3 rounded-sm border text-body flex items-center gap-2 ${
+          mensagem.tipo === 'error'
+            ? 'bg-danger/5 border-danger/20 text-danger'
+            : 'bg-successSoft border-success/20 text-success'
+        }`}>
+          {mensagem.tipo === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+          <span>{mensagem.texto}</span>
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Foto e Nome */}
-        <Card sx={{
-          mb: 4,
-          p: 4,
-          background: 'linear-gradient(145deg,#1b2630,#1f2c3a)',
-          color: 'white',
-          borderRadius: 4,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-            <Avatar src={previewFoto} alt="Foto do Membro" sx={{ width: 120, height: 120, border: '3px solid #4fc3f7' }} />
-            <Box sx={{ flex: 1 }}>
-              <TextField fullWidth label="Nome *" name="nome" value={formData.nome} onChange={handleChange} required
-                InputLabelProps={{ style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }}
-                sx={{ mb: 2 }}
+        <Card padding="p-6">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative group">
+              <img
+                src={previewFoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80'}
+                alt="Foto do Membro"
+                className="w-24 h-24 rounded-full border border-border object-cover bg-bgSection"
               />
-              <Button variant="contained" component="label" sx={{ color: 'white', backgroundColor: '#4fc3f7', '&:hover': { backgroundColor: '#29b6f6' } }}>
-                {previewFoto ? 'Alterar Foto' : 'Selecionar Foto'}
+              <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer border border-border hover:bg-primaryHover transition-colors">
+                <Camera size={14} />
                 <input type="file" name="foto" accept="image/*" hidden onChange={handleChange} />
-              </Button>
-            </Box>
-          </Box>
+              </label>
+            </div>
+            
+            <div className="flex-1 w-full space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1">
+                  Nome Completo <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  name="nome"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  placeholder="Nome completo do membro"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+            </div>
+          </div>
         </Card>
 
-        <Grid container spacing={4}>
+        {/* Dados Pessoais */}
+        <Card padding="p-6">
+          <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+            Dados Pessoais
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Gênero <span className="text-danger">*</span>
+              </label>
+              <select
+                name="genero"
+                required
+                value={formData.genero}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              >
+                <option value="">Selecione...</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
 
-          {/* Dados Pessoais */}
-          <Grid item xs={12}>
-            <Card sx={{ p: 3, borderRadius: 4, background: '#1b2630', boxShadow: '0 6px 20px rgba(0,0,0,0.3)' }}>
-              <Typography variant="h6" sx={{ color: '#4fc3f7', mb: 2 }}>Dados Pessoais</Typography>
-              <Divider sx={{ mb: 2, borderColor: '#4fc3f7' }} />
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Gênero *" select name="genero" value={formData.genero} onChange={handleChange}
-                    InputLabelProps={{ style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }} SelectProps={{
-                      ...selectStyles,
-                      renderValue: selected => selected || 'Selecione...'
-                    }} required
-                  >
-                    <MenuItem value="Masculino">Masculino</MenuItem>
-                    <MenuItem value="Feminino">Feminino</MenuItem>
-                    <MenuItem value="Outro">Outro</MenuItem>
-                  </TextField>
-                </Grid>
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Data de Nascimento
+              </label>
+              <input
+                type="date"
+                name="data_nascimento"
+                value={formData.data_nascimento}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
 
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Data de Nascimento" type="date" name="data_nascimento" value={formData.data_nascimento} onChange={handleChange}
-                    InputLabelProps={{ shrink: true, style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }}
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Estado Civil
+              </label>
+              <select
+                name="estado_civil"
+                value={formData.estado_civil}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              >
+                <option value="">Selecione...</option>
+                <option value="Solteiro">Solteiro</option>
+                <option value="Casado">Casado</option>
+                <option value="Divorciado">Divorciado</option>
+                <option value="Viúvo">Viúvo</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Nº do Bilhete de Identidade (BI)
+              </label>
+              <input
+                type="text"
+                name="bi"
+                value={formData.bi}
+                onChange={handleChange}
+                placeholder="Nº do documento"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Telefone
+              </label>
+              <input
+                type="text"
+                name="telefone"
+                value={formData.telefone}
+                onChange={handleChange}
+                placeholder="Ex: 923 000 000"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                E-mail
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="email@exemplo.com"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Rua / Morada
+              </label>
+              <input
+                type="text"
+                name="endereco_rua"
+                value={formData.endereco_rua}
+                onChange={handleChange}
+                placeholder="Rua, Casa nº"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Bairro
+              </label>
+              <input
+                type="text"
+                name="endereco_bairro"
+                value={formData.endereco_bairro}
+                onChange={handleChange}
+                placeholder="Nome do bairro"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Cidade
+              </label>
+              <input
+                type="text"
+                name="endereco_cidade"
+                value={formData.endereco_cidade}
+                onChange={handleChange}
+                placeholder="Cidade"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Província
+              </label>
+              <input
+                type="text"
+                name="endereco_provincia"
+                value={formData.endereco_provincia}
+                onChange={handleChange}
+                placeholder="Província"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div className="sm:col-span-2 flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="ativo"
+                name="ativo"
+                checked={formData.ativo}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+              />
+              <label htmlFor="ativo" className="text-xs font-semibold text-textSecondary cursor-pointer select-none">
+                Membro Ativo
+              </label>
+            </div>
+          </div>
+        </Card>
+
+        {/* Dados Cristãos */}
+        <Card padding="p-6">
+          <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+            Dados Cristãos
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="batizado"
+                name="batizado"
+                checked={formData.batizado}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+              />
+              <label htmlFor="batizado" className="text-xs font-semibold text-textSecondary cursor-pointer select-none">
+                Batizado nas Águas
+              </label>
+            </div>
+
+            {formData.batizado && (
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                  Data do Batismo
+                </label>
+                <input
+                  type="date"
+                  name="data_batismo"
+                  value={formData.data_batismo}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+            )}
+
+            <div className="sm:col-span-2 flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="consagrado"
+                name="consagrado"
+                checked={formData.consagrado}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+              />
+              <label htmlFor="consagrado" className="text-xs font-semibold text-textSecondary cursor-pointer select-none">
+                Consagrado ao Ministério
+              </label>
+            </div>
+
+            {formData.consagrado && (
+              <>
+                <div>
+                  <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                    Data de Consagração
+                  </label>
+                  <input
+                    type="date"
+                    name="data_consagracao"
+                    value={formData.data_consagracao}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                   />
-                </Grid>
+                </div>
 
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Estado Civil" select name="estado_civil" value={formData.estado_civil} onChange={handleChange}
-                    InputLabelProps={{ style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }} SelectProps={{
-                      ...selectStyles,
-                      renderValue: selected => selected || 'Selecione...'
-                    }}
+                <div>
+                  <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                    Categoria Ministerial
+                  </label>
+                  <select
+                    name="categoria_ministerial"
+                    value={formData.categoria_ministerial}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                   >
-                    <MenuItem value="Solteiro">Solteiro</MenuItem>
-                    <MenuItem value="Casado">Casado</MenuItem>
-                    <MenuItem value="Divorciado">Divorciado</MenuItem>
-                    <MenuItem value="Viúvo">Viúvo</MenuItem>
-                  </TextField>
-                </Grid>
+                    <option value="">Selecione...</option>
+                    {categoriaMinisterialOptions.map((opt, idx) => (
+                      <option key={idx} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+          </div>
+        </Card>
 
-                {['bi', 'telefone', 'email', 'endereco_rua', 'endereco_bairro', 'endereco_cidade', 'endereco_provincia'].map(campo => (
-                  <Grid item xs={12} md={6} key={campo}>
-                    <TextField fullWidth label={campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')} name={campo} value={formData[campo]} onChange={handleChange}
-                      InputLabelProps={{ style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }}
-                    />
-                  </Grid>
+        {/* Dados Acadêmicos e Profissionais */}
+        <Card padding="p-6">
+          <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+            Dados Acadêmicos & Profissionais
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Habilitações Literárias
+              </label>
+              <select
+                name="habilitacoes"
+                value={formData.habilitacoes}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              >
+                <option value="">Selecione...</option>
+                {habilitacoesOptions.map((opt, idx) => (
+                  <option key={idx} value={opt}>{opt}</option>
                 ))}
+              </select>
+            </div>
 
-                <Grid item xs={12}>
-                  <FormControlLabel control={<Checkbox name="ativo" checked={formData.ativo} onChange={handleChange} sx={{ color: '#4fc3f7' }} />}
-                    label={<Typography sx={{ color: '#4fc3f7' }}>Ativo</Typography>} />
-                </Grid>
-              </Grid>
-            </Card>
-          </Grid>
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Área de Especialidade
+              </label>
+              <input
+                type="text"
+                name="especialidades"
+                value={formData.especialidades}
+                onChange={handleChange}
+                placeholder="Ex: Contabilidade, Pedagogia..."
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
 
-          {/* Dados Cristãos */}
-          <Grid item xs={12}>
-            <Card sx={{ p: 3, borderRadius: 4, background: '#1b2630', boxShadow: '0 6px 20px rgba(0,0,0,0.3)' }}>
-              <Typography variant="h6" sx={{ color: '#4fc3f7', mb: 2 }}>Dados Cristãos</Typography>
-              <Divider sx={{ mb: 2, borderColor: '#4fc3f7' }} />
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                  <FormControlLabel control={<Checkbox name="batizado" checked={formData.batizado} onChange={handleChange} sx={{ color: '#4fc3f7' }} />}
-                    label={<Typography sx={{ color: '#4fc3f7' }}>Batizado</Typography>} />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField fullWidth label="Data do Batismo" type="date" name="data_batismo" value={formData.data_batismo} onChange={handleChange}
-                    InputLabelProps={{ shrink: true, style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControlLabel control={<Checkbox name="consagrado" checked={formData.consagrado} onChange={handleChange} sx={{ color: '#4fc3f7' }} />}
-                    label={<Typography sx={{ color: '#4fc3f7' }}>Consagrado</Typography>} />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Data de Consagração" type="date" name="data_consagracao" value={formData.data_consagracao} onChange={handleChange}
-                    InputLabelProps={{ shrink: true, style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField select fullWidth label="Categoria Ministerial" name="categoria_ministerial" value={formData.categoria_ministerial} onChange={handleChange}
-                    InputLabelProps={{ style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }} SelectProps={{
-                      ...selectStyles,
-                      renderValue: selected => selected || 'Selecione...'
-                    }}
-                  >
-                    {categoriaMinisterialOptions.map((opt, idx) => <MenuItem key={idx} value={opt}>{opt}</MenuItem>)}
-                  </TextField>
-                </Grid>
-              </Grid>
-            </Card>
-          </Grid>
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Estudos Teológicos
+              </label>
+              <input
+                type="text"
+                name="estudo_teologico"
+                value={formData.estudo_teologico}
+                onChange={handleChange}
+                placeholder="Ex: Médio em Teologia..."
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
 
-          {/* Dados Acadêmicos */}
-          <Grid item xs={12}>
-            <Card sx={{ p: 3, borderRadius: 4, background: '#1b2630', boxShadow: '0 6px 20px rgba(0,0,0,0.3)' }}>
-              <Typography variant="h6" sx={{ color: '#4fc3f7', mb: 2 }}>Dados Acadêmicos</Typography>
-              <Divider sx={{ mb: 2, borderColor: '#4fc3f7' }} />
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField select fullWidth label="Habilitação" name="habilitacoes" value={formData.habilitacoes} onChange={handleChange}
-                    InputLabelProps={{ style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }} SelectProps={{
-                      ...selectStyles,
-                      renderValue: selected => selected || 'Selecione...'
-                    }}
-                  >
-                    {habilitacoesOptions.map((opt, idx) => <MenuItem key={idx} value={opt}>{opt}</MenuItem>)}
-                  </TextField>
-                </Grid>
-                {['especialidades', 'estudo_teologico', 'local_formacao', 'profissao'].map(campo => (
-                  <Grid item xs={12} md={6} key={campo}>
-                    <TextField fullWidth label={campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')} name={campo} value={formData[campo]} onChange={handleChange}
-                      InputLabelProps={{ style: { color: '#4fc3f7' } }} inputProps={{ style: { color: 'white' } }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </Card>
-          </Grid>
+            <div>
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Local de Formação Teológica
+              </label>
+              <input
+                type="text"
+                name="local_formacao"
+                value={formData.local_formacao}
+                onChange={handleChange}
+                placeholder="Ex: Instituto Bíblico..."
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
 
-          {/* Cargos e Departamentos */}
-          <Grid item xs={12}>
-            <Card sx={{ p: 3, borderRadius: 4, background: '#1b2630', boxShadow: '0 6px 20px rgba(0,0,0,0.3)' }}>
-              <Typography variant="h6" sx={{ color: '#4fc3f7', mb: 2 }}>Cargos e Departamentos</Typography>
-              <Divider sx={{ mb: 2, borderColor: '#4fc3f7' }} />
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField select fullWidth label="Cargos" name="CargosIds" value={formData.CargosIds} onChange={handleChange} margin="normal"
-                    SelectProps={{
-                      multiple: true,
-                      ...selectStyles,
-                      open: cargosOpen,
-                      onOpen: () => setCargosOpen(true),
-                      onClose: () => setCargosOpen(false),
-                      renderValue: selected => selected.length > 0 ? selected.map(id => cargos.find(c => c.id === id)?.nome).join(', ') : 'Selecione...',
-                      MenuProps: { PaperProps: { sx: { bgcolor: '#263238', color: 'black', minWidth: 250 } } }
-                    }}
-                  >
-                    {cargos.map(c => <MenuItem key={c.id} value={c.id}><ListItemText primary={c.nome} /></MenuItem>)}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField select fullWidth label="Departamentos" name="DepartamentosIds" value={formData.DepartamentosIds} onChange={handleChange} margin="normal"
-                    SelectProps={{
-                      multiple: true,
-                      ...selectStyles,
-                      open: departamentosOpen,
-                      onOpen: () => setDepartamentosOpen(true),
-                      onClose: () => setDepartamentosOpen(false),
-                      renderValue: selected => selected.length > 0 ? selected.map(id => departamentos.find(d => d.id === id)?.nome).join(', ') : 'Selecione...',
-                      MenuProps: { PaperProps: { sx: { bgcolor: '#263238', color: 'black', minWidth: 250 } } }
-                    }}
-                  >
-                    {departamentos.map(d => <MenuItem key={d.id} value={d.id}><ListItemText primary={d.nome} /></MenuItem>)}
-                  </TextField>
-                </Grid>
-              </Grid>
-            </Card>
-          </Grid>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                Profissão Atual
+              </label>
+              <input
+                type="text"
+                name="profissao"
+                value={formData.profissao}
+                onChange={handleChange}
+                placeholder="Sua profissão"
+                className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+          </div>
+        </Card>
 
-          {/* Diversos */}
-          <Grid item xs={12}>
-            <Card sx={{ p: 3, borderRadius: 4, background: '#1b2630', boxShadow: '0 6px 20px rgba(0,0,0,0.3)' }}>
-              <Typography variant="h6" sx={{ color: '#4fc3f7', mb: 2 }}>Diversos</Typography>
-              <Divider sx={{ mb: 2, borderColor: '#4fc3f7' }} />
-              <Grid container spacing={2}>
-                {['trabalha', 'conta_outrem', 'conta_propria'].map(campo => (
-                  <Grid item xs={12} md={4} key={campo}>
-                    <FormControlLabel control={<Checkbox name={campo} checked={formData[campo]} onChange={handleChange} sx={{ color: '#4fc3f7' }} />}
-                      label={<Typography sx={{ color: '#4fc3f7' }}>{campo.replace('_', ' ')}</Typography>} />
-                  </Grid>
-                ))}
-              </Grid>
-            </Card>
-          </Grid>
-        </Grid>
+        {/* Cargos e Departamentos */}
+        <Card padding="p-6">
+          <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+            Cargos & Departamentos
+          </h3>
+          
+          <div className="space-y-4">
+            {/* Selecionar Cargos */}
+            <div>
+              <span className="block text-xs font-semibold text-textSecondary mb-2">
+                Selecione os Cargos associados
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {cargos.map((cargo) => {
+                  const selected = formData.CargosIds.includes(cargo.id);
+                  return (
+                    <button
+                      key={cargo.id}
+                      type="button"
+                      onClick={() => handleMultiSelectToggle('CargosIds', cargo.id)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all flex items-center gap-1 ${
+                        selected
+                          ? 'bg-primarySoft border-primary text-primary'
+                          : 'bg-bg border-border text-textSecondary hover:border-textMuted'
+                      }`}
+                    >
+                      {selected && <Check size={12} />}
+                      {cargo.nome}
+                    </button>
+                  );
+                })}
+                {cargos.length === 0 && (
+                  <span className="text-xs text-textMuted italic">Carregando cargos...</span>
+                )}
+              </div>
+            </div>
 
-        {/* Botão */}
-        <Box sx={{ mt: 5 }}>
-          <Button type="submit" variant="contained" fullWidth sx={{
-            py: 1.5,
-            fontSize: '1.1rem',
-            backgroundColor: '#4fc3f7',
-            '&:hover': { backgroundColor: '#29b6f6' },
-            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-            borderRadius: 3
-          }} disabled={loading} startIcon={loading ? <CircularProgress size={20} /> : null}>
-            {loading ? 'Salvando...' : membroId ? 'Atualizar Dados' : 'Cadastrar Dados'}
+            {/* Selecionar Departamentos */}
+            <div>
+              <span className="block text-xs font-semibold text-textSecondary mb-2">
+                Selecione os Departamentos associados
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {departamentos.map((depto) => {
+                  const selected = formData.DepartamentosIds.includes(depto.id);
+                  return (
+                    <button
+                      key={depto.id}
+                      type="button"
+                      onClick={() => handleMultiSelectToggle('DepartamentosIds', depto.id)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all flex items-center gap-1 ${
+                        selected
+                          ? 'bg-primarySoft border-primary text-primary'
+                          : 'bg-bg border-border text-textSecondary hover:border-textMuted'
+                      }`}
+                    >
+                      {selected && <Check size={12} />}
+                      {depto.nome}
+                    </button>
+                  );
+                })}
+                {departamentos.length === 0 && (
+                  <span className="text-xs text-textMuted italic">Carregando departamentos...</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Diversos e Informações de Trabalho */}
+        <Card padding="p-6">
+          <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+            Informações Laborais (Diversos)
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="trabalha"
+                name="trabalha"
+                checked={formData.trabalha}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+              />
+              <label htmlFor="trabalha" className="text-xs font-semibold text-textSecondary cursor-pointer select-none">
+                Trabalha atualmente
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="conta_outrem"
+                name="conta_outrem"
+                checked={formData.conta_outrem}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+              />
+              <label htmlFor="conta_outrem" className="text-xs font-semibold text-textSecondary cursor-pointer select-none">
+                Trabalho por conta de outrem
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="conta_propria"
+                name="conta_propria"
+                checked={formData.conta_propria}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+              />
+              <label htmlFor="conta_propria" className="text-xs font-semibold text-textSecondary cursor-pointer select-none">
+                Trabalho por conta própria
+              </label>
+            </div>
+          </div>
+        </Card>
+
+        {/* Botão de Enviar */}
+        <div className="pt-4">
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            disabled={loading}
+            className="w-full justify-center py-3 text-sm font-bold"
+          >
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin shrink-0" />
+                Salvando Dados...
+              </>
+            ) : membroId ? (
+              'Atualizar Dados do Membro'
+            ) : (
+              'Cadastrar Dados do Membro'
+            )}
           </Button>
-        </Box>
+        </div>
       </form>
-    </Box>
+    </div>
   );
 }

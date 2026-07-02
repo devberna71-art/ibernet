@@ -1,25 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Avatar,
-  Typography,
-  Divider,
-  Alert,
-  CircularProgress,
-  Button,
-  Chip,
-  Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Stack,
-} from '@mui/material';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { User, Phone, Calendar, Download, RefreshCw, AlertTriangle, FileSpreadsheet, Loader2, ArrowRight } from 'lucide-react';
 import api from '../api/axiosConfig';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
 
 export default function PerfilMembro() {
   const [loading, setLoading] = useState(true);
@@ -82,159 +66,253 @@ export default function PerfilMembro() {
   };
 
   if (loading) return (
-    <Box sx={{ minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f7fa' }}>
-      <CircularProgress color="primary" />
-    </Box>
+    <div className="flex items-center justify-center min-h-[400px] text-textMuted gap-2 bg-bg">
+      <Loader2 className="animate-spin text-primary" size={20} />
+      <span className="text-body">Carregando perfil...</span>
+    </div>
   );
 
   if (error) return (
-    <Box sx={{ maxWidth: 900, mx: 'auto', p: 3, bgcolor: '#f5f7fa', borderRadius: 3 }}>
-      <Alert severity="error">{error}</Alert>
-      <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={carregarPerfil}>Tentar novamente</Button>
-    </Box>
+    <div className="max-w-xl mx-auto p-6 bg-surface border border-border rounded-sm mt-8 space-y-4">
+      <div className="flex items-center gap-2 text-danger">
+        <AlertTriangle size={18} />
+        <span className="font-semibold text-body">Erro</span>
+      </div>
+      <p className="text-body text-textSecondary">{error}</p>
+      <Button variant="primary" size="sm" onClick={carregarPerfil}>
+        Tentar Novamente
+      </Button>
+    </div>
   );
 
   const mesesDados = gerarDadosMeses();
   const mesesLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  
+  // Encontra o maior total para dimensionar as barras do gráfico CSS
+  const maxTotal = Math.max(...mesesDados.map(d => d.total), 1);
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3, bgcolor: '#f5f7fa' }}>
+    <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
       {/* Alertas */}
       {data?.alertas?.length > 0 && (
-        <Stack spacing={1} sx={{ mb: 3 }}>
+        <div className="space-y-2">
           {data.alertas.map((a, idx) => (
-            <Alert key={idx} severity="warning" sx={{ bgcolor: '#fff8e1', color: '#ff6f00' }}>{a}</Alert>
+            <div
+              key={idx}
+              className="p-3 bg-warning/5 border border-warning/20 text-warning rounded-sm text-xs font-medium flex items-center gap-2"
+            >
+              <AlertTriangle size={14} />
+              <span>{a}</span>
+            </div>
           ))}
-        </Stack>
+        </div>
       )}
 
-      {/* Card Perfil */}
-      <Paper sx={{
-        p: 4,
-        mb: 5,
-        bgcolor: 'linear-gradient(to right, #ffffff, #e1f5fe)',
-        borderRadius: 16,
-        boxShadow: '0 16px 40px rgba(0,0,0,0.15)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4
-      }}>
-        <Avatar src={data?.perfil?.foto || ''} sx={{
-          width: 120,
-          height: 120,
-          border: '4px solid #81d4fa',
-          boxShadow: '0 6px 24px rgba(0,0,0,0.2)'
-        }} />
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e1e2f' }}>{data.perfil.nome}</Typography>
-          <Typography variant="body1" sx={{ mt: 1, color: '#333' }}>Telefone: {data.perfil.telefone || '—'}</Typography>
-          <Typography variant="body1" sx={{ color: '#333' }}>Gênero: {data.perfil.genero || '—'}</Typography>
-          <Typography variant="body1" sx={{ color: '#333' }}>Estado civil: {data.perfil.estado_civil || '—'}</Typography>
-          <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-            <Button variant="contained" sx={{
-              background: 'linear-gradient(135deg, #81d4fa 0%, #0288d1 100%)',
-              color: '#fff',
-              fontWeight: 600,
-              '&:hover': { background: 'linear-gradient(135deg, #4fc3f7 0%, #0277bd 100%)', boxShadow: '0 8px 20px rgba(0,0,0,0.25)' }
-            }} onClick={handleRefresh} disabled={refreshing}>
-              {refreshing ? 'Atualizando...' : 'Atualizar'}
-            </Button>
-            <Button variant="outlined" sx={{
-              border: '2px solid #0288d1',
-              color: '#0288d1',
-              fontWeight: 600,
-              '&:hover': { background: '#e1f5fe' }
-            }} onClick={exportCsv}>Exportar CSV</Button>
-          </Box>
-        </Box>
-      </Paper>
+      {/* Card Perfil principal */}
+      <Card padding="p-6">
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <img
+            src={data?.perfil?.foto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80'}
+            alt="Foto do Membro"
+            className="w-20 h-20 rounded-full border border-border object-cover bg-bgSection shrink-0"
+          />
+          <div className="flex-1 text-center sm:text-left space-y-2">
+            <div>
+              <h2 className="text-lg font-bold text-text">{data.perfil.nome}</h2>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-xs text-textMuted mt-1">
+                <span className="flex items-center gap-1">
+                  <Phone size={12} />
+                  {data.perfil.telefone || '—'}
+                </span>
+                <span>•</span>
+                <span>Gênero: {data.perfil.genero || '—'}</span>
+                <span>•</span>
+                <span>Estado Civil: {data.perfil.estado_civil || '—'}</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+              >
+                {refreshing ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" />
+                    Atualizando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={13} />
+                    Atualizar
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={exportCsv}
+              >
+                <FileSpreadsheet size={13} />
+                Exportar CSV
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
 
-      <Grid container spacing={4}>
-        {/* Coluna esquerda */}
-        <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3, mb: 4, bgcolor: '#ffffff', borderRadius: 16, boxShadow: '0 12px 30px rgba(0,0,0,0.12)' }}>
-            <Typography variant="h6" sx={{ mb: 2, color: '#0288d1', fontWeight: 600 }}>Desempenho (Ano)</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Typography>Total no ano: <strong>{Number(data.desempenho.totalAno || 0).toLocaleString()}</strong></Typography>
-            <Typography>Total de contribuições: <strong>{data.desempenho.totalContribuicoes || 0}</strong></Typography>
-            <Typography>Maior contribuição: <strong>{Number(data.desempenho.maiorContribuicao || 0).toLocaleString()}</strong></Typography>
-            <Typography>Média mensal (até agora): <strong>{Number(data.desempenho.mediaMensal || 0).toLocaleString()}</strong></Typography>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Coluna Esquerda: Métricas e Indicadores */}
+        <div className="md:col-span-4 space-y-6">
+          {/* Desempenho Anual */}
+          <Card padding="p-5">
+            <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+              Desempenho (Ano)
+            </h3>
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-textMuted">Total no Ano</span>
+                <span className="font-bold text-text">
+                  Kz {Number(data.desempenho.totalAno || 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-textMuted">Nº de Contribuições</span>
+                <span className="font-bold text-text">
+                  {data.desempenho.totalContribuicoes || 0}
+                </span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-textMuted">Maior Contribuição</span>
+                <span className="font-bold text-text">
+                  Kz {Number(data.desempenho.maiorContribuicao || 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-textMuted">Média Mensal</span>
+                <span className="font-bold text-text">
+                  Kz {Number(data.desempenho.mediaMensal || 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
 
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="subtitle2" sx={{ color: '#0288d1', fontWeight: 600 }}>Indicadores</Typography>
-            <Typography>Tipo mais frequente: <strong>{data.indicadores.tipoMaisFrequente || '—'}</strong></Typography>
-            <Typography>Mês mais generoso: <strong>{data.indicadores.mesMaisGeneroso || '—'}</strong></Typography>
-            <Typography>Contribuições no ano: <strong>{data.indicadores.quantidadeAno || 0}</strong></Typography>
-          </Paper>
+            <h4 className="text-[10px] font-bold text-primary uppercase tracking-wide mt-6 mb-3">
+              Indicadores de Frequência
+            </h4>
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-textMuted">Tipo Frequente</span>
+                <span className="font-bold text-text">{data.indicadores.tipoMaisFrequente || '—'}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-textMuted">Mês Mais Generoso</span>
+                <span className="font-bold text-text">{data.indicadores.mesMaisGeneroso || '—'}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-textMuted">Total de Contribuições</span>
+                <span className="font-bold text-text">{data.indicadores.quantidadeAno || 0}</span>
+              </div>
+            </div>
+          </Card>
 
-          <Paper sx={{ p: 3, bgcolor: '#ffffff', borderRadius: 16, boxShadow: '0 12px 30px rgba(0,0,0,0.12)' }}>
-            <Typography variant="h6" sx={{ mb: 2, color: '#0288d1', fontWeight: 600 }}>Meses sem contribuição</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {data.mesesNaoContribuiu?.length ? data.mesesNaoContribuiu.map(m => (
-                <Chip key={m} label={mesesLabels[m-1]} sx={{
-                  background: 'linear-gradient(135deg, #81d4fa 0%, #0288d1 100%)',
-                  color: '#fff',
-                  fontWeight: 600
-                }} />
-              )) : <Typography>Nenhum mês sem contribuição</Typography>}
-            </Box>
-          </Paper>
-        </Grid>
+          {/* Meses Sem Contribuição */}
+          <Card padding="p-5">
+            <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-3">
+              Meses Sem Contribuição
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
+              {data.mesesNaoContribuiu?.length ? (
+                data.mesesNaoContribuiu.map(m => (
+                  <Badge key={m} variant="danger">
+                    {mesesLabels[m-1]}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-xs text-textMuted">Nenhum mês sem contribuição cadastrado.</span>
+              )}
+            </div>
+          </Card>
+        </div>
 
-        {/* Coluna direita */}
-        <Grid item xs={12} md={7}>
-          {/* Card exclusivo para gráfico */}
-          <Paper sx={{ p: 3, mb: 4, bgcolor: '#ffffff', borderRadius: 16, boxShadow: '0 12px 30px rgba(0,0,0,0.12)' }}>
-            <Typography variant="h6" sx={{ mb: 2, color: '#0288d1', fontWeight: 600 }}>Gráfico Mensal</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ width: '100%', height: 320 }}>
-              <BarChart width={600} height={320} data={mesesDados} margin={{ top: 10, right: 0, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0f2f1" />
-                <XAxis dataKey="name" tick={{ fill: '#0288d1', fontWeight: 600 }} />
-                <YAxis tick={{ fill: '#0288d1', fontWeight: 600 }} />
-                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderRadius: 10, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }} />
-                <Bar dataKey="total" fill="url(#grad1)" radius={[6,6,0,0]} />
-                <defs>
-                  <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#81d4fa" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#0288d1" stopOpacity={1}/>
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </Box>
-          </Paper>
+        {/* Coluna Direita: Gráfico e Histórico */}
+        <div className="md:col-span-8 space-y-6">
+          {/* Gráfico Mensal */}
+          <Card padding="p-5">
+            <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+              Gráfico de Contribuição Mensal
+            </h3>
+            
+            {/* Gráfico de Barras em Tailwind CSS */}
+            <div className="h-64 flex items-end justify-between gap-1 pt-6 px-2">
+              {mesesDados.map((item, idx) => {
+                // Altura percentual baseada no maior valor
+                const heightPercent = (item.total / maxTotal) * 100;
+                return (
+                  <div key={idx} className="flex-1 flex flex-col items-center group h-full justify-end">
+                    {/* Tooltip Hover */}
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute mb-16 bg-text text-bg text-[10px] px-2 py-1 rounded-sm shadow-md pointer-events-none whitespace-nowrap z-10">
+                      Kz {Number(item.total).toLocaleString()}
+                    </div>
+                    {/* Barra */}
+                    <div
+                      style={{ height: `${Math.max(heightPercent, 2)}%` }}
+                      className={`w-full max-w-[28px] rounded-t-sm transition-all duration-300 ${
+                        item.total > 0 ? 'bg-primary hover:bg-primaryHover' : 'bg-border'
+                      }`}
+                    />
+                    {/* Rótulo */}
+                    <span className="text-[10px] text-textMuted font-medium mt-2 select-none">
+                      {item.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
 
-          {/* Contribuições Detalhadas */}
-          <Paper sx={{ p: 3, bgcolor: '#ffffff', borderRadius: 16, boxShadow: '0 12px 30px rgba(0,0,0,0.12)' }}>
-            <Typography variant="h6" sx={{ mb: 2, color: '#0288d1', fontWeight: 600 }}>Contribuições Detalhadas</Typography>
-            <TableContainer component={Paper} sx={{ mt: 1, bgcolor: '#f1f8fe', borderRadius: 12 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ color: '#0288d1', fontWeight: 600 }}>Data</TableCell>
-                    <TableCell sx={{ color: '#0288d1', fontWeight: 600 }}>Tipo</TableCell>
-                    <TableCell align="right" sx={{ color: '#0288d1', fontWeight: 600 }}>Valor</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data.contribuicoes?.length ? data.contribuicoes.map(c => (
-                    <TableRow key={c.id} sx={{ '&:hover': { backgroundColor: '#e1f5fe' } }}>
-                      <TableCell>{new Date(c.data).toLocaleDateString()}</TableCell>
-                      <TableCell>{c.TipoContribuicao?.nome || '—'}</TableCell>
-                      <TableCell align="right">{Number(c.valor || 0).toLocaleString()}</TableCell>
-                    </TableRow>
-                  )) : (
-                    <TableRow>
-                      <TableCell colSpan={3}>Nenhuma contribuição registrada.</TableCell>
-                    </TableRow>
+          {/* Lista de Contribuições */}
+          <Card padding="p-5">
+            <h3 className="text-xs font-bold text-text uppercase tracking-wide border-b border-border pb-1.5 mb-4">
+              Histórico de Contribuições
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-border text-textMuted font-semibold">
+                    <th className="pb-2 font-semibold">Data</th>
+                    <th className="pb-2 font-semibold">Tipo</th>
+                    <th className="pb-2 font-semibold text-right">Valor</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {data.contribuicoes?.length ? (
+                    data.contribuicoes.map(c => (
+                      <tr key={c.id} className="hover:bg-bgSection/40 transition-colors">
+                        <td className="py-2.5 text-textSecondary">
+                          {new Date(c.data).toLocaleDateString()}
+                        </td>
+                        <td className="py-2.5 font-medium text-text">
+                          {c.TipoContribuicao?.nome || '—'}
+                        </td>
+                        <td className="py-2.5 text-right font-semibold text-text">
+                          Kz {Number(c.valor || 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="py-4 text-center text-textMuted">
+                        Nenhuma contribuição registrada.
+                      </td>
+                    </tr>
                   )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

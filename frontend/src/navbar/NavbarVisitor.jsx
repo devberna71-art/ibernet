@@ -1,447 +1,203 @@
-import React from "react";
-import {
-  Box,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Button,
-  Divider,
-  AppBar,
-  Toolbar,
-  useMediaQuery,
-} from "@mui/material";
-
-import { useTheme } from "@mui/material/styles";
-
-import {
-  Home,
-  People,
-  Assessment,
-  Work,
-  Build,
-  AccountBalance,
-  AccountCircle,
-} from "@mui/icons-material";
-
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, LogIn, ArrowRight } from "lucide-react";
 import logoBernet from "../assets/Logo-Bernet.png";
 
-export default function NavbarVisitor({ toggleDrawer }) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+const NAV_LINKS = [
+  { label: "Início",        href: "/#hero" },
+  { label: "Funcionalidades", href: "/#servicos" },
+  { label: "Sobre nós",    href: "/#sobre" },
+  { label: "Planos",       href: "/#planos" },
+  { label: "Contacto",     href: "/#contacto" },
+];
 
-  const safeClose = () => {
-    if (typeof toggleDrawer === "function") {
-      toggleDrawer(false)();
+export default function NavbarVisitor({ toggleDrawer }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  // Para drawer mobile vindo do Navbar.jsx
+  const isMobileDrawer = typeof toggleDrawer === "function";
+
+  const handleNavClick = (href) => {
+    setMobileOpen(false);
+    toggleDrawer?.();
+
+    if (href.startsWith("/#")) {
+      const id = href.slice(2);
+      const el = document.getElementById(id);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     }
   };
 
-  // ================= MOBILE / TABLET =================
-  if (isMobile) {
+  /* ───── MOBILE DRAWER (dentro do Drawer do Navbar.jsx) ───── */
+  if (isMobileDrawer) {
     return (
-      <Box
-        sx={{
-          width: 280,
-          background:
-            "linear-gradient(180deg,#0f172a 0%, #1e293b 100%)",
-          color: "#fff",
-          minHeight: "100vh",
-        }}
-      >
-        <List>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              py: 3,
-            }}
+      <div className="flex flex-col h-full bg-surface">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <img src={logoBernet} alt="Bernet" className="h-8 object-contain" />
+          <button
+            onClick={() => toggleDrawer()}
+            className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
           >
-            <Box
-              component="img"
-              src={logoBernet}
-              sx={{
-                height: 95,
-                objectFit: "contain",
-              }}
-            />
-          </Box>
+            <X size={18} strokeWidth={1.75} />
+          </button>
+        </div>
 
-          <Divider
-            sx={{
-              bgcolor: "rgba(255,255,255,0.12)",
-              mb: 2,
-            }}
-          />
-
-          <ListItem sx={{ mb: 2 }}>
-            <Button
-              component={Link}
-              to="/criar/conta/membro"
-              onClick={safeClose}
-              fullWidth
-              sx={{
-                py: 1.5,
-                borderRadius: "14px",
-
-                background:
-                  "linear-gradient(135deg,#10b981,#34d399)",
-
-                color: "#fff",
-
-                fontWeight: 700,
-
-                textTransform: "none",
-
-                fontSize: "15px",
-
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg,#059669,#10b981)",
-                },
-              }}
+        {/* Links */}
+        <nav className="flex-1 px-3 py-4 space-y-1">
+          {NAV_LINKS.map((link) => (
+            <button
+              key={link.href}
+              onClick={() => handleNavClick(link.href)}
+              className="flex w-full items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium text-textSecondary hover:text-text hover:bg-bgSection transition-colors text-left"
             >
-              Criar Conta
-            </Button>
-          </ListItem>
+              {link.label}
+            </button>
+          ))}
+        </nav>
 
-          <ListItem
-            button
-            component={Link}
-            to="/"
-            onClick={safeClose}
+        {/* CTAs */}
+        <div className="px-4 py-5 border-t border-border space-y-2">
+          <Link
+            to="/login"
+            onClick={() => toggleDrawer()}
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-sm border border-border text-sm font-semibold text-text hover:bg-bgSection transition-colors"
           >
-            <ListItemIcon sx={{ color: "#fff" }}>
-              <Home />
-            </ListItemIcon>
-            <ListItemText
-              primary="Início"
-              primaryTypographyProps={{
-                color: "#fff",
-              }}
-            />
-          </ListItem>
-
-          <ListItem
-            button
-            component={Link}
-            to="/sobre-equipe"
-            onClick={safeClose}
+            <LogIn size={15} strokeWidth={1.75} />
+            Entrar
+          </Link>
+          <Link
+            to="/criar-usuarios"
+            onClick={() => toggleDrawer()}
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-sm bg-primary text-white text-sm font-semibold hover:bg-primaryHover transition-colors"
           >
-            <ListItemIcon sx={{ color: "#fff" }}>
-              <People />
-            </ListItemIcon>
-            <ListItemText
-              primary="Sobre a Equipa"
-              primaryTypographyProps={{
-                color: "#fff",
-              }}
-            />
-          </ListItem>
-
-          <ListItem
-            button
-            component={Link}
-            to="/planos"
-            onClick={safeClose}
-          >
-            <ListItemIcon sx={{ color: "#fff" }}>
-              <AccountBalance />
-            </ListItemIcon>
-            <ListItemText
-              primary="Planos"
-              primaryTypographyProps={{
-                color: "#fff",
-              }}
-            />
-          </ListItem>
-
-          <ListItem
-            button
-            component={Link}
-            to="/testemunhos"
-            onClick={safeClose}
-          >
-            <ListItemIcon sx={{ color: "#fff" }}>
-              <Assessment />
-            </ListItemIcon>
-            <ListItemText
-              primary="Testemunhos"
-              primaryTypographyProps={{
-                color: "#fff",
-              }}
-            />
-          </ListItem>
-
-          <ListItem
-            button
-            component={Link}
-            to="/contato"
-            onClick={safeClose}
-          >
-            <ListItemIcon sx={{ color: "#fff" }}>
-              <Work />
-            </ListItemIcon>
-            <ListItemText
-              primary="Contacto"
-              primaryTypographyProps={{
-                color: "#fff",
-              }}
-            />
-          </ListItem>
-
-          <ListItem
-            button
-            component={Link}
-            to="/servicos"
-            onClick={safeClose}
-          >
-            <ListItemIcon sx={{ color: "#fff" }}>
-              <Build />
-            </ListItemIcon>
-            <ListItemText
-              primary="Serviços"
-              primaryTypographyProps={{
-                color: "#fff",
-              }}
-            />
-          </ListItem>
-
-          <ListItem sx={{ mt: 2 }}>
-            <Button
-              component={Link}
-              to="/login"
-              onClick={safeClose}
-              fullWidth
-              startIcon={<AccountCircle />}
-              sx={{
-                py: 1.4,
-
-                borderRadius: "14px",
-
-                background:
-                  "linear-gradient(135deg,#f59e0b,#f97316)",
-
-                color: "#fff",
-
-                fontWeight: 700,
-
-                textTransform: "none",
-
-                fontSize: "15px",
-
-                "&:hover": {
-                  background:
-                    "linear-gradient(135deg,#ea580c,#f97316)",
-                },
-              }}
-            >
-              Login
-            </Button>
-          </ListItem>
-        </List>
-      </Box>
+            Começar gratuitamente
+            <ArrowRight size={14} strokeWidth={2} />
+          </Link>
+        </div>
+      </div>
     );
   }
 
-  // ================= DESKTOP PREMIUM =================
+  /* ───── DESKTOP NAVBAR ───── */
   return (
-    <AppBar
-      position="fixed"
-      elevation={0}
-      sx={{
-        background:
-          "linear-gradient(135deg,#0f172a 0%, #1e293b 45%, #334155 100%)",
-
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
-
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-
-        boxShadow:
-          "0 12px 40px rgba(0,0,0,0.35)",
-
-        height: 95,
-
-        justifyContent: "center",
-
-        zIndex: 1400,
-      }}
-    >
-      <Toolbar
-        sx={{
-          minHeight: "95px !important",
-          px: 5,
-        }}
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-[1400] transition-all duration-300 ${
+          scrolled
+            ? "bg-white/95 backdrop-blur-md border-b border-border shadow-xs"
+            : "bg-transparent"
+        }`}
       >
-        {/* LOGO */}
-        <Box
-          component={Link}
-          to="/"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            mr: 7,
-            textDecoration: "none",
-          }}
-        >
-          <Box
-            component="img"
-            src={logoBernet}
-            sx={{
-              height: 85,
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <img src={logoBernet} alt="Bernet" className="h-8 object-contain" />
+          </Link>
 
-              transition: ".3s",
+          {/* Links centro — desktop */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {NAV_LINKS.map((link) => (
+              <button
+                key={link.href}
+                onClick={() => handleNavClick(link.href)}
+                className={`px-3.5 py-2 rounded-sm text-sm font-medium transition-colors ${
+                  scrolled
+                    ? "text-textSecondary hover:text-text hover:bg-bgSection"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {link.label}
+              </button>
+            ))}
+          </nav>
 
-              "&:hover": {
-                transform: "scale(1.05)",
-              },
-            }}
-          />
-        </Box>
-
-        {/* MENUS */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 4,
-            flexGrow: 1,
-            alignItems: "center",
-          }}
-        >
-          {[
-            { label: "Início", path: "/" },
-            { label: "Sobre a Equipa", path: "/sobre-equipe" },
-            { label: "Planos", path: "/planos" },
-            { label: "Testemunhos", path: "/testemunhos" },
-            { label: "Contacto", path: "/contato" },
-            { label: "Serviços", path: "/servicos" },
-          ].map((item) => (
-            <Button
-              key={item.path}
-              component={Link}
-              to={item.path}
-              disableRipple
-              sx={{
-                color: "#ffffff",
-
-                fontSize: "16px",
-
-                fontWeight: 600,
-
-                textTransform: "none",
-
-                letterSpacing: ".3px",
-
-                position: "relative",
-
-                "&:hover": {
-                  background: "transparent",
-                  color: "#ffffff",
-                },
-
-                "&::after": {
-                  content: '""',
-                  position: "absolute",
-                  left: 0,
-                  bottom: -6,
-                  width: 0,
-                  height: 2,
-
-                  background:
-                    "linear-gradient(90deg,#60a5fa,#93c5fd)",
-
-                  transition: ".3s",
-                },
-
-                "&:hover::after": {
-                  width: "100%",
-                },
-              }}
+          {/* CTAs direita */}
+          <div className="hidden lg:flex items-center gap-2">
+            <Link
+              to="/login"
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-sm text-sm font-semibold transition-colors ${
+                scrolled
+                  ? "text-textSecondary hover:text-text hover:bg-bgSection"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
+              }`}
             >
-              {item.label}
-            </Button>
-          ))}
-        </Box>
+              <LogIn size={14} strokeWidth={1.75} />
+              Entrar
+            </Link>
+            <Link
+              to="/criar-usuarios"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-sm bg-primary text-white text-sm font-semibold hover:bg-primaryHover transition-colors"
+            >
+              Começar agora
+              <ArrowRight size={13} strokeWidth={2} />
+            </Link>
+          </div>
 
-        {/* CRIAR CONTA */}
-        <Button
-          component={Link}
-          to="/criar/conta/membro"
-          variant="contained"
-          sx={{
-            mr: 2,
+          {/* Hamburguer mobile */}
+          <button
+            className={`lg:hidden p-2 rounded-sm transition-colors ${
+              scrolled ? "text-text hover:bg-bgSection" : "text-white hover:bg-white/10"
+            }`}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Menu"
+          >
+            {mobileOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={20} strokeWidth={1.75} />}
+          </button>
+        </div>
+      </header>
 
-            px: 3.5,
-            py: 1.4,
-
-            borderRadius: "14px",
-
-            fontSize: "15px",
-
-            fontWeight: 700,
-
-            textTransform: "none",
-
-            color: "#fff",
-
-            background:
-              "linear-gradient(135deg,#10b981,#34d399)",
-
-            boxShadow:
-              "0 10px 25px rgba(16,185,129,.35)",
-
-            "&:hover": {
-              transform: "translateY(-2px)",
-
-              background:
-                "linear-gradient(135deg,#059669,#10b981)",
-            },
-
-            transition: ".3s",
-          }}
-        >
-          Criar Conta
-        </Button>
-
-        {/* LOGIN */}
-        <Button
-          component={Link}
-          to="/login"
-          variant="contained"
-          sx={{
-            px: 3.5,
-            py: 1.4,
-
-            borderRadius: "14px",
-
-            fontSize: "15px",
-
-            fontWeight: 700,
-
-            textTransform: "none",
-
-            color: "#fff",
-
-            background:
-              "linear-gradient(135deg,#f59e0b,#f97316)",
-
-            boxShadow:
-              "0 10px 25px rgba(249,115,22,.35)",
-
-            "&:hover": {
-              transform: "translateY(-2px)",
-
-              background:
-                "linear-gradient(135deg,#ea580c,#f97316)",
-            },
-
-            transition: ".3s",
-          }}
-        >
-          Login
-        </Button>
-      </Toolbar>
-    </AppBar>
+      {/* Mobile menu dropdown */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-[1300] lg:hidden" onClick={() => setMobileOpen(false)}>
+          <div
+            className="absolute top-16 left-0 right-0 bg-white border-b border-border shadow-lg px-4 py-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <nav className="space-y-1 mb-3">
+              {NAV_LINKS.map((link) => (
+                <button
+                  key={link.href}
+                  onClick={() => handleNavClick(link.href)}
+                  className="flex w-full items-center px-3 py-2.5 rounded-sm text-sm font-medium text-textSecondary hover:text-text hover:bg-bgSection transition-colors"
+                >
+                  {link.label}
+                </button>
+              ))}
+            </nav>
+            <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border">
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm border border-border text-sm font-semibold text-text hover:bg-bgSection transition-colors"
+              >
+                <LogIn size={14} strokeWidth={1.75} />
+                Entrar
+              </Link>
+              <Link
+                to="/criar-usuarios"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm bg-primary text-white text-sm font-semibold hover:bg-primaryHover transition-colors"
+              >
+                Começar
+                <ArrowRight size={13} strokeWidth={2} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

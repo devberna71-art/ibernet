@@ -1,7 +1,9 @@
-// pages/CadastroMembroUser.jsx
 import React, { useEffect, useState } from "react";
-import { Box, Typography, TextField, MenuItem, Button, Container, Paper, Stack } from "@mui/material";
+import { Link } from "react-router-dom";
+import { UserPlus, Building, User, Lock, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import axios from "../api/axiosConfig";
+import Button from "../components/ui/Button";
+import logoBernet from "../assets/Logo-Bernet.png";
 
 const CadastroMembroUser = () => {
   const [sedes, setSedes] = useState([]);
@@ -49,167 +51,152 @@ const CadastroMembroUser = () => {
   };
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      py: 8,
-      bgcolor: 'linear-gradient(160deg, #e3f2fd 0%, #ffffff 100%)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'flex-start'
-    }}>
-      <Container maxWidth="sm">
-        <Paper sx={{
-          p: 6,
-          borderRadius: 4,
-          boxShadow: '0 20px 50px rgba(0,0,0,0.15)',
-          background: 'linear-gradient(145deg, #ffffff 0%, #e1f5fe 100%)',
-          transition: 'all 0.4s ease',
-          '&:hover': {
-            boxShadow: '0 25px 60px rgba(0,0,0,0.2)',
-            transform: 'translateY(-4px)'
-          }
-        }}>
-          <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ textAlign: 'center', color: '#0288d1' }}>
-            Criar Conta de Membro
-          </Typography>
+    <div className="min-h-screen bg-bgSection py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+      <div className="w-full max-w-md bg-surface rounded-lg border border-border p-6 sm:p-10 shadow-sm">
+        
+        {/* Header */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <Link to="/">
+            <img src={logoBernet} alt="Logo Bernet" className="h-9 object-contain mb-4" />
+          </Link>
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-primarySoft mb-3">
+            <UserPlus size={20} strokeWidth={1.75} className="text-primary" />
+          </div>
+          <h1 className="text-[22px] font-semibold text-text">Criar Conta de Membro</h1>
+          <p className="text-body text-textMuted mt-1">
+            Preencha seus dados para solicitar acesso à sua congregação
+          </p>
+        </div>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 3 }}>
-            
-            {/* Sede */}
-            <TextField
-              select
-              label="Sede"
+        {message && (
+          <div className={`mb-6 px-4 py-3 rounded-sm text-body flex items-start gap-2.5 ${
+            message.includes("sucesso") || message.includes("Realizado")
+              ? "bg-successSoft border border-success/20 text-success"
+              : "bg-danger/5 border border-danger/20 text-danger"
+          }`}>
+            {message.includes("sucesso") || message.includes("Realizado") ? (
+              <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+            ) : null}
+            <span>{message}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Sede */}
+          <div>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5 flex items-center gap-1.5">
+              <Building size={13} className="text-textMuted" />
+              Sede <span className="text-danger">*</span>
+            </label>
+            <select
               name="SedeId"
               value={form.SedeId}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-root': {
-                  borderRadius: 3,
-                  background: '#f1f8fe',
-                  transition: 'all 0.3s ease',
-                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)'
-                },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#81d4fa' },
-                '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#0288d1', borderWidth: 2 }
-              }}
+              className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             >
+              <option value="">Selecione a sua congregação sede</option>
               {sedes.map(sede => (
-                <MenuItem key={sede.id} value={sede.id}>
+                <option key={sede.id} value={sede.id}>
                   {sede.nome} ({sede.quantidadeMembros} membros)
-                </MenuItem>
+                </option>
               ))}
-            </TextField>
+            </select>
+          </div>
 
-            {/* Filhal */}
-            <TextField
-              select
-              label="Filhal"
+          {/* Filial */}
+          <div>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5 flex items-center gap-1.5">
+              <Building size={13} className="text-textMuted" />
+              Filial
+            </label>
+            <select
               name="FilhalId"
               value={form.FilhalId}
               onChange={handleChange}
-              sx={{
-                '& .MuiInputBase-root': {
-                  borderRadius: 3,
-                  background: '#f1f8fe',
-                  transition: 'all 0.3s ease',
-                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)'
-                },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#81d4fa' },
-                '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#0288d1', borderWidth: 2 }
-              }}
+              className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             >
-              <MenuItem value="">Nenhuma</MenuItem>
+              <option value="">Nenhuma (Filiar-se diretamente à Sede)</option>
               {filhals.map(filhal => (
-                <MenuItem key={filhal.id} value={filhal.id}>
+                <option key={filhal.id} value={filhal.id}>
                   {filhal.nome} ({filhal.quantidadeMembros} membros)
-                </MenuItem>
+                </option>
               ))}
-            </TextField>
+            </select>
+          </div>
 
-            {/* Nome */}
-            <TextField
-              label="Nome"
+          {/* Nome */}
+          <div>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5 flex items-center gap-1.5">
+              <User size={13} className="text-textMuted" />
+              Nome Completo <span className="text-danger">*</span>
+            </label>
+            <input
               name="nome"
+              type="text"
               value={form.nome}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-root': {
-                  borderRadius: 3,
-                  background: '#f1f8fe',
-                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)',
-                  transition: 'all 0.3s ease'
-                },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#81d4fa' },
-                '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#0288d1', borderWidth: 2 }
-              }}
+              placeholder="Seu nome completo"
+              className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             />
+          </div>
 
-            {/* Senha */}
-            <TextField
-              label="Senha"
+          {/* Senha */}
+          <div>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5 flex items-center gap-1.5">
+              <Lock size={13} className="text-textMuted" />
+              Senha <span className="text-danger">*</span>
+            </label>
+            <input
               name="senha"
               type="password"
               value={form.senha}
               onChange={handleChange}
               required
-              sx={{
-                '& .MuiInputBase-root': {
-                  borderRadius: 3,
-                  background: '#f1f8fe',
-                  boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)',
-                  transition: 'all 0.3s ease'
-                },
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#81d4fa' },
-                '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#0288d1', borderWidth: 2 }
-              }}
+              placeholder="Escolha uma senha segura"
+              className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             />
+          </div>
 
-            {/* Botão premium */}
+          <div className="pt-2">
             <Button
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={loading}
-              sx={{
-                background: 'linear-gradient(135deg, #5CC8FF, #4A90E2)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '1rem',
-                borderRadius: 6,
-                py: 1.8,
-                textTransform: 'none',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                transition: 'all 0.4s ease',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #4A90E2, #5CC8FF)',
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 15px 40px rgba(0,0,0,0.25)',
-                },
-              }}
+              className="w-full justify-center"
             >
-              {loading ? "Cadastrando..." : "Criar Conta de Membro"}
+              {loading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Cadastrando...
+                </>
+              ) : (
+                "Criar Conta de Membro"
+              )}
             </Button>
+          </div>
+        </form>
 
-            {/* Mensagem de retorno */}
-            {message && (
-              <Typography sx={{
-                mt: 2,
-                textAlign: 'center',
-                fontWeight: 600,
-                color: '#0288d1',
-                background: '#e1f5fe',
-                py: 1,
-                borderRadius: 2,
-                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.08)'
-              }}>
-                {message}
-              </Typography>
-            )}
+        <div className="mt-6 pt-6 border-t border-border flex justify-between items-center text-xs">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1 text-textMuted hover:text-text transition-colors"
+          >
+            <ArrowLeft size={12} />
+            Voltar para o Login
+          </Link>
+          <Link
+            to="/"
+            className="text-primary hover:text-primaryHover font-semibold transition-colors"
+          >
+            Voltar ao início
+          </Link>
+        </div>
 
-          </Box>
-        </Paper>
-      </Container>
-    </Box>
+      </div>
+    </div>
   );
 };
 

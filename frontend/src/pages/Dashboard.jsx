@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { CircularProgress } from "@mui/material";
+import { Loader2 } from "lucide-react";
 import api from "../api/axiosConfig";
-import { Topbar } from "../components/ui";
+import AppPage from "../components/ui/AppPage";
 import DashboardCards from "../components/DashboardCards";
 import Distribuicoes from "../components/Distribuicoes";
 import Graficos from "../components/Graficos";
@@ -15,7 +15,11 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    api.get("/dashboard").then((res) => setDados(res.data)).catch(console.error).finally(() => setLoading(false));
+    api
+      .get("/dashboard")
+      .then((res) => setDados(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -30,8 +34,8 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-bg flex flex-col items-center justify-center gap-3">
-        <CircularProgress size={36} />
-        <p className="text-muted text-textMuted font-medium">Carregando painel...</p>
+        <Loader2 size={28} strokeWidth={1.75} className="text-primary animate-spin" />
+        <p className="text-body text-textMuted font-medium">Carregando painel...</p>
       </div>
     );
   }
@@ -45,29 +49,26 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-bg pb-10">
-      <Topbar
-        membro={user}
-        userRole="admin"
-        subtitle="Acompanhe métricas, finanças e atividades da sua comunidade."
-      />
-
-      <div className="px-6 md:px-8 space-y-6 md:space-y-8">
+    <AppPage
+      membro={user}
+      userRole="admin"
+      subtitle="Métricas, finanças e atividades da sua comunidade."
+    >
+      <div className="space-y-5">
         <DashboardCards dados={dados} />
-
         <Distribuicoes dados={dados} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-5 md:gap-6 items-start">
-          <div className="space-y-5 md:space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 items-start">
+          <div className="space-y-4">
             <Graficos dados={dados} />
           </div>
-          <div className="space-y-5 md:space-y-6">
+          <div className="space-y-4">
             <TopContribuidores />
             <NovosMembros />
             <ProximoCultos />
           </div>
         </div>
       </div>
-    </div>
+    </AppPage>
   );
 }

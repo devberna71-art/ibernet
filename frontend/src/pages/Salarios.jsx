@@ -1,34 +1,45 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Button,
-  Stack,
-  Divider,
-  Card,
-  CardContent,
-  Fade,
-  Chip,
-} from "@mui/material";
-
-import CloseIcon from "@mui/icons-material/Close";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-
+import { Coins, Eye, X } from "lucide-react";
 import FormFuncionarios from "../components/FormFuncionarios";
 import FormSubsidios from "../components/FormSubsidios";
 import FormDescontos from "../components/FormDescontos";
 import FormSalarios from "../components/FormSalarios";
-
 import ListaFuncionarios from "../components/ListaFuncionarios";
 import ListaSalarios from "../components/ListaSalarios";
 import ListaDescontos from "../components/ListaDescontos";
-import ListaSubsidios from "../components/ListaSubsidios"; // 👈 ADICIONADO
+import ListaSubsidios from "../components/ListaSubsidios";
+import AppPage from "../components/ui/AppPage";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+
+/** Modal genérico leve */
+function Modal({ open, onClose, title, children, maxWidth = "max-w-xl" }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div
+        className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
+          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+          >
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function GestaoSalarios() {
   const [tab, setTab] = useState(0);
@@ -36,295 +47,165 @@ export default function GestaoSalarios() {
   const [openFuncionarios, setOpenFuncionarios] = useState(false);
   const [openSalarios, setOpenSalarios] = useState(false);
   const [openDescontos, setOpenDescontos] = useState(false);
-  const [openSubsidios, setOpenSubsidios] = useState(false); // 👈 NOVO
+  const [openSubsidios, setOpenSubsidios] = useState(false);
 
-  const handleChange = (e, newValue) => setTab(newValue);
+  const tabs = [
+    { label: "Funcionários", index: 0 },
+    { label: "Subsídios", index: 1 },
+    { label: "Descontos", index: 2 },
+    { label: "Processamento Salarial", index: 3 },
+  ];
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        p: 3,
-        background: "linear-gradient(135deg, #f6f8fc 0%, #eef2f7 100%)",
-      }}
-    >
-      {/* HEADER PREMIUM */}
-      <Card
-        sx={{
-          mb: 3,
-          borderRadius: 3,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-          background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-          color: "white",
-        }}
-      >
-        <CardContent>
-          <Typography variant="h5" fontWeight={800}>
-            Gestão de Salários
-          </Typography>
+    <AppPage subtitle="Administração de funcionários, membros, subsídios, descontos e processamento salarial.">
+      {/* Header com ações */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-primarySoft flex items-center justify-center text-primary">
+            <Coins size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Gestão de Salários</h2>
+            <p className="text-muted text-textMuted mt-0.5">Gestão de folhas de pagamento e subsídios.</p>
+          </div>
+        </div>
+        <div className="flex gap-1">
+          <Badge variant="primary">Sistema Ativo</Badge>
+          <Badge variant="secondary">Igrejas</Badge>
+        </div>
+      </div>
 
-          <Typography variant="body2" sx={{ opacity: 0.85 }}>
-            Administração de funcionários - membros, subsídios, descontos e processamento salarial
-          </Typography>
+      {/* Tabs Customizados */}
+      <div className="flex border-b border-border mb-6">
+        {tabs.map((t) => (
+          <button
+            key={t.index}
+            onClick={() => setTab(t.index)}
+            className={`px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-px ${
+              tab === t.index
+                ? "border-primary text-primary"
+                : "border-transparent text-textMuted hover:text-text"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-          <Stack direction="row" spacing={1} mt={2}>
-            <Chip
-              label="Sistema Ativo"
-              size="small"
-              sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "white" }}
-            />
-            <Chip
-              label="IGREJAS"
-              size="small"
-              sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "white" }}
-            />
-          </Stack>
-        </CardContent>
-      </Card>
+      {/* Card de Conteúdo */}
+      <Card padding="p-6">
+        {/* TAB 0: FUNCIONÁRIOS */}
+        {tab === 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <h3 className="text-sm font-bold text-text">Gerenciamento de Funcionários</h3>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setOpenFuncionarios(true)}
+              >
+                <Eye size={13} className="shrink-0" />
+                Ver Lista
+              </Button>
+            </div>
+            <FormFuncionarios />
+          </div>
+        )}
 
-      {/* TABS PREMIUM */}
-      <Card
-        sx={{
-          mb: 3,
-          borderRadius: 3,
-          overflow: "hidden",
-          boxShadow: "0 8px 25px rgba(0,0,0,0.06)",
-        }}
-      >
-        <Tabs
-          value={tab}
-          onChange={handleChange}
-          variant="fullWidth"
-          sx={{
-            "& .MuiTab-root": {
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: "0.95rem",
-              py: 2,
-            },
-          }}
-        >
-          <Tab label="Funcionários" />
-          <Tab label="Subsídios" />
-          <Tab label="Descontos" />
-          <Tab label="Salários" />
-        </Tabs>
-      </Card>
+        {/* TAB 1: SUBSÍDIOS */}
+        {tab === 1 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <h3 className="text-sm font-bold text-text">Subsídios e Abonos</h3>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setOpenSubsidios(true)}
+              >
+                <Eye size={13} className="shrink-0" />
+                Ver Lista
+              </Button>
+            </div>
+            <FormSubsidios />
+          </div>
+        )}
 
-      {/* CONTEÚDO */}
-      <Card
-        sx={{
-          borderRadius: 3,
-          minHeight: 420,
-          boxShadow: "0 12px 35px rgba(0,0,0,0.08)",
-        }}
-      >
-        <CardContent sx={{ p: 3 }}>
-          <Fade in={true} key={tab}>
-            <Box>
+        {/* TAB 2: DESCONTOS */}
+        {tab === 2 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <h3 className="text-sm font-bold text-text">Descontos e Retenções</h3>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setOpenDescontos(true)}
+              >
+                <Eye size={13} className="shrink-0" />
+                Ver Lista
+              </Button>
+            </div>
+            <FormDescontos />
+          </div>
+        )}
 
-              {/* FUNCIONÁRIOS */}
-              {tab === 0 && (
-                <Stack spacing={2}>
-                  <Typography variant="h6" fontWeight={800}>
-                    Funcionários
-                  </Typography>
-
-                  <Button
-                    startIcon={<VisibilityIcon />}
-                    variant="contained"
-                    sx={{
-                      borderRadius: 2,
-                      background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-                      textTransform: "none",
-                      fontWeight: 700,
-                    }}
-                    onClick={() => setOpenFuncionarios(true)}
-                  >
-                    Ver Funcionários
-                  </Button>
-
-                  <FormFuncionarios />
-                </Stack>
-              )}
-
-              {/* SUBSÍDIOS */}
-              {tab === 1 && (
-                <Stack spacing={2}>
-                  <Typography variant="h6" fontWeight={800}>
-                    Subsídios
-                  </Typography>
-
-                  {/* 👇 BOTÃO NOVO */}
-                  <Button
-                    startIcon={<VisibilityIcon />}
-                    variant="contained"
-                    sx={{
-                      borderRadius: 2,
-                      background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-                      textTransform: "none",
-                      fontWeight: 700,
-                    }}
-                    onClick={() => setOpenSubsidios(true)}
-                  >
-                    Ver Lista de Subsídios
-                  </Button>
-
-                  <FormSubsidios />
-                </Stack>
-              )}
-
-              {/* DESCONTOS */}
-              {tab === 2 && (
-                <Stack spacing={2}>
-                  <Typography variant="h6" fontWeight={800}>
-                    Descontos
-                  </Typography>
-
-                  <Button
-                    startIcon={<VisibilityIcon />}
-                    variant="contained"
-                    sx={{
-                      borderRadius: 2,
-                      background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-                      textTransform: "none",
-                      fontWeight: 700,
-                    }}
-                    onClick={() => setOpenDescontos(true)}
-                  >
-                    Ver Lista de Descontos
-                  </Button>
-
-                  <FormDescontos />
-                </Stack>
-              )}
-
-              {/* SALÁRIOS */}
-              {tab === 3 && (
-                <Stack spacing={2}>
-                  <Typography variant="h6" fontWeight={800}>
-                    Processamento Salarial
-                  </Typography>
-
-                  <Button
-                    startIcon={<VisibilityIcon />}
-                    variant="contained"
-                    sx={{
-                      borderRadius: 2,
-                      background: "linear-gradient(135deg, #1e3c72, #2a5298)",
-                      textTransform: "none",
-                      fontWeight: 700,
-                    }}
-                    onClick={() => setOpenSalarios(true)}
-                  >
-                    Ver Salários Efetuados
-                  </Button>
-
-                  <FormSalarios />
-                </Stack>
-              )}
-
-            </Box>
-          </Fade>
-        </CardContent>
+        {/* TAB 3: SALÁRIOS */}
+        {tab === 3 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <h3 className="text-sm font-bold text-text">Processamento de Salários</h3>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setOpenSalarios(true)}
+              >
+                <Eye size={13} className="shrink-0" />
+                Ver Salários Efetuados
+              </Button>
+            </div>
+            <FormSalarios />
+          </div>
+        )}
       </Card>
 
       {/* MODAL FUNCIONÁRIOS */}
-      <Dialog
+      <Modal
         open={openFuncionarios}
         onClose={() => setOpenFuncionarios(false)}
-        fullWidth
-        maxWidth="xl"
+        title="Lista de Funcionários"
+        maxWidth="max-w-5xl"
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Lista de Funcionários
-          <IconButton
-            onClick={() => setOpenFuncionarios(false)}
-            sx={{ position: "absolute", right: 10, top: 10 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-
-        <Divider />
-
-        <DialogContent>
-          <ListaFuncionarios />
-        </DialogContent>
-      </Dialog>
+        <ListaFuncionarios />
+      </Modal>
 
       {/* MODAL SALÁRIOS */}
-      <Dialog
+      <Modal
         open={openSalarios}
         onClose={() => setOpenSalarios(false)}
-        fullWidth
-        maxWidth="xl"
+        title="Salários Efetuados"
+        maxWidth="max-w-5xl"
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Salários Efetuados
-          <IconButton
-            onClick={() => setOpenSalarios(false)}
-            sx={{ position: "absolute", right: 10, top: 10 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-
-        <Divider />
-
-        <DialogContent>
-          <ListaSalarios />
-        </DialogContent>
-      </Dialog>
+        <ListaSalarios />
+      </Modal>
 
       {/* MODAL DESCONTOS */}
-      <Dialog
+      <Modal
         open={openDescontos}
         onClose={() => setOpenDescontos(false)}
-        fullWidth
-        maxWidth="xl"
+        title="Lista de Descontos"
+        maxWidth="max-w-5xl"
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Lista de Descontos
-          <IconButton
-            onClick={() => setOpenDescontos(false)}
-            sx={{ position: "absolute", right: 10, top: 10 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
+        <ListaDescontos />
+      </Modal>
 
-        <Divider />
-
-        <DialogContent>
-          <ListaDescontos />
-        </DialogContent>
-      </Dialog>
-
-      {/* MODAL SUBSÍDIOS (NOVO) */}
-      <Dialog
+      {/* MODAL SUBSÍDIOS */}
+      <Modal
         open={openSubsidios}
         onClose={() => setOpenSubsidios(false)}
-        fullWidth
-        maxWidth="xl"
+        title="Lista de Subsídios"
+        maxWidth="max-w-5xl"
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Lista de Subsídios
-          <IconButton
-            onClick={() => setOpenSubsidios(false)}
-            sx={{ position: "absolute", right: 10, top: 10 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-
-        <Divider />
-
-        <DialogContent>
-          <ListaSubsidios />
-        </DialogContent>
-      </Dialog>
-
-    </Box>
+        <ListaSubsidios />
+      </Modal>
+    </AppPage>
   );
 }

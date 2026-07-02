@@ -1,16 +1,6 @@
-
-// src/components/FormCategoria.jsx
 import React, { useState } from "react";
-import {
-  TextField,
-  Button,
-  Box,
-  Typography,
-  Switch,
-  FormControlLabel,
-  Paper,
-} from "@mui/material";
 import api from "../api/axiosConfig";
+import Button from "./ui/Button";
 
 export default function FormCategoria({
   categoria = null,
@@ -45,7 +35,6 @@ export default function FormCategoria({
       } else {
         await api.post("/categorias", payload);
       }
-
       onSuccess();
     } catch (error) {
       console.error("Erro ao salvar categoria:", error);
@@ -56,165 +45,75 @@ export default function FormCategoria({
   };
 
   return (
-    <Box
-      sx={{
-        p: 2,
-        background: "#ffffff",
-      }}
-    >
-      <Paper
-        elevation={0}
-        sx={{
-          width: "100%",
-          maxWidth: 900,
-          mx: "auto",
-          p: 4,
-          borderRadius: 3,
-          background: "#ffffff",
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-        }}
-      >
-        {/* TÍTULO */}
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 700,
-            color: "#111827",
-            mb: 4,
-          }}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+            Nome da Categoria <span className="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            required
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Ex: Alimentação"
+            className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+            Descrição
+          </label>
+          <input
+            type="text"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder="Descrição curta"
+            className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 p-3 border border-border rounded-sm bg-bgSection">
+        <button
+          type="button"
+          onClick={() => setAtiva(!ativa)}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+            ativa ? 'bg-primary' : 'bg-border'
+          }`}
+          role="switch"
+          aria-checked={ativa}
         >
-          {categoria ? "Editar Categoria" : "Nova Categoria"}
-        </Typography>
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+              ativa ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
+        <span className="text-sm font-semibold text-textSecondary select-none">
+          Categoria ativa
+        </span>
+      </div>
 
-        <Box component="form" onSubmit={handleSubmit}>
-          {/* CAMPOS */}
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                md: "1fr 1fr",
-              },
-              gap: 2,
-              mb: 3,
-            }}
-          >
-            <TextField
-              label="Nome da Categoria"
-              placeholder="Ex: Alimentação"
-              fullWidth
-              required
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              sx={cleanInput}
-            />
-
-            <TextField
-              label="Descrição"
-              placeholder="Descrição da categoria"
-              fullWidth
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              sx={cleanInput}
-            />
-          </Box>
-
-          {/* STATUS */}
-          <Box
-            sx={{
-              border: "1px solid #e5e7eb",
-              borderRadius: 2,
-              p: 2,
-              mb: 4,
-            }}
-          >
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={ativa}
-                  onChange={(e) => setAtiva(e.target.checked)}
-                />
-              }
-              label="Categoria activa"
-            />
-          </Box>
-
-          {/* BOTÕES */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              pt: 3,
-              borderTop: "1px solid #e5e7eb",
-            }}
-          >
-            <Button
-              onClick={onCancel}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                color: "#6b7280",
-              }}
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading}
-              sx={{
-                height: 44,
-                px: 4,
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 600,
-                background: "#111827",
-                boxShadow: "none",
-
-                "&:hover": {
-                  background: "#000000",
-                  boxShadow: "none",
-                },
-              }}
-            >
-              {loading
-                ? "Salvando..."
-                : categoria
-                ? "Actualizar Categoria"
-                : "Cadastrar Categoria"}
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
-    </Box>
+      <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onCancel}
+        >
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          size="sm"
+          disabled={loading}
+        >
+          {loading ? 'Salvando...' : categoria ? 'Atualizar Categoria' : 'Cadastrar Categoria'}
+        </Button>
+      </div>
+    </form>
   );
 }
-
-const cleanInput = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2,
-    background: "#ffffff",
-
-    "& fieldset": {
-      borderColor: "#d1d5db",
-    },
-
-    "&:hover fieldset": {
-      borderColor: "#9ca3af",
-    },
-
-    "&.Mui-focused fieldset": {
-      borderColor: "#111827",
-      borderWidth: "1px",
-    },
-  },
-
-  "& .MuiInputLabel-root": {
-    color: "#374151",
-    fontWeight: 500,
-  },
-};
-

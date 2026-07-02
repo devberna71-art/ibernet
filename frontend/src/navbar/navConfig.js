@@ -1,4 +1,4 @@
-export const SIDEBAR_WIDTH = 230;
+export const SIDEBAR_WIDTH = 210;
 
 export const membrosSubmenus = [
   { path: "/gestao/membros", label: "Relação de Membros" },

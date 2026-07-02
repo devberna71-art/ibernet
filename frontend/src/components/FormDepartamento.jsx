@@ -1,12 +1,7 @@
-// components/FormDepartamento.jsx
 import React, { useState, useEffect } from "react";
-import {
-  TextField,
-  Box,
-  Button,
-  CircularProgress,
-} from "@mui/material";
+import { Loader2 } from "lucide-react";
 import api from "../api/axiosConfig";
+import Button from "./ui/Button";
 
 export default function FormDepartamento({ departamento, onSuccess, onCancel }) {
   const [nome, setNome] = useState("");
@@ -14,7 +9,6 @@ export default function FormDepartamento({ departamento, onSuccess, onCancel }) 
   const [local, setLocal] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Preencher dados se estiver editando
   useEffect(() => {
     if (departamento) {
       setNome(departamento.nome || "");
@@ -28,7 +22,6 @@ export default function FormDepartamento({ departamento, onSuccess, onCancel }) 
     setLoading(true);
 
     try {
-      // Montar payload
       const payload = {
         nome,
         descricao,
@@ -36,14 +29,12 @@ export default function FormDepartamento({ departamento, onSuccess, onCancel }) 
       };
 
       if (departamento && departamento.id) {
-        // Edição
         await api.put(`/departamentos/${departamento.id}`, payload);
       } else {
-        // Criação
         await api.post("/departamentos", payload);
       }
 
-      onSuccess(); // fechar modal e atualizar lista
+      onSuccess(); 
     } catch (error) {
       console.error("Erro ao salvar departamento:", error);
       alert("Erro ao salvar departamento. Verifique os dados e tente novamente.");
@@ -53,40 +44,74 @@ export default function FormDepartamento({ departamento, onSuccess, onCancel }) 
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <TextField
-        label="Nome"
-        variant="outlined"
-        required
-        fullWidth
-        value={nome}
-        onChange={(e) => setNome(e.target.value)}
-      />
-      <TextField
-        label="Descrição"
-        variant="outlined"
-        multiline
-        rows={3}
-        fullWidth
-        value={descricao}
-        onChange={(e) => setDescricao(e.target.value)}
-      />
-      <TextField
-        label="Local"
-        variant="outlined"
-        fullWidth
-        value={local}
-        onChange={(e) => setLocal(e.target.value)}
-      />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+          Nome do Departamento <span className="text-danger">*</span>
+        </label>
+        <input
+          type="text"
+          required
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          placeholder="Ex: Departamento de Música, Jovens, Casais..."
+          className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+        />
+      </div>
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
-        <Button color="inherit" onClick={onCancel}>
+      <div>
+        <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+          Descrição (Opcional)
+        </label>
+        <textarea
+          rows={3}
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+          placeholder="Descreva a finalidade, objetivos ou missão do departamento..."
+          className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+          Local / Sala
+        </label>
+        <input
+          type="text"
+          value={local}
+          onChange={(e) => setLocal(e.target.value)}
+          placeholder="Ex: Bloco A, Sala 3, Anexo..."
+          className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+        />
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onCancel}
+        >
           Cancelar
         </Button>
-        <Button type="submit" variant="contained" disabled={loading}>
-          {loading ? <CircularProgress size={24} /> : departamento ? "Salvar" : "Cadastrar"}
+        <Button
+          type="submit"
+          variant="primary"
+          size="sm"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 size={13} className="animate-spin" />
+              Salvando...
+            </>
+          ) : departamento ? (
+            'Salvar'
+          ) : (
+            'Cadastrar'
+          )}
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </form>
   );
 }

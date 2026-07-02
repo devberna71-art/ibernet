@@ -1,37 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Avatar,
-  Paper,
-  CircularProgress,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  DialogTitle,
-  TextField,
-  Snackbar,
-  Alert,
-  Stack,
-  Chip,
-  Grid,
-  IconButton
-} from '@mui/material';
-
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
-import ShieldIcon from '@mui/icons-material/ShieldOutlined';
-import BusinessIcon from '@mui/icons-material/BusinessOutlined';
-import ContactIcon from '@mui/icons-material/ContactPageOutlined';
+import { Pencil, Shield, Building2, Phone, Mail, X, Loader2 } from 'lucide-react';
 import api from '../api/axiosConfig';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
+import Card from '../components/ui/Card';
 
 export default function Perfil() {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
-
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [toast, setToast] = useState(null);
   const [formUsuario, setFormUsuario] = useState({ nome: '' });
 
   const fetchPerfil = async () => {
@@ -45,29 +23,38 @@ export default function Perfil() {
     }
   };
 
-  useEffect(() => { fetchPerfil(); }, []);
+  useEffect(() => {
+    fetchPerfil();
+  }, []);
 
   const handleOpen = () => {
     setFormUsuario({ nome: usuario.nome });
     setOpenModal(true);
   };
 
-  const handleSubmit = async () => {
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       await api.put('/meu-perfil', { nome: formUsuario.nome });
-      setSnackbar({ open: true, message: 'Perfil atualizado! ✨', severity: 'success' });
+      showToast('Perfil atualizado! ✨');
       setOpenModal(false);
       fetchPerfil();
     } catch (error) {
-      setSnackbar({ open: true, message: 'Erro ao atualizar', severity: 'error' });
+      showToast('Erro ao atualizar', 'error');
     }
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress size={24} sx={{ color: 'text.primary' }} />
-      </Box>
+      <div className="flex items-center justify-center min-h-[50vh] gap-2 text-textMuted">
+        <Loader2 size={20} className="animate-spin text-primary" />
+        <span>Carregando perfil...</span>
+      </div>
     );
   }
 
@@ -75,132 +62,173 @@ export default function Perfil() {
   const membro = usuario.membro;
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 900, margin: '0 auto' }}>
-      
-      {/* CARD COMPACTO SUPERIOR (FOTO + IDENTIDADE + BOTÃO) */}
-      <Paper 
-        elevation={0}
-        sx={{ 
-          p: 2.5, mb: 2, borderRadius: '16px', 
-          border: '1px solid', borderColor: 'grey.100',
-          background: '#fff', boxShadow: '0px 4px 20px rgba(0,0,0,0.01)'
-        }}
-      >
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems="center">
-          <Avatar 
-            src={membro?.foto || usuario.foto || ''} 
-            sx={{ width: 64, height: 64, border: '2px solid #fff', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} 
-          />
-          <Box sx={{ flexGrow: 1, textAlign: { xs: 'center', sm: 'left' } }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-              {usuario.nome}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontWeight: 500 }}>
-              {membro?.email}
-            </Typography>
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+          toast.type === 'error'
+            ? 'bg-danger/5 border-danger/20 text-danger'
+            : 'bg-successSoft border-success/20 text-success'
+        }`}>
+          {toast.message}
+        </div>
+      )}
+
+      {/* Card Compacto Superior */}
+      <Card padding="p-6">
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="relative">
+            <img
+              src={membro?.foto || usuario.foto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80'}
+              alt={usuario.nome}
+              className="w-20 h-20 rounded-full border-2 border-border object-cover"
+            />
+          </div>
+          
+          <div className="flex-1 text-center sm:text-left">
+            <h2 className="text-lg font-bold text-text">{usuario.nome}</h2>
+            <p className="text-xs text-textMuted mt-0.5">{membro?.email || 'Sem e-mail associado'}</p>
             
-            {/* CARGOS E DEPTOS JUNTOS E COMPACTOS LOGO ABAIXO DO NOME */}
-            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 1, justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+            {/* Cargos e Departamentos */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 mt-3">
               {(membro?.cargos || []).map((c) => (
-                <Chip key={c.id} label={c.nome} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(25, 118, 210, 0.05)', color: 'primary.main', border: 'none' }} />
+                <Badge key={c.id} variant="primary">
+                  {c.nome}
+                </Badge>
               ))}
               {(membro?.departamentos || []).map((d) => (
-                <Chip key={d.id} label={d.nome} size="small" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(156, 39, 176, 0.05)', color: 'secondary.main', border: 'none' }} />
+                <Badge key={d.id} variant="secondary">
+                  {d.nome}
+                </Badge>
               ))}
-            </Stack>
-          </Box>
-          <Button 
-            variant="contained" disableElevation size="small"
-            startIcon={<EditIcon sx={{ fontSize: '14px !important' }} />} 
+              {(!membro?.cargos?.length && !membro?.departamentos?.length) && (
+                <span className="text-xs text-textMuted italic">Nenhum cargo ou departamento</span>
+              )}
+            </div>
+          </div>
+
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={handleOpen}
-            sx={{
-              backgroundColor: 'text.primary', borderRadius: '8px', textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', px: 2, py: 0.8,
-              '&:hover': { backgroundColor: 'grey.800' }
-            }}
+            className="w-full sm:w-auto shrink-0"
           >
-            Editar
+            <Pencil size={13} className="shrink-0" />
+            Editar Perfil
           </Button>
-        </Stack>
-      </Paper>
+        </div>
+      </Card>
 
-      {/* GRID INFERIOR MICRO-CARDS DE INFORMAÇÃO */}
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={4}>
-          <MiniCard title="Contactos" icon={<ContactIcon fontSize="inherit" />}>
-            <Row label="Telefone" value={membro?.telefone || '—'} />
-            <Row label="E-mail" value={membro?.email || '—'} />
-          </MiniCard>
-        </Grid>
-        
-        <Grid item xs={12} sm={4}>
-          <MiniCard title="Organização" icon={<BusinessIcon fontSize="inherit" />}>
-            <Row label="Sede" value={usuario.Sede?.nome || '—'} />
-            <Row label="Filial" value={usuario.Filhal?.nome || '—'} />
-          </MiniCard>
-        </Grid>
+      {/* Grid de Informações */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Contatos */}
+        <Card padding="p-5">
+          <div className="flex items-center gap-2 text-primary mb-4 border-b border-border pb-2">
+            <Phone size={14} />
+            <h3 className="text-xs font-bold text-text uppercase tracking-wide">Contatos</h3>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <span className="block text-[10px] text-textMuted font-semibold uppercase">Telefone</span>
+              <p className="text-xs font-bold text-text mt-0.5">{membro?.telefone || '—'}</p>
+            </div>
+            <div>
+              <span className="block text-[10px] text-textMuted font-semibold uppercase">E-mail</span>
+              <p className="text-xs font-bold text-text mt-0.5">{membro?.email || '—'}</p>
+            </div>
+          </div>
+        </Card>
 
-        <Grid item xs={12} sm={4}>
-          <MiniCard title="Segurança" icon={<ShieldIcon fontSize="inherit" />}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4, mb: 1 }}>
-              Dados protegidos de ponta a ponta.
-            </Typography>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', cursor: 'pointer', '&:hover': { opacity: 0.7 } }}>
+        {/* Organização */}
+        <Card padding="p-5">
+          <div className="flex items-center gap-2 text-primary mb-4 border-b border-border pb-2">
+            <Building2 size={14} />
+            <h3 className="text-xs font-bold text-text uppercase tracking-wide">Organização</h3>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <span className="block text-[10px] text-textMuted font-semibold uppercase">Sede</span>
+              <p className="text-xs font-bold text-text mt-0.5">{usuario.Sede?.nome || '—'}</p>
+            </div>
+            <div>
+              <span className="block text-[10px] text-textMuted font-semibold uppercase">Filial</span>
+              <p className="text-xs font-bold text-text mt-0.5">{usuario.Filhal?.nome || '—'}</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Segurança */}
+        <Card padding="p-5">
+          <div className="flex items-center gap-2 text-primary mb-4 border-b border-border pb-2">
+            <Shield size={14} />
+            <h3 className="text-xs font-bold text-text uppercase tracking-wide">Segurança</h3>
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs text-textMuted leading-relaxed">
+              Os dados de login e informações cadastrais estão protegidos de ponta a ponta.
+            </p>
+            <button
+              type="button"
+              className="text-xs font-semibold text-primary hover:text-primaryHover transition-colors block mt-2 text-left"
+            >
               Alterar senha →
-            </Typography>
-          </MiniCard>
-        </Grid>
-      </Grid>
+            </button>
+          </div>
+        </Card>
+      </div>
 
-      {/* MODAL DE EDIÇÃO CLEAN */}
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
-        <DialogTitle sx={{ fontWeight: 800, fontSize: '1rem', p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Editar Perfil
-          <IconButton onClick={() => setOpenModal(false)} size="small"><CloseIcon fontSize="small" /></IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 2, pt: 0 }}>
-          <TextField 
-            label="Nome Completo" value={formUsuario.nome} onChange={(e) => setFormUsuario({ nome: e.target.value })} 
-            fullWidth size="small" variant="outlined" InputLabelProps={{ shrink: true }}
-            sx={{ mt: 1, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
-          <Button onClick={() => setOpenModal(false)} size="small" sx={{ textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}>Cancelar</Button>
-          <Button variant="contained" disableElevation size="small" onClick={handleSubmit} sx={{ textTransform: 'none', fontWeight: 600, backgroundColor: 'text.primary', borderRadius: '6px', px: 2, '&:hover': { backgroundColor: 'grey.800' } }}>Salvar</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Modal de Edição */}
+      {openModal && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/20" onClick={() => setOpenModal(false)} />
+          <div className="relative bg-surface rounded-lg border border-border w-full max-w-sm p-6 shadow-float">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+              <h3 className="text-sm font-bold text-text">Editar Perfil</h3>
+              <button
+                type="button"
+                onClick={() => setOpenModal(false)}
+                className="p-1 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
 
-      {/* TOAST POPUP */}
-      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}>{snackbar.message}</Alert>
-      </Snackbar>
-    </Box>
-  );
-}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                  Nome Completo
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formUsuario.nome}
+                  onChange={(e) => setFormUsuario({ nome: e.target.value })}
+                  placeholder="Seu nome completo"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
 
-// Componentes Utilitários de Escopo Local para manter o código limpo
-function MiniCard({ title, icon, children }) {
-  return (
-    <Paper 
-      elevation={0}
-      sx={{ p: 2, height: '100%', borderRadius: '12px', border: '1px solid', borderColor: 'grey.100', backgroundColor: '#fff' }}
-    >
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5, color: 'text.secondary', fontSize: '16px' }}>
-        {icon}
-        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.primary', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-          {title}
-        </Typography>
-      </Stack>
-      {children}
-    </Paper>
-  );
-}
-
-function Row({ label, value }) {
-  return (
-    <Box sx={{ mb: 1, '&:last-child': { mb: 0 } }}>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem', fontWeight: 500 }}>{label}</Typography>
-      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</Typography>
-    </Box>
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setOpenModal(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                >
+                  Salvar
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

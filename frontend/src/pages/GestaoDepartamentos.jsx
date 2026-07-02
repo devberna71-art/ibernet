@@ -1,42 +1,39 @@
-// src/pages/GestaoDepartamentos.jsx
 import React, { useEffect, useState, useMemo } from "react";
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  TextField,
-  CircularProgress,
-  Snackbar,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Card,
-  CardContent,
-  CardActions,
-  IconButton,
-  Tooltip,
-  LinearProgress,
-  Stack,
-  Grid,
-  Divider,
-} from "@mui/material";
-import { motion } from "framer-motion";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PeopleIcon from "@mui/icons-material/People";
-import AssessmentIcon from "@mui/icons-material/Assessment";
-import BusinessIcon from "@mui/icons-material/Business";
-import EqualizerIcon from "@mui/icons-material/Equalizer";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
-import FunctionsIcon from "@mui/icons-material/Functions";
+import { Building, Plus, Pencil, Trash2, Search, Loader2, Users as UsersIcon, MapPin, Building2, BarChart3, TrendingUp, TrendingDown, Layers, X } from "lucide-react";
 import api from "../api/axiosConfig";
 import FormDepartamento from "../components/FormDepartamento";
+import AppPage from "../components/ui/AppPage";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+
+/** Modal genérico leve */
+function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div
+        className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
+          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+          >
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function GestaoDepartamentos() {
   const [departamentos, setDepartamentos] = useState([]);
@@ -45,24 +42,21 @@ export default function GestaoDepartamentos() {
   const [search, setSearch] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [departamentoEditando, setDepartamentoEditando] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [toast, setToast] = useState(null); // { message, type }
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const fetchDepartamentos = async () => {
     setLoading(true);
     try {
       const res = await api.get("/departamentos-membros");
-      setDepartamentos(res.data);
-      setFilteredDepartamentos(res.data);
+      setDepartamentos(res.data || []);
+      setFilteredDepartamentos(res.data || []);
     } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Erro ao carregar departamentos.",
-        severity: "error",
-      });
+      showToast("Erro ao carregar departamentos.", "error");
     } finally {
       setLoading(false);
     }
@@ -82,15 +76,13 @@ export default function GestaoDepartamentos() {
       );
   }, [search, departamentos]);
 
-  // Cálculos automáticos para os Cards e Mini Dashboard
+  // Cálculos automáticos para o Dashboard
   const estatisticas = useMemo(() => {
     const totalDeps = departamentos.length;
-    
     const totalMembros = departamentos.reduce(
       (acc, curr) => acc + (Number(curr.totalMembros) || 0), 
       0
     );
-
     const mediaMembros = totalDeps > 0 ? (totalMembros / totalDeps).toFixed(1) : 0;
 
     let maiorDep = "Nenhum";
@@ -100,22 +92,18 @@ export default function GestaoDepartamentos() {
 
     departamentos.forEach((dep) => {
       const membros = Number(dep.totalMembros) || 0;
-      
       if (membros > maxMembros) {
         maxMembros = membros;
         maiorDep = dep.nome;
       }
-      
       if (membros < minMembros) {
         minMembros = membros;
         menorDep = dep.nome;
       }
     });
 
-    // Se não houver departamentos, ajusta o menor para o padrão
     if (totalDeps === 0) menorDep = "Nenhum";
 
-    // Filtra locais válidos e remove duplicados
     const locaisUnicos = new Set(
       departamentos
         .map((dep) => dep.local?.trim())
@@ -137,377 +125,237 @@ export default function GestaoDepartamentos() {
   };
 
   const deletarDepartamento = async (id) => {
+    if (!window.confirm("Deseja realmente excluir este departamento?")) return;
     try {
       await api.delete(`/departamentos/${id}`);
       fetchDepartamentos();
-      setSnackbar({
-        open: true,
-        message: "Departamento excluído com sucesso.",
-        severity: "success",
-      });
+      showToast("Departamento excluído com sucesso.");
     } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Erro ao excluir departamento.",
-        severity: "error",
-      });
+      showToast("Erro ao excluir departamento.", "error");
     }
   };
 
   return (
-    <Container sx={{ mt: 6, mb: 6 }}>
-      {/* Título Premium com Gradiente */}
-      <Typography
-        variant="h4"
-        gutterBottom
-        fontWeight="bold"
-        sx={{
-          textAlign: "center",
-          mb: 4,
-          background: "linear-gradient(90deg, #7c4dff, #00e5ff)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        }}
-      >
-        Gestão de Departamentos
-      </Typography>
+    <AppPage subtitle="Acompanhe estatísticas, gerencie departamentos estruturais e aloque recursos de forma inteligente.">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+          toast.type === "error"
+            ? "bg-danger/5 border-danger/20 text-danger"
+            : "bg-successSoft border-success/20 text-success"
+        }`}>
+          {toast.message}
+        </div>
+      )}
 
-      {/* 1. Cards de Resumo no Topo */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* Card 1: Total de Departamentos */}
-        <Grid item xs={12} sm={6} md={3}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
-            <Card sx={{ borderRadius: 4, background: "linear-gradient(135deg, #7c4dff 0%, #4a148c 100%)", color: "#fff" }}>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ opacity: 0.8, fontWeight: "bold" }}>Total Departamentos</Typography>
-                    <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>{estatisticas.totalDeps}</Typography>
-                  </Box>
-                  <BusinessIcon sx={{ fontSize: 40, opacity: 0.3 }} />
-                </Stack>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
-
-        {/* Card 2: Total de Membros */}
-        <Grid item xs={12} sm={6} md={3}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: 0.1 }}>
-            <Card sx={{ borderRadius: 4, background: "linear-gradient(135deg, #00e5ff 0%, #006064 100%)", color: "#fff" }}>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ opacity: 0.8, fontWeight: "bold" }}>Total de Membros</Typography>
-                    <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>{estatisticas.totalMembros}</Typography>
-                  </Box>
-                  <PeopleIcon sx={{ fontSize: 40, opacity: 0.3 }} />
-                </Stack>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
-
-        {/* Card 3: Maior Departamento */}
-        <Grid item xs={12} sm={6} md={3}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: 0.2 }}>
-            <Card sx={{ borderRadius: 4, background: "linear-gradient(135deg, #ff1744 0%, #b71c1c 100%)", color: "#fff" }}>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Box sx={{ maxWidth: "75%" }}>
-                    <Typography variant="subtitle2" sx={{ opacity: 0.8, fontWeight: "bold" }}>Maior Departamento</Typography>
-                    <Typography variant="h6" fontWeight="bold" noWrap sx={{ mt: 1 }}>{estatisticas.maiorDep}</Typography>
-                  </Box>
-                  <AssessmentIcon sx={{ fontSize: 40, opacity: 0.3 }} />
-                </Stack>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
-
-        {/* Card 4: Locais Diferentes */}
-        <Grid item xs={12} sm={6} md={3}>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: 0.3 }}>
-            <Card sx={{ borderRadius: 4, background: "linear-gradient(135deg, #ffea00 0%, #f57f17 100%)", color: "#fff" }}>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ opacity: 0.8, fontWeight: "bold" }}>Locais Diferentes</Typography>
-                    <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>{estatisticas.totalLocais}</Typography>
-                  </Box>
-                  <LocationOnIcon sx={{ fontSize: 40, opacity: 0.3 }} />
-                </Stack>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
-      </Grid>
-
-      {/* 2. Mini Dashboard / Card de Estatísticas Gerais */}
-      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
-        <Card 
-          sx={{ 
-            borderRadius: 4, 
-            mb: 5, 
-            boxShadow: "0 10px 30px rgba(0,0,0,0.08)", 
-            background: "linear-gradient(145deg, #ffffff, #f8f9fa)",
-            border: "1px solid rgba(0,0,0,0.04)"
-          }}
-        >
-          <CardContent sx={{ p: 4 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
-              <EqualizerIcon color="primary" sx={{ fontSize: 28 }} />
-              <Typography variant="h6" fontWeight="bold" color="text.primary">
-                Estatísticas Gerais (Dashboard)
-              </Typography>
-            </Stack>
-            
-            <Grid container spacing={4} divider={<Divider orientation="vertical" flexItem />}>
-              {/* Métrica A */}
-              <Grid item xs={12} sm={6} md={3}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box sx={{ bgcolor: "rgba(124,77,255,0.1)", p: 1.5, borderRadius: 3 }}>
-                    <BusinessIcon color="primary" />
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">Departamentos Ativos</Typography>
-                    <Typography variant="h6" fontWeight="bold">{estatisticas.totalDeps} ativos</Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-
-              {/* Métrica B */}
-              <Grid item xs={12} sm={6} md={3}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box sx={{ bgcolor: "rgba(0,229,255,0.1)", p: 1.5, borderRadius: 3 }}>
-                    <FunctionsIcon sx={{ color: "#00e5ff" }} />
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">Média de Membros</Typography>
-                    <Typography variant="h6" fontWeight="bold">{estatisticas.mediaMembros} / dep</Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-
-              {/* Métrica C */}
-              <Grid item xs={12} sm={6} md={3}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box sx={{ bgcolor: "rgba(255,23,68,0.1)", p: 1.5, borderRadius: 3 }}>
-                    <TrendingUpIcon sx={{ color: "#ff1744" }} />
-                  </Box>
-                  <Box sx={{ maxWidth: "75%" }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">Maior Departamento</Typography>
-                    <Typography variant="h6" fontWeight="bold" noWrap>{estatisticas.maiorDep}</Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-
-              {/* Métrica D */}
-              <Grid item xs={12} sm={6} md={3}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box sx={{ bgcolor: "rgba(245,127,23,0.1)", p: 1.5, borderRadius: 3 }}>
-                    <TrendingDownIcon sx={{ color: "#f57f17" }} />
-                  </Box>
-                  <Box sx={{ maxWidth: "75%" }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">Menor Departamento</Typography>
-                    <Typography variant="h6" fontWeight="bold" noWrap>{estatisticas.menorDep}</Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Barra de busca e botão */}
-      <Box sx={{ display: "flex", gap: 2, mb: 4, flexWrap: "wrap" }}>
-        <TextField
-          label="Buscar por departamento"
-          variant="outlined"
-          fullWidth
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{
-            flexGrow: 1,
-            background: "rgba(255,255,255,0.05)",
-            borderRadius: 2,
-          }}
-        />
+      {/* Header com ações */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-primarySoft flex items-center justify-center text-primary">
+            <Building2 size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Gestão de Departamentos</h2>
+            <p className="text-muted text-textMuted mt-0.5">Organização de ministérios e divisões da comunidade.</p>
+          </div>
+        </div>
         <Button
-          variant="contained"
-          startIcon={<AddIcon />}
+          variant="primary"
+          size="md"
           onClick={abrirModalNovo}
-          sx={{
-            background: "linear-gradient(90deg, #7c4dff, #00e5ff)",
-            color: "#fff",
-            fontWeight: "bold",
-            px: 4,
-            "&:hover": {
-              transform: "scale(1.05)",
-              boxShadow: "0 12px 30px rgba(124,77,255,0.3)",
-            },
-          }}
         >
+          <Plus size={15} className="w-4 h-4 shrink-0" />
           Novo Departamento
         </Button>
-      </Box>
+      </div>
 
-      {/* Lista Premium com Cards e Estatísticas */}
+      {/* Grid de Resumo */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+        <Card className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Total Departamentos</span>
+            <p className="text-xl font-bold text-text mt-1">{estatisticas.totalDeps}</p>
+          </div>
+          <div className="w-10 h-10 rounded-sm bg-primarySoft text-primary flex items-center justify-center">
+            <Building size={18} />
+          </div>
+        </Card>
+
+        <Card className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Total de Membros</span>
+            <p className="text-xl font-bold text-text mt-1">{estatisticas.totalMembros}</p>
+          </div>
+          <div className="w-10 h-10 rounded-sm bg-successSoft text-success flex items-center justify-center">
+            <UsersIcon size={18} />
+          </div>
+        </Card>
+
+        <Card className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Maior Depto.</span>
+            <p className="text-sm font-bold text-text mt-2 truncate w-32" title={estatisticas.maiorDep}>
+              {estatisticas.maiorDep}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-sm bg-danger/5 text-danger flex items-center justify-center">
+            <TrendingUp size={18} />
+          </div>
+        </Card>
+
+        <Card className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Locais Diferentes</span>
+            <p className="text-xl font-bold text-text mt-1">{estatisticas.totalLocais}</p>
+          </div>
+          <div className="w-10 h-10 rounded-sm bg-warning/10 text-warning flex items-center justify-center">
+            <MapPin size={18} />
+          </div>
+        </Card>
+      </div>
+
+      {/* Mini Dashboard Extra */}
+      <Card padding="p-5" className="mb-6">
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border">
+          <BarChart3 size={16} className="text-primary" />
+          <h3 className="text-xs font-bold text-text uppercase tracking-wide">Dashboard Geral</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+          <div>
+            <span className="block text-[10px] text-textMuted font-semibold uppercase">Departamentos Ativos</span>
+            <p className="text-sm font-bold text-text mt-0.5">{estatisticas.totalDeps} ativos</p>
+          </div>
+          <div>
+            <span className="block text-[10px] text-textMuted font-semibold uppercase">Média de Membros</span>
+            <p className="text-sm font-bold text-text mt-0.5">{estatisticas.mediaMembros} / dep</p>
+          </div>
+          <div>
+            <span className="block text-[10px] text-textMuted font-semibold uppercase">Maior Departamento</span>
+            <p className="text-sm font-bold text-text mt-0.5 truncate" title={estatisticas.maiorDep}>{estatisticas.maiorDep}</p>
+          </div>
+          <div>
+            <span className="block text-[10px] text-textMuted font-semibold uppercase">Menor Departamento</span>
+            <p className="text-sm font-bold text-text mt-0.5 truncate" title={estatisticas.menorDep}>{estatisticas.menorDep}</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Busca */}
+      <Card padding="p-4" className="mb-6">
+        <div className="relative max-w-md">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar por departamento..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-8 pr-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
+        </div>
+      </Card>
+
+      {/* Lista de Departamentos */}
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
-          <CircularProgress size={60} />
-        </Box>
+        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
+          <span className="text-body">Carregando departamentos...</span>
+        </div>
       ) : filteredDepartamentos.length === 0 ? (
-        <Typography align="center" color="text.secondary" mt={6}>
-          Nenhum departamento encontrado.
-        </Typography>
+        <Card className="text-center py-12">
+          <p className="text-body text-textMuted">Nenhum departamento cadastrado no momento.</p>
+        </Card>
       ) : (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" },
-            gap: 3,
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {filteredDepartamentos.map((dep) => {
-            const maxMembros = 100; // ajuste conforme seu contexto
+            const maxMembros = 100;
             const membrosPercent = Math.min(
               100,
               Math.round(((dep.totalMembros || 0) / maxMembros) * 100)
             );
 
             return (
-              <motion.div
+              <Card
                 key={dep.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                padding="p-5"
+                className="hover:border-primary/20 transition-all duration-200"
               >
-                <Card
-                  sx={{
-                    borderRadius: 4,
-                    boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-                    background: "linear-gradient(135deg,#f0f0ff,#ffffff)",
-                    transition: "0.3s",
-                    "&:hover": {
-                      transform: "scale(1.03)",
-                      boxShadow: "0 18px 40px rgba(124,77,255,0.3)",
-                    },
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
-                      {dep.nome}
-                    </Typography>
-                    {dep.descricao && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        gutterBottom
-                      >
-                        {dep.descricao}
-                      </Typography>
-                    )}
-                    <Stack direction="row" spacing={2} mt={1} alignItems="center">
-                      <LocationOnIcon color="primary" fontSize="small" />
-                      <Typography variant="caption" color="text.secondary">
-                        {dep.local || "Não informado"}
-                      </Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={2} mt={1} alignItems="center">
-                      <PeopleIcon color="primary" fontSize="small" />
-                      <Typography variant="caption" color="text.secondary">
-                        {dep.totalMembros || 0} membro(s)
-                      </Typography>
-                    </Stack>
+                <div className="flex items-start justify-between gap-3 mb-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-sm bg-primarySoft text-primary flex items-center justify-center shrink-0">
+                      <Building size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-text">{dep.nome}</h4>
+                      <p className="text-xs text-textMuted mt-0.5">
+                        {dep.totalMembros || 0} membro(s) alocado(s)
+                      </p>
+                    </div>
+                  </div>
 
-                    {/* Barra de progresso animada */}
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Preenchimento de membros
-                      </Typography>
-                      <LinearProgress
-                        variant="determinate"
-                        value={membrosPercent}
-                        sx={{
-                          height: 10,
-                          borderRadius: 5,
-                          mt: 0.5,
-                          backgroundColor: "#e0e0e0",
-                          "& .MuiLinearProgress-bar": {
-                            background: "linear-gradient(90deg,#7c4dff,#00e5ff)",
-                          },
-                        }}
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: "block", textAlign: "right" }}
-                      >
-                        {membrosPercent}%
-                      </Typography>
-                    </Box>
-                  </CardContent>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => abrirModalEditar(dep)}
+                      className="p-1.5 rounded-sm text-textMuted hover:text-primary hover:bg-primarySoft transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      onClick={() => deletarDepartamento(dep.id)}
+                      className="p-1.5 rounded-sm text-textMuted hover:text-danger hover:bg-danger/5 transition-colors"
+                      title="Excluir"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
 
-                  <CardActions>
-                    <Tooltip title="Editar">
-                      <IconButton onClick={() => abrirModalEditar(dep)}>
-                        <EditIcon color="primary" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Excluir">
-                      <IconButton onClick={() => deletarDepartamento(dep.id)}>
-                        <DeleteIcon color="error" />
-                      </IconButton>
-                    </Tooltip>
-                  </CardActions>
-                </Card>
-              </motion.div>
+                <p className="text-xs text-textMuted mb-4 line-clamp-2 min-h-[32px] leading-relaxed">
+                  {dep.descricao || "Nenhuma descrição fornecida para este departamento."}
+                </p>
+
+                {/* Local e Cap */}
+                <div className="space-y-1.5 text-xs text-textSecondary mb-4">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={12} className="text-textMuted" />
+                    <span>{dep.local || "Não informado"}</span>
+                  </div>
+                </div>
+
+                {/* Progresso de preenchimento */}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[10px] text-textMuted font-semibold">
+                    <span>Ocupação de Membros</span>
+                    <span>{membrosPercent}%</span>
+                  </div>
+                  <div className="w-full bg-border h-1.5 rounded-full overflow-hidden">
+                    <div
+                      style={{ width: `${membrosPercent}%` }}
+                      className="bg-primary h-full rounded-full transition-all duration-300"
+                    />
+                  </div>
+                </div>
+              </Card>
             );
           })}
-        </Box>
+        </div>
       )}
 
-      {/* Modal de Formulário */}
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold" }}>
-          {departamentoEditando ? "Editar Departamento" : "Novo Departamento"}
-        </DialogTitle>
-        <DialogContent dividers>
-          <FormDepartamento
-            departamento={departamentoEditando}
-            onSuccess={() => {
-              setOpenModal(false);
-              fetchDepartamentos();
-              setSnackbar({
-                open: true,
-                message: `Departamento ${
-                  departamentoEditando ? "editado" : "criado"
-                } com sucesso!`,
-                severity: "success",
-              });
-            }}
-            onCancel={() => setOpenModal(false)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenModal(false)} color="inherit">
-            Cancelar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      {/* Modal Formulário */}
+      <Modal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        title={departamentoEditando ? "Editar Departamento" : "Novo Departamento"}
       >
-        <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+        <FormDepartamento
+          departamento={departamentoEditando}
+          onSuccess={() => {
+            setOpenModal(false);
+            fetchDepartamentos();
+          }}
+          onCancel={() => setOpenModal(false)}
+        />
+      </Modal>
+    </AppPage>
   );
 }

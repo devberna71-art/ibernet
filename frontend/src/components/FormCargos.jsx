@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../api/axiosConfig';
+import Button from './ui/Button';
 
-export default function CadastrarCargo({ cargo, onSuccess }) {
+export default function CadastrarCargo({ cargo, onSuccess, onCancel }) {
   const [formData, setFormData] = useState({ nome: '', descricao: '' });
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
 
-  // Preenche os campos caso seja edição
   useEffect(() => {
     if (cargo) {
       setFormData({
@@ -42,17 +34,15 @@ export default function CadastrarCargo({ cargo, onSuccess }) {
     try {
       let res;
       if (cargo) {
-        // EDITAR (PUT)
         res = await api.put(`/cargos/${cargo.id}`, formData);
         setMensagem({ tipo: 'success', texto: res.data.message || 'Cargo atualizado com sucesso!' });
       } else {
-        // CADASTRAR (POST)
         res = await api.post('/cadastrar-cargos', formData);
         setMensagem({ tipo: 'success', texto: res.data.message || 'Cargo cadastrado com sucesso!' });
         setFormData({ nome: '', descricao: '' });
       }
 
-      if (onSuccess) onSuccess(); // callback para fechar modal ou recarregar lista
+      if (onSuccess) onSuccess(); 
     } catch (error) {
       setMensagem({
         tipo: 'error',
@@ -64,51 +54,74 @@ export default function CadastrarCargo({ cargo, onSuccess }) {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 6, p: 4, boxShadow: 3, borderRadius: 2 }}>
-      <Typography variant="h5" gutterBottom color="primary" fontWeight="bold">
-        {cargo ? "Editar Cargo" : "Cadastrar Novo Cargo"}
-      </Typography>
-
+    <form onSubmit={handleSubmit} className="space-y-4">
       {mensagem.texto && (
-        <Alert severity={mensagem.tipo} sx={{ mb: 2 }}>
-          {mensagem.texto}
-        </Alert>
+        <div className={`px-4 py-3 rounded-sm border text-body flex items-center gap-2 ${
+          mensagem.tipo === 'error'
+            ? 'bg-danger/5 border-danger/20 text-danger'
+            : 'bg-successSoft border-success/20 text-success'
+        }`}>
+          {mensagem.tipo === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+          <span>{mensagem.texto}</span>
+        </div>
       )}
 
-      <Box component="form" onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="Nome do Cargo"
+      <div>
+        <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+          Nome do Cargo <span className="text-danger">*</span>
+        </label>
+        <input
+          type="text"
+          required
           name="nome"
           value={formData.nome}
           onChange={handleChange}
-          required
-          margin="normal"
+          placeholder="Ex: Pastor, Administrador, Diácono..."
+          className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
+      </div>
 
-        <TextField
-          fullWidth
-          label="Descrição (opcional)"
+      <div>
+        <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+          Descrição (Opcional)
+        </label>
+        <textarea
+          rows={4}
           name="descricao"
           value={formData.descricao}
           onChange={handleChange}
-          multiline
-          rows={4}
-          margin="normal"
+          placeholder="Descreva as funções, atribuições e responsabilidades deste cargo..."
+          className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none"
         />
+      </div>
 
+      <div className="flex justify-end gap-2 pt-4 border-t border-border mt-6">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onCancel}
+        >
+          Cancelar
+        </Button>
         <Button
           type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 2 }}
+          variant="primary"
+          size="sm"
           disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : null}
         >
-          {loading ? 'Salvando...' : (cargo ? 'Salvar Alterações' : 'Cadastrar Cargo')}
+          {loading ? (
+            <>
+              <Loader2 size={13} className="animate-spin" />
+              Salvando...
+            </>
+          ) : cargo ? (
+            'Salvar Alterações'
+          ) : (
+            'Cadastrar Cargo'
+          )}
         </Button>
-      </Box>
-    </Container>
+      </div>
+    </form>
   );
 }

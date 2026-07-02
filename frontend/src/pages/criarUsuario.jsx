@@ -1,32 +1,26 @@
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  Container,
-  TextField,
-  Button,
-  Typography,
-  MenuItem,
-  Box,
-  Alert,
-  CircularProgress,
-  Grid,
-  Link,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  InputAdornment,
-} from "@mui/material";
-import { motion } from "framer-motion";
-import {
-  PersonAddAlt1 as UserAddIcon,
-  CheckCircleOutline as SuccessIcon,
-  Visibility,
-  VisibilityOff,
-} from "@mui/icons-material";
+  UserPlus,
+  Lock,
+  User,
+  Shield,
+  MapPin,
+  Phone,
+  Mail,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Building,
+} from "lucide-react";
 import api from "../api/axiosConfig";
+import Button from "../components/ui/Button";
+import logoBernet from "../assets/Logo-Bernet.png";
 
 export default function CriarUsuarios() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome: "",
     senha: "",
@@ -42,10 +36,11 @@ export default function CriarUsuarios() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [superAdminExiste, setSuperAdminExiste] = useState(null);
-  const [showPassword, setShowPassword] = useState(false); // ✅ estado para mostrar/ocultar senha
+  const [showPassword, setShowPassword] = useState(false);
 
   const todasFuncoes = ["super_admin", "admin", "moderador", "usuario"];
 
@@ -57,6 +52,8 @@ export default function CriarUsuarios() {
       } catch {
         setError("Erro ao verificar super_admin.");
         setSuperAdminExiste(false);
+      } finally {
+        setChecking(false);
       }
     };
     verificarSuperAdmin();
@@ -101,17 +98,12 @@ export default function CriarUsuarios() {
     }
   };
 
-  const handleCloseModal = () => setModalOpen(false);
-  const handleClickShowPassword = () => setShowPassword((prev) => !prev); // alterna senha
-
-  if (superAdminExiste === null) {
+  if (checking) {
     return (
-      <Container maxWidth="sm" sx={{ mt: 6, p: 4, textAlign: "center" }}>
-        <CircularProgress />
-        <Typography sx={{ mt: 2, fontWeight: "bold", color: "#555" }}>
-          Verificando super_admin...
-        </Typography>
-      </Container>
+      <div className="min-h-screen bg-bg flex flex-col items-center justify-center gap-3">
+        <Loader2 size={28} strokeWidth={1.75} className="text-primary animate-spin" />
+        <p className="text-body text-textMuted font-medium">Verificando status do sistema...</p>
+      </div>
     );
   }
 
@@ -120,267 +112,267 @@ export default function CriarUsuarios() {
     : ["nenhuma", "super_admin"];
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(135deg, #4f46e5, #6366f1, #312e81)",
-        position: "relative",
-        overflow: "hidden",
-        py: 5,
-      }}
-    >
-      <motion.div
-        style={{
-          position: "absolute",
-          width: "1200px",
-          height: "1200px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%)",
-          top: "-400px",
-          right: "-200px",
-          filter: "blur(120px)",
-        }}
-        animate={{ scale: [1, 1.15, 1] }}
-        transition={{ duration: 10, repeat: Infinity }}
-      />
-
-      <Container
-        component={motion.div}
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        maxWidth="md"
-        sx={{
-          p: { xs: 4, sm: 6 },
-          borderRadius: 5,
-          bgcolor: "white",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.2)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          zIndex: 2,
-          fontFamily: "'Poppins', sans-serif",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <UserAddIcon sx={{ fontSize: 45, color: "#4f46e5", mr: 1 }} />
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 800,
-              background: "linear-gradient(90deg, #4338ca, #6366f1)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              letterSpacing: "1px",
-            }}
-          >
-            Inscreva a sua Igreja
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            width: 140,
-            height: "4px",
-            mb: 4,
-            borderRadius: 10,
-            background: "linear-gradient(90deg, #4f46e5, #6366f1)",
-          }}
-        />
+    <div className="min-h-screen bg-bgSection py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+      <div className="w-full max-w-2xl bg-surface rounded-lg border border-border p-6 sm:p-10 shadow-sm relative">
+        
+        {/* Logo and header */}
+        <div className="flex flex-col items-center text-center mb-8">
+          <Link to="/">
+            <img src={logoBernet} alt="Logo Bernet" className="h-9 object-contain mb-4" />
+          </Link>
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-primarySoft mb-3">
+            <UserPlus size={20} strokeWidth={1.75} className="text-primary" />
+          </div>
+          <h1 className="text-[22px] font-semibold text-text">Inscreva a sua Igreja</h1>
+          <p className="text-body text-textMuted mt-1">
+            Preencha os dados abaixo para configurar o seu ambiente de gestão
+          </p>
+        </div>
 
         {error && (
-          <Alert
-            severity="error"
-            sx={{
-              mb: 2,
-              fontWeight: "bold",
-              bgcolor: "#ffeaea",
-              color: "#b71c1c",
-              borderRadius: 3,
-              boxShadow: "0 5px 15px rgba(183,28,28,0.2)",
-            }}
-          >
-            {error}
-          </Alert>
+          <div className="mb-6 px-4 py-3 rounded-sm bg-danger/5 border border-danger/20 text-danger text-body flex items-center gap-2">
+            <AlertCircle size={16} className="shrink-0" />
+            <span>{error}</span>
+          </div>
         )}
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }} noValidate>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold", color: "#4f46e5" }}>
-            Dados do Usuário
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Nome do Usuário"
-                name="nome"
-                value={formData.nome}
-                onChange={handleChange}
-                required
-                sx={{
-                  "& .MuiInputBase-root": { borderRadius: 6, background: "#f3f4f6", height: 60, fontSize: "1rem" },
-                  "& .MuiInputLabel-root": { fontWeight: 600 },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Senha"
-                name="senha"
-                type={showPassword ? "text" : "password"} // ✅ alterna entre mostrar e ocultar
-                value={formData.senha}
-                onChange={handleChange}
-                required
-                sx={{
-                  "& .MuiInputBase-root": { borderRadius: 6, background: "#f3f4f6", height: 60, fontSize: "1rem" },
-                  "& .MuiInputLabel-root": { fontWeight: 600 },
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleClickShowPassword} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                select
-                label="Função"
-                name="funcao"
-                value={formData.funcao}
-                onChange={handleChange}
-                required
-                sx={{
-                  "& .MuiInputBase-root": { borderRadius: 6, background: "#f3f4f6", height: 60, fontSize: "1rem" },
-                  "& .MuiInputLabel-root": { fontWeight: 600 },
-                }}
-              >
-                {funcoesDisponiveis.map((f) => (
-                  <MenuItem key={f} value={f}>
-                    {f.charAt(0).toUpperCase() + f.slice(1)}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-          </Grid>
-
-          {/* Seções Sede e Filhal permanecem iguais */}
-          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: "bold", color: "#4f46e5" }}>
-            Dados da Sede
-          </Typography>
-          <Grid container spacing={2}>
-            {["Nome", "Endereço", "Telefone", "Email"].map((label, idx) => (
-              <Grid item xs={12} sm={6} key={idx}>
-                <TextField
-                  fullWidth
-                  label={`Sede ${label}`}
-                  name={`sede${label}`}
-                  value={formData[`sede${label}`]}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* Seção 1: Dados do Usuário */}
+          <div>
+            <h2 className="text-sm font-semibold text-primary flex items-center gap-2 mb-4 border-b border-border pb-1.5">
+              <User size={15} />
+              Dados do Usuário
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                  Nome do Usuário <span className="text-danger">*</span>
+                </label>
+                <input
+                  name="nome"
+                  type="text"
+                  required
+                  value={formData.nome}
                   onChange={handleChange}
-                  sx={{
-                    "& .MuiInputBase-root": { borderRadius: 6, background: "#f3f4f6", height: 60, fontSize: "1rem" },
-                    "& .MuiInputLabel-root": { fontWeight: 600 },
-                  }}
+                  placeholder="Nome de login"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
-              </Grid>
-            ))}
-          </Grid>
+              </div>
 
-          <Typography variant="h6" sx={{ mt: 4, mb: 2, fontWeight: "bold", color: "#4f46e5" }}>
-            Dados da Filhal
-          </Typography>
-          <Grid container spacing={2}>
-            {["Nome", "Endereço", "Telefone", "Email"].map((label, idx) => (
-              <Grid item xs={12} sm={6} key={idx}>
-                <TextField
-                  fullWidth
-                  label={`Filhal ${label}`}
-                  name={`filhal${label}`}
-                  value={formData[`filhal${label}`]}
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                  Senha <span className="text-danger">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    name="senha"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={formData.senha}
+                    onChange={handleChange}
+                    placeholder="Sua senha"
+                    className="w-full px-3 py-2 pr-10 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-text transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">
+                  Função <span className="text-danger">*</span>
+                </label>
+                <select
+                  name="funcao"
+                  value={formData.funcao}
                   onChange={handleChange}
-                  sx={{
-                    "& .MuiInputBase-root": { borderRadius: 6, background: "#f3f4f6", height: 60, fontSize: "1rem" },
-                    "& .MuiInputLabel-root": { fontWeight: 600 },
-                  }}
+                  required
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                >
+                  {funcoesDisponiveis.map((f) => (
+                    <option key={f} value={f}>
+                      {f === "nenhuma"
+                        ? "Selecione uma função"
+                        : f.charAt(0).toUpperCase() + f.slice(1).replace("_", " ")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Seção 2: Dados da Sede */}
+          <div>
+            <h2 className="text-sm font-semibold text-primary flex items-center gap-2 mb-4 border-b border-border pb-1.5">
+              <Building size={15} />
+              Dados da Sede
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Nome da Sede</label>
+                <input
+                  name="sedeNome"
+                  type="text"
+                  value={formData.sedeNome}
+                  onChange={handleChange}
+                  placeholder="Ex: Sede Central"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
-              </Grid>
-            ))}
-          </Grid>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Endereço</label>
+                <input
+                  name="sedeEndereco"
+                  type="text"
+                  value={formData.sedeEndereco}
+                  onChange={handleChange}
+                  placeholder="Rua, Bairro, Cidade"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Telefone</label>
+                <input
+                  name="sedeTelefone"
+                  type="text"
+                  value={formData.sedeTelefone}
+                  onChange={handleChange}
+                  placeholder="Contacto telefónico"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Email</label>
+                <input
+                  name="sedeEmail"
+                  type="email"
+                  value={formData.sedeEmail}
+                  onChange={handleChange}
+                  placeholder="email@sede.com"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+            </div>
+          </div>
 
-          {/* Botão de envio */}
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            startIcon={loading ? <CircularProgress size={20} sx={{ color: "white" }} /> : <UserAddIcon />}
-            sx={{
-              mt: 4,
-              py: 1.8,
-              fontWeight: "bold",
-              fontSize: "1.15rem",
-              borderRadius: 6,
-              textTransform: "none",
-              background: "linear-gradient(135deg, #4f46e5 0%, #312e81 100%)",
-              boxShadow: "0 10px 30px rgba(79,70,229,0.4)",
-              "&:hover": { transform: "scale(1.05)", boxShadow: "0 20px 50px rgba(79,70,229,0.6)" },
-            }}
-            disabled={loading}
-          >
-            {loading ? "Cadastrando..." : "Cadastrar Usuário"}
-          </Button>
+          {/* Seção 3: Dados da Filial */}
+          <div>
+            <h2 className="text-sm font-semibold text-primary flex items-center gap-2 mb-4 border-b border-border pb-1.5">
+              <Building size={15} />
+              Dados da Filial
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Nome da Filial</label>
+                <input
+                  name="filhalNome"
+                  type="text"
+                  value={formData.filhalNome}
+                  onChange={handleChange}
+                  placeholder="Ex: Filial 1"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Endereço</label>
+                <input
+                  name="filhalEndereco"
+                  type="text"
+                  value={formData.filhalEndereco}
+                  onChange={handleChange}
+                  placeholder="Rua, Bairro, Cidade"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Telefone</label>
+                <input
+                  name="filhalTelefone"
+                  type="text"
+                  value={formData.filhalTelefone}
+                  onChange={handleChange}
+                  placeholder="Contacto telefónico"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Email</label>
+                <input
+                  name="filhalEmail"
+                  type="email"
+                  value={formData.filhalEmail}
+                  onChange={handleChange}
+                  placeholder="email@filial.com"
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+            </div>
+          </div>
 
-          {/* Link Login */}
-          <Box sx={{ mt: 3, textAlign: "center" }}>
-            <Typography sx={{ fontSize: "0.95rem", color: "#4f46e5", fontWeight: 500 }}>
+          <div className="pt-4">
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={loading}
+              className="w-full justify-center"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Cadastrando...
+                </>
+              ) : (
+                "Cadastrar Usuário"
+              )}
+            </Button>
+          </div>
+
+          <div className="text-center pt-2">
+            <p className="text-body text-textMuted">
               Já possui uma conta?{" "}
               <Link
-                href="/login"
-                sx={{ fontWeight: "bold", textDecoration: "none", color: "#312e81", "&:hover": { textDecoration: "underline" } }}
+                to="/login"
+                className="font-semibold text-primary hover:text-primaryHover transition-colors"
               >
                 Faça o Login
               </Link>
-            </Typography>
-          </Box>
-        </Box>
-      </Container>
+            </p>
+          </div>
+        </form>
+      </div>
 
-      {/* Modal de sucesso */}
-      <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", color: "#4f46e5", fontFamily: "'Poppins', sans-serif" }}>
-          <SuccessIcon sx={{ fontSize: 60, color: "#4f46e5", mb: 1 }} />
-          Cadastro Realizado!
-        </DialogTitle>
-        <DialogContent>
-          <Typography sx={{ textAlign: "center", fontSize: "1.15rem", color: "#333", fontFamily: "'Poppins', sans-serif" }}>
-            Obrigado por se cadastrar! Aguarde a aprovação ou entre em contato com a empresa <strong>Bernet@</strong>
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: "center", pb: 3 }}>
-          <Button
-            onClick={handleCloseModal}
-            variant="contained"
-            sx={{
-              background: "linear-gradient(135deg, #4f46e5, #312e81)",
-              color: "#fff",
-              fontWeight: "bold",
-              py: 1.2,
-              px: 5,
-              borderRadius: 6,
-              "&:hover": { transform: "scale(1.05)" },
-            }}
-          >
-            Fechar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      {/* Modal de Sucesso */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
+          <div className="relative bg-surface rounded-lg border border-border shadow-lg max-w-sm w-full p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-successSoft flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 size={24} className="text-success" />
+            </div>
+            <h3 className="text-lg font-bold text-text mb-2">Cadastro Realizado!</h3>
+            <p className="text-sm text-textMuted mb-6 leading-relaxed">
+              Obrigado por se cadastrar! Aguarde a aprovação ou entre em contato com a equipe da <strong>Bernet@</strong>.
+            </p>
+            <Button
+              onClick={() => {
+                setModalOpen(false);
+                navigate("/login");
+              }}
+              variant="primary"
+              className="w-full justify-center"
+            >
+              Ir para o Login
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

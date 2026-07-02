@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,65 +7,66 @@
 @import "./styles/tokens.css";
 
 @layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
+  *, *::before, *::after { box-sizing: border-box; }
 
-  html {
-    margin: 0;
-    padding: 0;
-  }
+  html { margin: 0; padding: 0; scroll-behavior: smooth; }
 
   body {
     margin: 0;
     padding: 0;
-    font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
     font-size: 14px;
-    color: var(--color-text);
-    background-color: var(--color-bg);
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
-  #root {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-  }
+  #root { margin: 0; padding: 0; min-height: 100vh; }
 
-  h1, h2, h3, h4, h5, h6 {
-    margin: 0;
-  }
+  h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 600; }
+  p { margin: 0; }
+  a { text-decoration: none; color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea, select { font-family: inherit; }
 
-  p {
-    margin: 0;
-  }
-
-  a {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  button {
-    font-family: inherit;
-  }
+  img { display: block; max-width: 100%; }
 }
 
 @layer utilities {
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-  }
-
+  /* Scrollbar minimalista */
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: var(--color-surface-muted);
+    background: var(--border);
     border-radius: 10px;
   }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* Animação de entrada suave */
+  .fade-in {
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  /* Spin loading */
+  .spin { animation: spin 0.8s linear infinite; }
 }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Gradient text utilitário */
+.gradient-text {
+  background: linear-gradient(135deg, #4F5EF7, #818CF8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
