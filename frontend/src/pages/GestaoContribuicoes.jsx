@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  Add,
+  Plus,
   History,
   Pencil,
   Trash2,
@@ -126,11 +126,10 @@ export default function GestaoContribuicoes() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
-            toast.type === "error"
-              ? "bg-danger/5 border-danger/20 text-danger"
-              : "bg-successSoft border-success/20 text-success"
-          }`}
+          className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${toast.type === "error"
+            ? "bg-danger/5 border-danger/20 text-danger"
+            : "bg-successSoft border-success/20 text-success"
+            }`}
         >
           {toast.message}
         </div>
@@ -165,7 +164,7 @@ export default function GestaoContribuicoes() {
             size="md"
             onClick={abrirModalNovoTipo}
           >
-            <Add size={15} className="w-4 h-4 shrink-0" />
+            <Plus size={15} className="w-4 h-4 shrink-0" />
             Novo Tipo
           </Button>
         </div>
