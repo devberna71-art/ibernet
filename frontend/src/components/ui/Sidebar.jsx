@@ -1,31 +1,45 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Home,
-  MessageSquare,
-  ScrollText,
   LayoutDashboard,
-  CalendarDays,
   Users,
   Wallet,
+  CalendarDays,
+  MessageSquare,
   Settings,
   LogOut,
   ChevronDown,
   ChevronRight,
+  BarChart3,
+  Bell,
+  CreditCard,
+  UserCircle,
+  Building2,
+  ShieldCheck,
   Cross,
 } from "lucide-react";
 import logoBernet from "../../assets/Logo-Bernet.png";
 import {
-  membrosSubmenus,
+  secretariaSubmenus,
   financasSubmenus,
-  relatoriosFinanceirosSub,
+  relatoriosSubmenus,
+  cultosSubmenus,
+  cultosModeradorSubmenus,
+  platformSubmenus,
   SIDEBAR_WIDTH,
 } from "../../navbar/navConfig";
 
-/** Item de navegação principal */
+/* ─── Role badge colors ────────────────────────────────────────────── */
+const ROLE_META = {
+  superadmin: { label: "Super Admin", color: "bg-violet-100 text-violet-700" },
+  admin:      { label: "Administrador", color: "bg-primarySoft text-primary" },
+  moderador:  { label: "Moderador", color: "bg-amber-100 text-amber-700" },
+  usuario:    { label: "Membro", color: "bg-green-100 text-green-700" },
+};
+
+/* ─── NavItem ──────────────────────────────────────────────────────── */
 function NavItem({ to, icon: Icon, label, active, badge, onClick, className = "" }) {
-  const base =
-    "flex items-center gap-2.5 px-3 py-2 mx-2 rounded-sm text-body font-medium transition-colors duration-150";
+  const base = "flex items-center gap-2.5 px-3 py-2 mx-2 rounded-sm text-body font-medium transition-colors duration-150";
   const state = active
     ? "bg-primarySoft text-primary"
     : "text-textMuted hover:text-text hover:bg-bgSection";
@@ -51,7 +65,6 @@ function NavItem({ to, icon: Icon, label, active, badge, onClick, className = ""
       </Link>
     );
   }
-
   return (
     <button type="button" onClick={onClick} className={`${base} ${state} w-[calc(100%-16px)] ${className}`}>
       {content}
@@ -59,7 +72,7 @@ function NavItem({ to, icon: Icon, label, active, badge, onClick, className = ""
   );
 }
 
-/** Item de submenu */
+/* ─── SubNavItem ───────────────────────────────────────────────────── */
 function SubNavItem({ to, label, active, onClick }) {
   return (
     <Link
@@ -77,7 +90,7 @@ function SubNavItem({ to, label, active, onClick }) {
   );
 }
 
-/** Seção colapsável */
+/* ─── CollapsibleSection ───────────────────────────────────────────── */
 function CollapsibleSection({ label, icon: Icon, open, onToggle, children }) {
   return (
     <div className="mb-0.5">
@@ -95,7 +108,7 @@ function CollapsibleSection({ label, icon: Icon, open, onToggle, children }) {
   );
 }
 
-/** Label de seção */
+/* ─── SectionLabel ─────────────────────────────────────────────────── */
 function SectionLabel({ children }) {
   return (
     <p className="px-5 pt-4 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-textMuted/70">
@@ -104,6 +117,9 @@ function SectionLabel({ children }) {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR — menus dinâmicos por perfil
+═══════════════════════════════════════════════════════════════════ */
 export default function Sidebar({
   userRole,
   membro,
@@ -112,25 +128,31 @@ export default function Sidebar({
   onProfileClick,
   className = "",
 }) {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location  = useLocation();
+  const navigate  = useNavigate();
 
-  const [eventosOpen, setEventosOpen] = useState(false);
-  const [membrosOpen, setMembrosOpen] = useState(false);
+  const [cultosOpen,     setCultosOpen]     = useState(false);
+  const [secretariaOpen, setSecretariaOpen] = useState(false);
   const [financeiroOpen, setFinanceiroOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+  const [platformOpen,   setPlatformOpen]   = useState(false);
 
   const isActive = (path) => location.pathname === path;
-
-  const handleNav = () => {
-    onNavigate?.();
-  };
+  const handleNav = () => onNavigate?.();
 
   const logout = () => {
     localStorage.clear();
     sessionStorage.clear();
     navigate("/login");
   };
+
+  const roleMeta = ROLE_META[userRole] ?? { label: userRole, color: "bg-bgSection text-textMuted" };
+
+  /* ── Seleciona o menu correto por perfil ── */
+  const isAdmin      = userRole === "admin";
+  const isModerador  = userRole === "moderador";
+  const isUsuario    = userRole === "usuario";
+  const isSuperAdmin = userRole === "superadmin";
 
   return (
     <aside
@@ -140,149 +162,102 @@ export default function Sidebar({
       ].join(" ")}
       style={{ width: SIDEBAR_WIDTH }}
     >
-      {/* Logo */}
-      <div className="flex flex-col items-center px-5 pt-6 pb-5 shrink-0">
-        <img src={logoBernet} alt="Logo Bernet" className="h-9 object-contain" />
-        <div className="flex items-center gap-1.5 mt-2.5">
-          <Cross size={11} strokeWidth={2} className="text-primary" />
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-textMuted">
-            Gestão Eclesiástica
-          </span>
-        </div>
+      {/* ── Logo + Role badge ── */}
+      <div className="flex flex-col items-center px-5 pt-5 pb-4 shrink-0 gap-2.5">
+        <img src={logoBernet} alt="Logo Bernet" className="h-8 object-contain" />
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${roleMeta.color}`}>
+          {isSuperAdmin && <ShieldCheck size={10} strokeWidth={2} />}
+          {roleMeta.label}
+        </span>
       </div>
 
-      {/* Divider */}
       <div className="h-px bg-border mx-4 shrink-0" />
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin">
-        <SectionLabel>Navegação</SectionLabel>
+      {/* ── Navegação ── */}
+      <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin">
 
-        <NavItem
-          to="/"
-          icon={Home}
-          label="Início"
-          active={isActive("/")}
-          onClick={handleNav}
-        />
-
-        {(userRole === "admin" || userRole === "usuario" || userRole === "moderador") && (
-          <NavItem
-            to="/chat/list"
-            icon={MessageSquare}
-            label="Comunicação"
-            active={isActive("/chat/list")}
-            badge={unreadMessagesCount}
-            onClick={handleNav}
-          />
-        )}
-
-        {(userRole === "admin" || userRole === "moderador") && (
-          <NavItem
-            to="/listaCultos"
-            icon={ScrollText}
-            label="Ata do Culto"
-            active={isActive("/listaCultos")}
-            onClick={handleNav}
-          />
-        )}
-
-        {userRole === "admin" && (
-          <NavItem
-            to="/dashboard"
-            icon={LayoutDashboard}
-            label="Painel"
-            active={isActive("/dashboard")}
-            onClick={handleNav}
-          />
-        )}
-
-        {(userRole === "admin" || userRole === "moderador") && (
+        {/* ════════ SUPER ADMIN ════════ */}
+        {isSuperAdmin && (
           <>
-            <SectionLabel>Administrativo</SectionLabel>
-
-            <CollapsibleSection
-              label="Eventos & Cultos"
-              icon={CalendarDays}
-              open={eventosOpen}
-              onToggle={() => setEventosOpen(!eventosOpen)}
-            >
-              <SubNavItem to="/TabelaCulto" label="Agenda de Cultos" active={isActive("/TabelaCulto")} onClick={handleNav} />
-              {userRole === "admin" && (
-                <SubNavItem
-                  to="/gestao/RelatorioPresencas"
-                  label="Relatório de Frequência"
-                  active={isActive("/gestao/RelatorioPresencas")}
-                  onClick={handleNav}
-                />
-              )}
-            </CollapsibleSection>
-
-            <CollapsibleSection
-              label="Secretaria"
-              icon={Users}
-              open={membrosOpen}
-              onToggle={() => setMembrosOpen(!membrosOpen)}
-            >
-              {membrosSubmenus.map((sub) => (
-                <SubNavItem key={sub.path} {...sub} active={isActive(sub.path)} onClick={handleNav} />
+            <SectionLabel>Plataforma</SectionLabel>
+            <NavItem to="/dashboard"   icon={LayoutDashboard} label="Painel"    active={isActive("/dashboard")}   onClick={handleNav} />
+            <CollapsibleSection label="Igrejas" icon={Building2} open={platformOpen} onToggle={() => setPlatformOpen(!platformOpen)}>
+              {platformSubmenus.map((s) => (
+                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
               ))}
             </CollapsibleSection>
+            <SectionLabel>Sistema</SectionLabel>
+            <NavItem to="/configuracoes" icon={Settings} label="Configurações" active={isActive("/configuracoes")} onClick={handleNav} />
           </>
         )}
 
-        {userRole === "admin" && (
+        {/* ════════ ADMIN DA IGREJA ════════ */}
+        {isAdmin && (
           <>
-            <CollapsibleSection
-              label="Gestão Financeira"
-              icon={Wallet}
-              open={financeiroOpen}
-              onToggle={() => setFinanceiroOpen(!financeiroOpen)}
-            >
-              {financasSubmenus.map((sub) => (
-                <SubNavItem key={sub.path} {...sub} active={isActive(sub.path)} onClick={handleNav} />
+            <SectionLabel>Visão Geral</SectionLabel>
+            <NavItem to="/dashboard"    icon={LayoutDashboard} label="Painel"         active={isActive("/dashboard")}    onClick={handleNav} />
+            <NavItem to="/chat/list"    icon={MessageSquare}   label="Comunicação"     active={isActive("/chat/list")}    badge={unreadMessagesCount} onClick={handleNav} />
+            <NavItem to="/notificacoes" icon={Bell}            label="Notificações"    active={isActive("/notificacoes")} onClick={handleNav} />
+
+            <SectionLabel>Igreja</SectionLabel>
+            <CollapsibleSection label="Cultos & Eventos" icon={CalendarDays} open={cultosOpen} onToggle={() => setCultosOpen(!cultosOpen)}>
+              {cultosSubmenus.map((s) => (
+                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
               ))}
-
-              <button
-                type="button"
-                onClick={() => setRelatoriosOpen(!relatoriosOpen)}
-                className="flex items-center justify-between w-[calc(100%-16px)] py-1.5 pl-9 pr-3 mx-2 rounded-sm text-[12px] text-textMuted hover:text-text hover:bg-bgSection transition-colors duration-150"
-              >
-                <span>Relatórios de Auditoria</span>
-                {relatoriosOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              </button>
-
-              {relatoriosOpen &&
-                relatoriosFinanceirosSub.map((sub) => (
-                  <Link
-                    key={sub.path}
-                    to={sub.path}
-                    onClick={handleNav}
-                    className={[
-                      "block py-1.5 pl-12 pr-3 mx-2 rounded-sm text-[11px] transition-colors duration-150",
-                      isActive(sub.path)
-                        ? "text-primary font-semibold bg-primarySoft"
-                        : "text-textMuted hover:text-text hover:bg-bgSection",
-                    ].join(" ")}
-                  >
-                    {sub.label}
-                  </Link>
-                ))}
+            </CollapsibleSection>
+            <CollapsibleSection label="Secretaria" icon={Users} open={secretariaOpen} onToggle={() => setSecretariaOpen(!secretariaOpen)}>
+              {secretariaSubmenus.map((s) => (
+                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+              ))}
+            </CollapsibleSection>
+            <CollapsibleSection label="Finanças" icon={Wallet} open={financeiroOpen} onToggle={() => setFinanceiroOpen(!financeiroOpen)}>
+              {financasSubmenus.map((s) => (
+                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+              ))}
+            </CollapsibleSection>
+            <CollapsibleSection label="Relatórios" icon={BarChart3} open={relatoriosOpen} onToggle={() => setRelatoriosOpen(!relatoriosOpen)}>
+              {relatoriosSubmenus.map((s) => (
+                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+              ))}
             </CollapsibleSection>
 
             <SectionLabel>Sistema</SectionLabel>
-            <NavItem
-              to="/configuracoes"
-              icon={Settings}
-              label="Configurações"
-              active={isActive("/configuracoes")}
-              onClick={handleNav}
-            />
+            <NavItem to="/configuracoes" icon={Settings} label="Configurações" active={isActive("/configuracoes")} onClick={handleNav} />
+          </>
+        )}
+
+        {/* ════════ MODERADOR ════════ */}
+        {isModerador && (
+          <>
+            <SectionLabel>Visão Geral</SectionLabel>
+            <NavItem to="/lista-cultos" icon={LayoutDashboard} label="Painel"       active={isActive("/lista-cultos")} onClick={handleNav} />
+            <NavItem to="/chat/list"    icon={MessageSquare}   label="Comunicação"  active={isActive("/chat/list")}    badge={unreadMessagesCount} onClick={handleNav} />
+            <NavItem to="/notificacoes" icon={Bell}            label="Notificações" active={isActive("/notificacoes")} onClick={handleNav} />
+
+            <SectionLabel>Operação</SectionLabel>
+            <CollapsibleSection label="Cultos" icon={CalendarDays} open={cultosOpen} onToggle={() => setCultosOpen(!cultosOpen)}>
+              {cultosModeradorSubmenus.map((s) => (
+                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+              ))}
+            </CollapsibleSection>
+            <NavItem to="/gestao-membros"     icon={Users}    label="Membros"   active={isActive("/gestao-membros")}     onClick={handleNav} />
+            <NavItem to="/relatorios/presencas" icon={BarChart3} label="Presenças" active={isActive("/relatorios/presencas")} onClick={handleNav} />
+          </>
+        )}
+
+        {/* ════════ MEMBRO (usuário) ════════ */}
+        {isUsuario && (
+          <>
+            <SectionLabel>Minha Conta</SectionLabel>
+            <NavItem to="/perfil"       icon={UserCircle}  label="Meu Perfil"      active={isActive("/perfil")}       onClick={handleNav} />
+            <NavItem to="/cartao"       icon={CreditCard}  label="Cartão Digital"  active={isActive("/cartao")}       onClick={handleNav} />
+            <NavItem to="/notificacoes" icon={Bell}        label="Notificações"    active={isActive("/notificacoes")} onClick={handleNav} />
+            <NavItem to="/chat/list"    icon={MessageSquare} label="Comunicação"   active={isActive("/chat/list")}    badge={unreadMessagesCount} onClick={handleNav} />
           </>
         )}
       </nav>
 
-      {/* User profile footer */}
+      {/* ── Rodapé: perfil do utilizador ── */}
       <div className="shrink-0 border-t border-border p-3">
         {membro ? (
           <button

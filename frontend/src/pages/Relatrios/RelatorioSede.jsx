@@ -196,20 +196,25 @@ export default function RelatorioMembros() {
           mode,
           ...(mode === "light"
             ? {
-                primary: { main: "#0d47a1" },
-                background: { default: "#f6f9ff", paper: "#ffffff" },
-                text: { primary: "#072146" },
+                primary: { main: "#4F5EF7", light: "#EEF0FE", contrastText: "#FFFFFF" },
+                background: { default: "#FFFFFF", paper: "#FFFFFF" },
+                text: { primary: "#0D0D12", secondary: "#4A4A5A" },
               }
             : {
-                primary: { main: "#90caf9" },
-                background: { default: "#0b1020", paper: "#0f1724" },
-                text: { primary: "#e6eef8" },
+                primary: { main: "#818CF8", light: "#EEF0FE", contrastText: "#FFFFFF" },
+                background: { default: "#0D0D12", paper: "#16161E" },
+                text: { primary: "#F8F9FB", secondary: "#8C8CA1" },
               }),
         },
         typography: {
-          fontFamily: "'Poppins', 'Roboto', sans-serif",
-          h3: { fontWeight: 800 },
-          h5: { fontWeight: 700 },
+          fontFamily: '"Inter", "system-ui", "-apple-system", sans-serif',
+          h3: { fontWeight: 800, fontSize: "24px" },
+          h5: { fontWeight: 700, fontSize: "16px" },
+          body1: { fontSize: "14px" },
+          body2: { fontSize: "13px" },
+        },
+        shape: {
+          borderRadius: 8,
         },
       }),
     [mode]

@@ -1,47 +1,7 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  Avatar,
-  List,
-  ListItemButton,
-  ListItemAvatar,
-  ListItemText,
-  Badge,
-  IconButton,
-  styled,
-  useTheme,
-  useMediaQuery
-} from "@mui/material";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
-
+import { ArrowLeft, MessageSquare, Loader2, User } from "lucide-react";
 import api from "../../api/axiosConfig";
 import ChatPage from "./ChatPage";
-
-// 🟢 Efeito de Pulsação de Presença
-const PremiumOnlineBadge = styled(Badge)(({ theme }) => ({
-  "& .MuiBadge-badge": {
-    backgroundColor: "#10B981",
-    color: "#10B981",
-    boxShadow: "0 0 0 3px #ffffff, 0px 2px 4px rgba(16, 185, 129, 0.2)",
-    width: 10,
-    height: 10,
-    borderRadius: "50%",
-    "&::after": {
-      position: "absolute",
-      top: 0, left: 0, width: "100%", height: "100%",
-      borderRadius: "50%",
-      animation: "auraPulse 2.2s infinite ease-in-out",
-      border: "1px solid currentColor",
-      content: '""',
-    },
-  },
-  "@keyframes auraPulse": {
-    "0%": { transform: "scale(0.8)", opacity: 1 },
-    "100%": { transform: "scale(2.4)", opacity: 0 },
-  },
-}));
 
 export default function MembersChat() {
   const [membros, setMembros] = useState([]);
@@ -50,9 +10,14 @@ export default function MembersChat() {
   const [conversaId, setConversaId] = useState(null);
   const [membroSelecionado, setMembroSelecionado] = useState(null);
   const [viewMode, setViewMode] = useState("list");
+  const [isMobile, setIsMobile] = useState(false);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const carregarDadosIniciais = async () => {
@@ -74,10 +39,8 @@ export default function MembersChat() {
   }, []);
 
   const iniciarConversa = async (membroDestino) => {
-    // Evita clicar em si mesmo
     if (Number(membroDestino.id) === Number(meuMembroId)) return;
 
-    // Reset de estado antes de nova carga para garantir a transição
     setLoading(true);
     setConversaId(null); 
     setMembroSelecionado(membroDestino);
@@ -89,7 +52,6 @@ export default function MembersChat() {
         membros: [membroDestino.id]
       });
 
-      // Captura o ID da conversa de forma robusta
       const id = res.data?.id || res.data?.ChatConversaId;
       if (id) {
         setConversaId(id);
@@ -102,84 +64,79 @@ export default function MembersChat() {
   };
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", bgcolor: "#FFFFFF", overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
+    <div className="flex h-screen bg-white overflow-hidden font-sans">
       
-      {/* ─── SIDEBAR ESQUERDA ─── */}
-      <Box sx={{
-        width: isMobile ? "100%" : 360,
-        display: isMobile && viewMode !== "list" ? "none" : "flex",
-        flexDirection: "column",
-        bgcolor: "#F8FAFC",
-        borderRight: "1px solid #E2E8F0",
-        height: "100%"
-      }}>
-        <Box sx={{ p: 4, pb: 3 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: "#0F172A", fontSize: "1.35rem" }}>Mensagens</Typography>
-          <Typography variant="caption" sx={{ color: "#64748B", fontWeight: 600 }}>WORKSPACE PREMIUM</Typography>
-        </Box>
+      {/* SIDEBAR ESQUERDA */}
+      <div className={`${isMobile ? (viewMode === "list" ? "w-full" : "hidden") : "w-[360px]"} flex flex-col bg-bgSection border-r border-border h-full`}>
+        <div className="p-4 pb-3">
+          <h2 className="text-xl font-bold text-text">Mensagens</h2>
+          <p className="text-xs font-semibold text-textMuted">WORKSPACE PREMIUM</p>
+        </div>
 
-        <List sx={{ flex: 1, overflowY: "auto", px: 2, pb: 2 }}>
+        <div className="flex-1 overflow-y-auto px-2 pb-2">
           {membros
             .filter((m) => Number(m.id) !== Number(meuMembroId))
             .map((m) => {
               const ativo = membroSelecionado?.id === m.id;
               return (
-                <ListItemButton
+                <button
                   key={m.id}
                   onClick={() => iniciarConversa(m)}
-                  sx={{
-                    borderRadius: "14px",
-                    p: "12px 16px",
-                    mb: 0.5,
-                    backgroundColor: ativo ? "#0A46E4" : "transparent",
-                    "&:hover": { backgroundColor: ativo ? "#0A46E4" : "rgba(15, 23, 42, 0.04)" },
-                    transition: "0.2s"
-                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl mb-1 transition-all ${
+                    ativo
+                      ? "bg-primary text-white"
+                      : "hover:bg-bgSection/50 text-text"
+                  }`}
                 >
-                  <ListItemAvatar sx={{ minWidth: 58 }}>
-                    <PremiumOnlineBadge overlap="circular" variant="dot">
-                      <Avatar src={m.foto} sx={{ width: 42, height: 42 }} />
-                    </PremiumOnlineBadge>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={<Typography sx={{ fontWeight: ativo ? 600 : 550, color: ativo ? "#FFFFFF" : "#0F172A" }}>{m.nome}</Typography>}
-                    secondary={<Typography sx={{ fontSize: "0.8rem", color: ativo ? "rgba(255,255,255,0.75)" : "#64748B" }}>{m.email}</Typography>}
-                  />
-                </ListItemButton>
+                  <div className="relative">
+                    <img
+                      src={m.foto}
+                      alt={m.nome}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-success rounded-full border-2 border-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className={`text-sm font-semibold ${ativo ? "text-white" : "text-text"}`}>{m.nome}</p>
+                    <p className={`text-xs ${ativo ? "text-white/75" : "text-textMuted"}`}>{m.email}</p>
+                  </div>
+                </button>
               );
             })}
-        </List>
-      </Box>
+        </div>
+      </div>
 
-      {/* ─── PAINEL DE CHAT DIREITO ─── */}
-      <Box sx={{ flex: 1, display: isMobile && viewMode !== "chat" ? "none" : "flex", flexDirection: "column", bgcolor: "#FFFFFF" }}>
+      {/* PAINEL DE CHAT DIREITO */}
+      <div className={`${isMobile ? (viewMode === "chat" ? "flex" : "hidden") : "flex"} flex-1 flex-col bg-white`}>
         
         {isMobile && viewMode === "chat" && (
-          <Box sx={{ p: 2, display: "flex", alignItems: "center", borderBottom: "1px solid #E2E8F0" }}>
-            <IconButton onClick={() => setViewMode("list")}><ArrowBackIosNewIcon /></IconButton>
-            <Typography sx={{ fontWeight: 700 }}>{membroSelecionado?.nome}</Typography>
-          </Box>
+          <div className="p-3 flex items-center border-b border-border">
+            <button onClick={() => setViewMode("list")} className="p-2 -ml-2 text-textMuted hover:text-text">
+              <ArrowLeft size={20} />
+            </button>
+            <span className="font-semibold text-text">{membroSelecionado?.nome}</span>
+          </div>
         )}
 
         {conversaId ? (
           <ChatPage 
-            key={conversaId} // Isso força a recarga do componente quando o ID muda
+            key={conversaId}
             conversaId={conversaId} 
             membroSelecionado={membroSelecionado} 
             meuMembroId={meuMembroId} 
           />
         ) : (
-          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", p: 4 }}>
-            <Box sx={{ width: 64, height: 64, borderRadius: "20px", bgcolor: "#F0F5FF", display: "flex", justifyContent: "center", alignItems: "center", mb: 3 }}>
-              <ForumOutlinedIcon sx={{ fontSize: 26, color: "#0A46E4" }} />
-            </Box>
-            <Typography sx={{ fontWeight: 700, fontSize: "1.15rem" }}>Comunicação Corporativa</Typography>
-            <Typography sx={{ color: "#64748B", textAlign: "center", maxWidth: 300, mt: 1 }}>
+          <div className="flex-1 flex flex-col items-center justify-center p-4">
+            <div className="w-16 h-16 rounded-2xl bg-primarySoft flex items-center justify-center mb-4">
+              <MessageSquare size={26} className="text-primary" />
+            </div>
+            <h3 className="text-lg font-bold text-text">Comunicação Corporativa</h3>
+            <p className="text-textMuted text-center max-w-xs mt-2">
               Selecione um membro para iniciar uma conversa.
-            </Typography>
-          </Box>
+            </p>
+          </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

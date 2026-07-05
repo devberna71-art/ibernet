@@ -164,14 +164,10 @@ export default function RelatorioFinanceiroGeral() {
       sx={{
         minHeight: '100vh',
         p: { xs: 2, md: 4 },
-        background: `
-          radial-gradient(circle at 20% 20%, rgba(37,99,235,0.07), transparent 40%),
-          radial-gradient(circle at 80% 80%, rgba(22,163,74,0.06), transparent 40%),
-          #f4f6f9
-        `,
+        background: '#F8F9FB',
       }}
     >
-      <Typography variant="h4" fontWeight={800} mb={3}>
+      <Typography variant="h4" fontWeight={700} mb={3} sx={{ color: '#0D0D12', fontSize: '20px' }}>
         Relatório Financeiro
       </Typography>
 

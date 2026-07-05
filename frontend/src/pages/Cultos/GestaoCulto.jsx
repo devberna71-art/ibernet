@@ -1,30 +1,49 @@
 import React, { useEffect, useState } from "react";
-import axios from "../../api/axiosConfig";
 import {
-  Box,
-  Typography,
-  CircularProgress,
-  IconButton,
-  Modal,
-  Button,
-  Alert,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Paper,
-  Stack,
-  Avatar,
-  Chip,
-  Divider,
-} from "@mui/material";
-import { Edit, Delete, Add, Church, Diamond } from "@mui/icons-material";
-import { motion } from "framer-motion";
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+  X,
+  Church,
+  Diamond,
+} from "lucide-react";
+import api from "../../api/axiosConfig";
+import FormTipoCulto from "../../components/FormTipoCulto";
+import AppPage from "../../components/ui/AppPage";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
-// Importando componente
-import FormCultos from "../../components/FormTipoCulto";
+/** Modal genérico leve */
+function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div
+        className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
+          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+          >
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
 
-const TiposCultos = () => {
+export default function GestaoCulto() {
   const [tiposCultos, setTiposCultos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
@@ -32,14 +51,21 @@ const TiposCultos = () => {
   const [error, setError] = useState(null);
   const [openConfirmDelete, setOpenConfirmDelete] = useState(false);
   const [tipoToDelete, setTipoToDelete] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     const fetchTiposCultos = async () => {
       try {
-        const response = await axios.get("/tabela-cultos1");
+        const response = await api.get("/tabela-cultos1");
         setTiposCultos(response.data || []);
       } catch (error) {
         console.error("Erro ao buscar tipos de cultos:", error);
+        showToast("Erro ao carregar tipos de cultos.", "error");
       } finally {
         setLoading(false);
       }
@@ -55,14 +81,14 @@ const TiposCultos = () => {
   const handleDelete = async () => {
     if (!tipoToDelete) return;
     try {
-      await axios.delete(`/tipocultos/${tipoToDelete.id}`);
-      setTiposCultos((prev) =>
-        prev.filter((t) => t.id !== tipoToDelete.id)
-      );
+      await api.delete(`/tipocultos/${tipoToDelete.id}`);
+      setTiposCultos((prev) => prev.filter((t) => t.id !== tipoToDelete.id));
       setError(null);
       setOpenConfirmDelete(false);
+      showToast("Tipo de culto excluído com sucesso.");
     } catch (error) {
       setError("Erro ao excluir o tipo de culto.");
+      showToast("Erro ao excluir o tipo de culto.", "error");
     }
   };
 
@@ -85,361 +111,155 @@ const TiposCultos = () => {
     setTiposCultos((prev) => {
       const exists = prev.find((t) => t.id === newTipoCulto.id);
       return exists
-        ? prev.map((t) =>
-            t.id === newTipoCulto.id ? newTipoCulto : t
-          )
+        ? prev.map((t) => (t.id === newTipoCulto.id ? newTipoCulto : t))
         : [newTipoCulto, ...prev];
     });
     setOpenModal(false);
     setSelectedTipoCulto(null);
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.97 },
-    show: (i) => ({
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        delay: i * 0.06,
-        duration: 0.4,
-        ease: "easeOut",
-      },
-    }),
+    showToast("Tipo de culto salvo com sucesso!");
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        px: { xs: 2, md: 5 },
-        py: 6,
-        background: `
-          radial-gradient(circle at 0% 0%, #eef2ff 0%, transparent 40%),
-          radial-gradient(circle at 100% 0%, #f5f3ff 0%, transparent 40%),
-          linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)
-        `,
-      }}
-    >
-      <Box sx={{ maxWidth: 1100, mx: "auto" }}>
-        {/* HEADER LUXUOSO */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 3, md: 5 },
-            mb: 5,
-            borderRadius: 5,
-            background:
-              "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 25px 70px rgba(15,23,42,0.08)",
-          }}
+    <AppPage subtitle="Gestão elegante dos tipos de cultos da igreja.">
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+            toast.type === "error"
+              ? "bg-danger/5 border-danger/20 text-danger"
+              : "bg-successSoft border-success/20 text-success"
+          }`}
         >
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            justifyContent="space-between"
-            spacing={3}
-            alignItems={{ md: "center" }}
+          {toast.message}
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-md bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center shadow-lg">
+            <Diamond size={24} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Tipos de Cultos</h2>
+            <p className="text-muted text-textMuted mt-0.5">
+              Gestão elegante dos tipos de cultos da igreja
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="primary" className="bg-primarySoft text-primary">
+            <Church size={12} className="mr-1" />
+            {tiposCultos.length} Tipos cadastrados
+          </Badge>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setOpenModal(true)}
           >
-            <Stack direction="row" spacing={2.5} alignItems="center">
-              <Avatar
-                sx={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 3,
-                  background:
-                    "linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899)",
-                  boxShadow: "0 15px 40px rgba(99,102,241,0.35)",
-                }}
-              >
-                <Diamond sx={{ fontSize: 30 }} />
-              </Avatar>
+            <Plus size={15} className="w-4 h-4 shrink-0" />
+            Novo Tipo
+          </Button>
+        </div>
+      </div>
 
-              <Box>
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 900,
-                    letterSpacing: "-0.5px",
-                    background:
-                      "linear-gradient(90deg,#0f172a,#334155)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
-                >
-                  Tipos de Cultos
-                </Typography>
-
-                <Typography
-                  sx={{
-                    color: "#64748b",
-                    fontWeight: 500,
-                    mt: 0.5,
-                  }}
-                >
-                  Gestão elegante dos tipos de cultos da igreja
-                </Typography>
-              </Box>
-            </Stack>
-
-            <Button
-              startIcon={<Add />}
-              onClick={() => setOpenModal(true)}
-              sx={{
-                borderRadius: "999px",
-                px: 3.5,
-                height: 44,
-                fontWeight: 800,
-                textTransform: "none",
-                background:
-                  "linear-gradient(135deg,#6366f1,#4f46e5)",
-                color: "#fff",
-                boxShadow: "0 15px 35px rgba(79,70,229,0.35)",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow:
-                    "0 20px 45px rgba(79,70,229,0.45)",
-                  background:
-                    "linear-gradient(135deg,#4f46e5,#4338ca)",
-                },
-              }}
+      {/* Loading */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
+          <span className="text-body">Carregando tipos de culto...</span>
+        </div>
+      ) : tiposCultos.length === 0 ? (
+        <Card className="text-center py-12">
+          <p className="text-body text-textMuted">Nenhum tipo de culto disponível</p>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {tiposCultos.map((tipo, index) => (
+            <Card
+              key={tipo.id}
+              padding="p-4"
+              className="hover:border-primary/20 transition-all duration-200"
             >
-              Criar Novo Tipo de Culto
-            </Button>
-          </Stack>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-text mb-2">{tipo.nome}</h3>
+                  <div className="w-12 h-0.5 bg-primary rounded mb-2" />
+                  <p className="text-xs text-textMuted">
+                    {tipo.descricao || "Sem descrição disponível para este tipo de culto."}
+                  </p>
+                </div>
 
-          <Stack direction="row" spacing={1.5} mt={3} flexWrap="wrap">
-            <Chip
-              icon={<Church />}
-              label={`${tiposCultos.length} Tipos cadastrados`}
-              sx={{
-                fontWeight: 700,
-                borderRadius: "999px",
-                background:
-                  "linear-gradient(90deg,#e0e7ff,#c7d2fe)",
-                color: "#3730a3",
-              }}
-            />
-          </Stack>
-        </Paper>
-
-        {/* LOADING */}
-        {loading ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              pt: 10,
-            }}
-          >
-            <CircularProgress size={50} thickness={4} />
-          </Box>
-        ) : (
-          <Stack spacing={3}>
-            {tiposCultos.length === 0 ? (
-              <Paper
-                sx={{
-                  p: 6,
-                  textAlign: "center",
-                  borderRadius: 4,
-                  border: "1px solid #e2e8f0",
-                  background: "#ffffff",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 700, color: "#334155" }}
-                >
-                  Nenhum tipo de culto disponível
-                </Typography>
-              </Paper>
-            ) : (
-              tiposCultos.map((tipo, index) => (
-                <motion.div
-                  key={tipo.id}
-                  custom={index}
-                  initial="hidden"
-                  animate="show"
-                  variants={cardVariants}
-                >
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: { xs: 2.5, md: 3 },
-                      borderRadius: 4,
-                      background: "#ffffff",
-                      border: "1px solid #e2e8f0",
-                      boxShadow:
-                        "0 10px 35px rgba(15,23,42,0.05)",
-                      transition: "all 0.25s ease",
-                      "&:hover": {
-                        transform: "translateY(-5px)",
-                        boxShadow:
-                          "0 25px 60px rgba(15,23,42,0.10)",
-                      },
-                    }}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEdit(tipo)}
+                    className="p-2 rounded-sm bg-primarySoft text-primary hover:bg-primary/20 transition-colors"
+                    title="Editar"
                   >
-                    <Stack
-                      direction={{ xs: "column", md: "row" }}
-                      justifyContent="space-between"
-                      spacing={2}
-                      alignItems={{ md: "center" }}
-                    >
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            fontWeight: 900,
-                            color: "#0f172a",
-                          }}
-                        >
-                          {tipo.nome}
-                        </Typography>
+                    <Edit size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleConfirmDelete(tipo)}
+                    className="p-2 rounded-sm bg-danger/5 text-danger hover:bg-danger/10 transition-colors"
+                    title="Excluir"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
-                        <Divider
-                          sx={{
-                            width: 60,
-                            my: 1.2,
-                            borderColor: "#6366f1",
-                            borderWidth: "2px",
-                            borderRadius: 2,
-                          }}
-                        />
+      {/* Error */}
+      {error && (
+        <div className="mt-4 px-4 py-3 rounded-sm bg-danger/5 border border-danger/20 text-danger text-body">
+          {error}
+        </div>
+      )}
 
-                        <Typography
-                          sx={{
-                            color: "#64748b",
-                            fontWeight: 500,
-                          }}
-                        >
-                          {tipo.descricao ||
-                            "Sem descrição disponível para este tipo de culto."}
-                        </Typography>
-                      </Box>
+      {/* Modal Form */}
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        title={selectedTipoCulto ? "Editar Tipo de Culto" : "Novo Tipo de Culto"}
+        maxWidth="max-w-lg"
+      >
+        <FormTipoCulto
+          tipoCulto={selectedTipoCulto}
+          onSuccess={handleNewTipoCultoAdded}
+          onCancel={handleCloseModal}
+        />
+      </Modal>
 
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        justifyContent="flex-end"
-                      >
-                        <IconButton
-                          onClick={() => handleEdit(tipo)}
-                          sx={{
-                            borderRadius: 2,
-                            background:
-                              "linear-gradient(135deg,#e0e7ff,#c7d2fe)",
-                            "&:hover": {
-                              background:
-                                "linear-gradient(135deg,#c7d2fe,#a5b4fc)",
-                            },
-                          }}
-                        >
-                          <Edit sx={{ color: "#4338ca" }} />
-                        </IconButton>
-
-                        <IconButton
-                          onClick={() =>
-                            handleConfirmDelete(tipo)
-                          }
-                          sx={{
-                            borderRadius: 2,
-                            background:
-                              "linear-gradient(135deg,#fee2e2,#fecaca)",
-                            "&:hover": {
-                              background:
-                                "linear-gradient(135deg,#fecaca,#fca5a5)",
-                            },
-                          }}
-                        >
-                          <Delete sx={{ color: "#dc2626" }} />
-                        </IconButton>
-                      </Stack>
-                    </Stack>
-                  </Paper>
-                </motion.div>
-              ))
-            )}
-          </Stack>
-        )}
-
-        {error && (
-          <Alert severity="error" sx={{ mt: 4 }}>
-            {error}
-          </Alert>
-        )}
-
-        {/* MODAL PREMIUM */}
-        <Modal open={openModal} onClose={handleCloseModal}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "95%",
-              maxWidth: 650,
-              bgcolor: "#ffffff",
-              borderRadius: 4,
-              boxShadow:
-                "0 40px 100px rgba(0,0,0,0.2)",
-              p: 4,
-              maxHeight: "90vh",
-              overflowY: "auto",
-              border: "1px solid #e2e8f0",
-            }}
+      {/* Modal Confirmar Exclusão */}
+      <Modal
+        open={openConfirmDelete}
+        onClose={handleCloseConfirmDelete}
+        title="Confirmar exclusão"
+        maxWidth="max-w-sm"
+      >
+        <p className="text-body text-textMuted mb-5">
+          Tem certeza que deseja excluir este tipo de culto? Esta ação não pode ser desfeita.
+        </p>
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCloseConfirmDelete}
           >
-            <FormCultos
-              tipoCulto={selectedTipoCulto}
-              onSuccess={handleNewTipoCultoAdded}
-              onCancel={handleCloseModal}
-            />
-          </Box>
-        </Modal>
-
-        {/* CONFIRMAR EXCLUSÃO */}
-        <Dialog
-          open={openConfirmDelete}
-          onClose={handleCloseConfirmDelete}
-          PaperProps={{
-            sx: {
-              borderRadius: 4,
-              boxShadow:
-                "0 30px 80px rgba(0,0,0,0.2)",
-            },
-          }}
-        >
-          <DialogTitle sx={{ fontWeight: 900 }}>
-            Confirmar exclusão
-          </DialogTitle>
-          <DialogContent>
-            <Typography variant="body2">
-              Essa ação não pode ser desfeita.
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={handleCloseConfirmDelete}
-              sx={{ fontWeight: 700, textTransform: "none" }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleDelete}
-              color="error"
-              variant="contained"
-              sx={{
-                fontWeight: 800,
-                borderRadius: 2,
-                textTransform: "none",
-              }}
-            >
-              Confirmar
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Box>
+            Cancelar
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={handleDelete}
+          >
+            Confirmar
+          </Button>
+        </div>
+      </Modal>
+    </AppPage>
   );
-};
-
-export default TiposCultos;
+}

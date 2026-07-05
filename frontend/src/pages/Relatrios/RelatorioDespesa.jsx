@@ -1,42 +1,57 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  Dialog,
-  DialogContent,
-  Stack,
-  Chip,
-} from '@mui/material';
+  Calendar,
+  Filter,
+  Download,
+  Eye,
+  Loader2,
+  X,
+  DollarSign,
+} from 'lucide-react';
 import dayjs from 'dayjs';
 import api from '../../api/axiosConfig';
 import ListaDespesasCategorias from '../../components/ListaDespesasCategorias';
+import AppPage from '../../components/ui/AppPage';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+
+/** Modal genérico leve */
+function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div
+        className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
+          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+          >
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export default function RelatorioDespesas() {
-
   const [periodo, setPeriodo] = useState('todos');
   const [tipo, setTipo] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [categorias, setCategorias] = useState([]);
   const [total, setTotal] = useState(0);
-
   const [openModal, setOpenModal] = useState(false);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
-
   const [dataInicial, setDataInicial] = useState(
     dayjs().startOf('month').format('YYYY-MM-DD')
   );
@@ -109,177 +124,169 @@ export default function RelatorioDespesas() {
 
   const temDados = useMemo(() => categorias.length > 0, [categorias]);
 
-  const cardStyle = {
-    backdropFilter: 'blur(14px)',
-    background: 'rgba(255,255,255,0.75)',
-    border: '1px solid rgba(255,255,255,0.3)',
-    boxShadow: '0 12px 30px rgba(0,0,0,0.08)',
-    borderRadius: 4,
-    p: 2.5,
+  const formatKz = (valor) => {
+    return `${Number(valor || 0).toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
   };
 
-  const MoneyChip = ({ value }) => (
-    <Chip
-      label={`${value.toLocaleString()} Kz`}
-      sx={{
-        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-        color: '#fff',
-        fontWeight: 800
-      }}
-    />
-  );
-
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #eef2ff, #fff1f2, #fee2e2)',
-      p: { xs: 2, md: 4 }
-    }}>
+    <AppPage subtitle="Relatório detalhado de despesas por categoria e período.">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-dangerSoft flex items-center justify-center text-danger">
+            <DollarSign size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Relatório de Despesas</h2>
+            <p className="text-muted text-textMuted mt-0.5">Análise financeira de saídas</p>
+          </div>
+        </div>
+      </div>
 
-      {/* HEADER */}
-      <Typography variant="h4" fontWeight={900} mb={3}>
-        Relatório de Despesas
-      </Typography>
+      {/* Filtros */}
+      <Card padding="p-4" className="mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5">Período</label>
+            <select
+              value={periodo}
+              onChange={(e) => setPeriodo(e.target.value)}
+              className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            >
+              <option value="todos">Todos</option>
+              <option value="hoje">Hoje</option>
+              <option value="semana">Semana</option>
+              <option value="mes">Mês</option>
+              <option value="trimestre">Trimestre</option>
+              <option value="semestre">Semestre</option>
+              <option value="ano">Ano</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </div>
 
-      {/* FILTROS + BOTÃO */}
-      <Stack direction="row" spacing={2} mb={4} flexWrap="wrap" alignItems="center">
+          {periodo === 'personalizado' && (
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Data Inicial</label>
+                <input
+                  type="date"
+                  value={dataInicial}
+                  onChange={(e) => setDataInicial(e.target.value)}
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-textSecondary mb-1.5">Data Final</label>
+                <input
+                  type="date"
+                  value={dataFinal}
+                  onChange={(e) => setDataFinal(e.target.value)}
+                  className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+            </>
+          )}
 
-        <FormControl sx={{ minWidth: 180 }}>
-          <InputLabel>Período</InputLabel>
-          <Select value={periodo} onChange={(e) => setPeriodo(e.target.value)}>
-            <MenuItem value="todos">Todos</MenuItem>
-            <MenuItem value="hoje">Hoje</MenuItem>
-            <MenuItem value="semana">Semana</MenuItem>
-            <MenuItem value="mes">Mês</MenuItem>
-            <MenuItem value="trimestre">Trimestre</MenuItem>
-            <MenuItem value="semestre">Semestre</MenuItem>
-            <MenuItem value="ano">Ano</MenuItem>
-            <MenuItem value="personalizado">Personalizado</MenuItem>
-          </Select>
-        </FormControl>
+          <div>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5">Tipo</label>
+            <select
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            >
+              <option value="">Todas</option>
+              <option value="Fixa">Fixa</option>
+              <option value="Variável">Variável</option>
+            </select>
+          </div>
 
-        {periodo === 'personalizado' && (
-          <>
-            <TextField
-              type="date"
-              label="Data Inicial"
-              value={dataInicial}
-              onChange={(e) => setDataInicial(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              type="date"
-              label="Data Final"
-              value={dataFinal}
-              onChange={(e) => setDataFinal(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </>
-        )}
+          <div className="flex items-end">
+            <Button
+              variant="primary"
+              size="md"
+              onClick={buscarRelatorio}
+              className="w-full"
+            >
+              <Filter size={15} className="w-4 h-4 shrink-0 mr-2" />
+              Gerar Relatório
+            </Button>
+          </div>
+        </div>
+      </Card>
 
-        <FormControl sx={{ minWidth: 180 }}>
-          <InputLabel>Tipo</InputLabel>
-          <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-            <MenuItem value="">Todas</MenuItem>
-            <MenuItem value="Fixa">Fixa</MenuItem>
-            <MenuItem value="Variável">Variável</MenuItem>
-          </Select>
-        </FormControl>
+      {/* Total Geral */}
+      <div className="mb-6">
+        <Card className="bg-danger text-white max-w-sm">
+          <div className="text-[10px] font-semibold opacity-90 mb-1">TOTAL GERAL</div>
+          <div className="text-2xl font-bold">{formatKz(total)}</div>
+        </Card>
+      </div>
 
-        {/* BOTÃO MOVIDO */}
-        <Button
-          variant="contained"
-          onClick={buscarRelatorio}
-          sx={{ height: 56 }}
-        >
-          Gerar Relatório
-        </Button>
-
-      </Stack>
-
-      {/* TOTAL GERAL (NÃO FULL WIDTH) */}
-      <Box mb={4}>
-        <Paper sx={{
-          ...cardStyle,
-          width: { xs: '100%', sm: 300 },
-          background: 'linear-gradient(135deg,#dc2626,#ef4444)',
-          color: '#fff'
-        }}>
-          <Typography fontSize={12}>TOTAL GERAL</Typography>
-          <Typography fontSize={30} fontWeight={900}>
-            {total.toLocaleString()} Kz
-          </Typography>
-        </Paper>
-      </Box>
-
-      {/* TABELA */}
+      {/* Tabela */}
       {loading ? (
-        <CircularProgress />
+        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
+          <span className="text-body">Carregando relatório...</span>
+        </div>
       ) : !temDados ? (
-        <Typography>Nenhuma despesa encontrada</Typography>
+        <Card className="text-center py-12">
+          <p className="text-body text-textMuted">Nenhuma despesa encontrada</p>
+        </Card>
       ) : (
-        <TableContainer component={Paper} sx={cardStyle}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Categoria</TableCell>
-                <TableCell>Descrição</TableCell>
-                <TableCell align="center">Qtd</TableCell>
-                <TableCell align="right">Total</TableCell>
-                <TableCell align="center">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {categorias.map((cat) => (
-                <TableRow key={cat.id}>
-                  <TableCell>{cat.nome}</TableCell>
-                  <TableCell>{cat.descricao}</TableCell>
-                  <TableCell align="center">
-                    {cat.quantidadeDespesas || 0}
-                  </TableCell>
-                  <TableCell align="right">
-                    <MoneyChip value={parseFloat(cat.totalDespesas || 0)} />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Button
-                      onClick={() => {
-                        setCategoriaSelecionada(cat);
-                        setOpenModal(true);
-                      }}
-                    >
-                      Ver
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Card padding="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-border bg-bgSection text-[10px] font-bold text-textMuted uppercase tracking-wide">
+                  <th className="px-5 py-3">Categoria</th>
+                  <th className="px-5 py-3">Descrição</th>
+                  <th className="px-5 py-3 text-center">Qtd</th>
+                  <th className="px-5 py-3 text-right">Total</th>
+                  <th className="px-5 py-3 text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-body">
+                {categorias.map((cat) => (
+                  <tr key={cat.id} className="hover:bg-bgSection/30 transition-colors">
+                    <td className="px-5 py-3 font-medium text-text">{cat.nome}</td>
+                    <td className="px-5 py-3 text-textMuted">{cat.descricao}</td>
+                    <td className="px-5 py-3 text-center">{cat.quantidadeDespesas || 0}</td>
+                    <td className="px-5 py-3 text-right">
+                      <Badge variant="danger">{formatKz(parseFloat(cat.totalDespesas || 0))}</Badge>
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCategoriaSelecionada(cat);
+                          setOpenModal(true);
+                        }}
+                      >
+                        <Eye size={13} className="mr-1" />
+                        Ver
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
-      {/* MODAL */}
-      <Dialog
+      {/* Modal */}
+      <Modal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        fullWidth
-        maxWidth="lg"
+        title={categoriaSelecionada?.nome}
+        maxWidth="max-w-2xl"
       >
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
-          <Typography fontWeight={900}>
-            {categoriaSelecionada?.nome}
-          </Typography>
-          <Button onClick={() => setOpenModal(false)}>Fechar</Button>
-        </Box>
-
-        <DialogContent>
-          <ListaDespesasCategorias
-            categoria={categoriaSelecionada}
-            onClose={() => setOpenModal(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-    </Box>
+        <ListaDespesasCategorias
+          categoria={categoriaSelecionada}
+          onClose={() => setOpenModal(false)}
+        />
+      </Modal>
+    </AppPage>
   );
 }

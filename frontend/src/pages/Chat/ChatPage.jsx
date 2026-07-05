@@ -1,17 +1,7 @@
 import { useEffect, useState, useRef } from "react";
-import { 
-  Box, 
-  Paper, 
-  Typography, 
-  TextField, 
-  IconButton, 
-  Avatar, 
-  CircularProgress,
-  Fade
-} from "@mui/material";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import { Send, Loader2, User } from "lucide-react";
 import api from "../../api/axiosConfig";
-import socket from "../../api/socketConfig"; // 🚀 IMPORTANTE: Ajuste o caminho para o seu arquivo socketConfig
+import socket from "../../api/socketConfig";
 
 export default function ChatPage({ conversaId, membroSelecionado, meuMembroId }) {
   const [conversa, setConversa] = useState(null);
@@ -36,7 +26,7 @@ export default function ChatPage({ conversaId, membroSelecionado, meuMembroId })
     carregarHistoricoInicial();
 
     // 2. Conecta e gerencia salas no Socket.io
-    socket.connect(); // Força a conexão já que o autoConnect está como false
+    socket.connect();
     
     // Avisa o servidor para colocar esse cliente na sala específica desta conversa
     socket.emit("join_room", conversaId);
@@ -76,7 +66,7 @@ export default function ChatPage({ conversaId, membroSelecionado, meuMembroId })
   const enviarMensagem = async () => {
     if (!mensagem.trim()) return;
     const textoParaEnviar = mensagem;
-    setMensagem(""); // Reseta o input imediatamente para manter a fluidez visual
+    setMensagem("");
     
     try {
       setLoading(true);
@@ -104,7 +94,7 @@ export default function ChatPage({ conversaId, membroSelecionado, meuMembroId })
 
     } catch (err) { 
       console.error("Erro ao enviar mensagem:", err);
-      setMensagem(textoParaEnviar); // Em caso de falha de rede, devolve o texto digitado ao input
+      setMensagem(textoParaEnviar);
     } finally { 
       setLoading(false); 
     }
@@ -112,82 +102,90 @@ export default function ChatPage({ conversaId, membroSelecionado, meuMembroId })
 
   // RENDERIZAÇÃO: Estado de Sincronização inicial do chat
   if (!conversa) return (
-    <Box sx={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", bgcolor: "#FFFFFF" }}>
-      <CircularProgress size={28} sx={{ color: "#0A46E4", mb: 2 }} />
-      <Typography sx={{ color: "#64748B", fontWeight: 500, letterSpacing: "0.5px" }}>Sincronizando conversa segura...</Typography>
-    </Box>
+    <div className="flex flex-col items-center justify-center h-full bg-white">
+      <Loader2 size={28} strokeWidth={1.75} className="text-primary animate-spin mb-2" />
+      <p className="text-body text-textMuted font-medium">Sincronizando conversa segura...</p>
+    </div>
   );
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "#FFFFFF", overflow: "hidden" }}>
+    <div className="flex flex-col h-full bg-white overflow-hidden">
       
-      {/* HEADER PREMIUM */}
-      <Paper elevation={0} sx={{ p: 2, display: "flex", alignItems: "center", gap: 2, borderBottom: "1px solid #F1F5F9", bgcolor: "#FFFFFF" }}>
-        <Avatar src={membroSelecionado?.foto} sx={{ width: 42, height: 42, border: "2px solid #F8FAFC", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }} />
-        <Box>
-          <Typography sx={{ fontWeight: 700, color: "#0F172A", fontSize: "1.05rem", letterSpacing: "-0.2px" }}>{membroSelecionado?.nome}</Typography>
-          <Typography variant="caption" sx={{ color: "#10B981", fontWeight: 700, display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Box sx={{ width: 6, height: 6, bgcolor: "#10B981", borderRadius: "50%", boxShadow: "0 0 8px #10B981" }} /> Online
-          </Typography>
-        </Box>
-      </Paper>
+      {/* HEADER */}
+      <div className="p-3 flex items-center gap-3 border-b border-border bg-white">
+        <div className="relative">
+          <img
+            src={membroSelecionado?.foto}
+            alt={membroSelecionado?.nome}
+            className="w-10 h-10 rounded-full object-cover border-2 border-bgSection shadow-sm"
+          />
+          <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-white shadow-sm" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-bold text-text">{membroSelecionado?.nome}</h3>
+          <p className="text-xs text-success font-medium flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-success rounded-full" />
+            Online
+          </p>
+        </div>
+      </div>
 
       {/* ÁREA DE MENSAGENS */}
-      <Box sx={{ flex: 1, overflowY: "auto", p: 3, display: "flex", flexDirection: "column", gap: 2.5, bgcolor: "#FBFDFE", backgroundImage: "radial-gradient(#E2E8F0 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" }}>
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-bgSection/30" style={{ backgroundImage: "radial-gradient(#E2E8F0 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" }}>
         {conversa.mensagens?.map((msg) => {
           const enviadaPorMim = Number(msg.MembroId) === Number(meuMembroId);
           return (
-            <Fade in key={msg.id}>
-              <Box sx={{ display: "flex", justifyContent: enviadaPorMim ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 1 }}>
-                {!enviadaPorMim && <Avatar src={msg.Membro?.foto || membroSelecionado?.foto} sx={{ width: 28, height: 28 }} />}
-                <Paper sx={{ 
-                  p: "10px 16px", 
-                  maxWidth: "70%", 
-                  borderRadius: enviadaPorMim ? "16px 16px 4px 16px" : "16px 16px 16px 4px", 
-                  backgroundColor: enviadaPorMim ? "#0A46E4" : "#FFFFFF", 
-                  color: enviadaPorMim ? "#FFFFFF" : "#1E293B",
-                  boxShadow: enviadaPorMim ? "0 4px 12px rgba(10, 70, 228, 0.2)" : "0 2px 6px rgba(0,0,0,0.04)",
-                  border: enviadaPorMim ? "none" : "1px solid #E2E8F0"
-                }}>
-                  <Typography variant="body2" sx={{ fontSize: "0.95rem", lineHeight: 1.5 }}>{msg.texto}</Typography>
-                </Paper>
-              </Box>
-            </Fade>
+            <div key={msg.id} className={`flex ${enviadaPorMim ? "justify-end" : "justify-start"} items-end gap-2`}>
+              {!enviadaPorMim && (
+                <img
+                  src={msg.Membro?.foto || membroSelecionado?.foto}
+                  alt=""
+                  className="w-7 h-7 rounded-full object-cover"
+                />
+              )}
+              <div
+                className={`px-4 py-2.5 max-w-[70%] rounded-2xl shadow-sm ${
+                  enviadaPorMim
+                    ? "bg-primary text-white rounded-br-sm"
+                    : "bg-white text-text border border-border rounded-bl-sm"
+                }`}
+              >
+                <p className="text-sm leading-relaxed">{msg.texto}</p>
+              </div>
+            </div>
           );
         })}
         <div ref={mensagensEndRef} />
-      </Box>
+      </div>
 
-      {/* INPUT BAR MODERNO */}
-      <Box sx={{ p: 2, bgcolor: "#FFFFFF", borderTop: "1px solid #F1F5F9" }}>
-        <Box sx={{ 
-          display: "flex", alignItems: "center", bgcolor: "#F8FAFC", borderRadius: "24px", p: "4px 8px", border: "1px solid #E2E8F0",
-          "&:focus-within": { borderColor: "#0A46E4", boxShadow: "0 0 0 2px rgba(10,70,228,0.1)" } 
-        }}>
-          <TextField
-            fullWidth
-            multiline
-            variant="standard"
+      {/* INPUT BAR */}
+      <div className="p-3 bg-white border-t border-border">
+        <div className="flex items-center bg-bgSection rounded-full px-4 py-2 border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+          <textarea
             value={mensagem}
             onChange={(e) => setMensagem(e.target.value)}
             placeholder="Digite uma mensagem..."
-            InputProps={{ disableUnderline: true, sx: { px: 2, py: 1 } }}
+            className="flex-1 bg-transparent border-none outline-none resize-none text-sm text-text placeholder:text-textMuted/60 py-1 px-2 max-h-24"
+            rows={1}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviarMensagem(); } }}
           />
-          <IconButton 
-            onClick={enviarMensagem} 
+          <button
+            onClick={enviarMensagem}
             disabled={loading || !mensagem.trim()}
-            sx={{ 
-              bgcolor: mensagem.trim() ? "#0A46E4" : "transparent",
-              color: mensagem.trim() ? "#FFFFFF" : "#94A3B8",
-              "&:hover": { bgcolor: mensagem.trim() ? "#0737B5" : "transparent" },
-              transition: "0.3s"
-            }}
+            className={`ml-2 p-2 rounded-full transition-all ${
+              mensagem.trim()
+                ? "bg-primary text-white hover:bg-primaryHover"
+                : "bg-transparent text-textMuted"
+            }`}
           >
-            <SendRoundedIcon />
-          </IconButton>
-        </Box>
-      </Box>
-    </Box>
+            {loading ? (
+              <Loader2 size={16} strokeWidth={1.75} className="animate-spin" />
+            ) : (
+              <Send size={16} strokeWidth={1.75} />
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

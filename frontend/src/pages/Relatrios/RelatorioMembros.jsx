@@ -129,8 +129,8 @@ export default function RelatorioPorMembro() {
     <Box
       sx={{
         minHeight: '100vh',
-        p: { xs: 2, md: 6 },
-        background: 'linear-gradient(135deg,#6b78ff 0%, #9c27b0 100%)',
+        p: { xs: 2, md: 4 },
+        background: '#F8F9FB',
         display: 'flex',
         justifyContent: 'center',
       }}
@@ -138,21 +138,22 @@ export default function RelatorioPorMembro() {
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        transition={{ duration: 0.5 }}
         style={{ width: '100%', maxWidth: 1100 }}
       >
-        <Card elevation={8} sx={{ borderRadius: 4, overflow: 'hidden' }}>
+        <Card elevation={0} sx={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E8E8ED' }}>
           <Box
             sx={{
               p: 4,
-              background: 'linear-gradient(90deg, rgba(33,150,243,1) 0%, rgba(156,39,176,1) 100%)',
+              background: '#4F5EF7',
             }}
           >
             <Typography
               variant="h4"
-              fontWeight="bold"
+              fontWeight={700}
               color="white"
               textAlign="center"
+              fontSize="20px"
             >
               <Summarize sx={{ fontSize: 40, mr: 1, verticalAlign: 'middle' }} />
               Relatório por Membro
@@ -203,17 +204,6 @@ export default function RelatorioPorMembro() {
                 variant="contained"
                 startIcon={<FilterAlt />}
                 onClick={buscarRelatorio}
-                sx={{
-                  background: 'linear-gradient(90deg,#6b78ff,#9c27b0)',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  px: 3,
-                  py: 1.2,
-                  borderRadius: 3,
-                  '&:hover': {
-                    background: 'linear-gradient(90deg,#5a68e5,#8e24aa)',
-                  },
-                }}
               >
                 Gerar Relatório
               </Button>
@@ -223,18 +213,6 @@ export default function RelatorioPorMembro() {
                 startIcon={<PictureAsPdf />}
                 onClick={exportarPDF}
                 disabled={!contribuicoes.length}
-                sx={{
-                  borderColor: '#6b78ff',
-                  color: '#6b78ff',
-                  fontWeight: 'bold',
-                  px: 3,
-                  py: 1.2,
-                  borderRadius: 3,
-                  '&:hover': {
-                    background: 'rgba(107,120,255,0.1)',
-                    borderColor: '#5a68e5',
-                  },
-                }}
               >
                 Exportar PDF
               </Button>

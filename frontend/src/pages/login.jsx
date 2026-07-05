@@ -31,7 +31,15 @@ export default function LoginPage() {
       setSuccess(res.data.message || "Login realizado com sucesso!");
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
-      window.location.href = "/";
+      const role = res.data.usuario?.funcao;
+      if (role === "usuario") {
+        window.location.href = "/perfil";
+      } else if (role === "moderador") {
+        window.location.href = "/lista-cultos";
+      } else {
+        // admin, superadmin
+        window.location.href = "/dashboard";
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Credenciais inválidas.");
     } finally {
