@@ -1,312 +1,135 @@
-// src/pages/Relatorios/RelatorioFinanceiroGeral.jsx
-import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Grid,
-  TextField,
-} from '@mui/material';
-import { FilterAlt, PictureAsPdf } from '@mui/icons-material';
-import dayjs from 'dayjs';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import {
-  BarChart,
-  Bar,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
-import api from '../../api/axiosConfig';
+import React, { useEffect, useState } from "react";
+import { PieChart, TrendingUp, TrendingDown, Wallet, Download, Loader2, X } from "lucide-react";
+import api from "../../api/axiosConfig";
+import AppPage from "../../components/ui/AppPage";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
 export default function RelatorioFinanceiroGeral() {
-  const [periodo, setPeriodo] = useState('todos'); // ✅ ALTERADO AQUI
+  const [financeiro, setFinanceiro] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [dados, setDados] = useState({
-    totalArrecadado: 0,
-    totalGasto: 0,
-    saldo: 0,
-  });
+  const [toast, setToast] = useState(null);
 
-  const [dataInicial, setDataInicial] = useState(
-    dayjs().startOf('month').format('YYYY-MM-DD')
-  );
-  const [dataFinal, setDataFinal] = useState(
-    dayjs().format('YYYY-MM-DD')
-  );
-
-  const formatKz = (valor) => {
-    const numero = Number(valor || 0);
-    return numero.toLocaleString('pt-PT', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  const calcularPeriodo = (p) => {
-    const agora = dayjs();
-    let inicio;
+  useEffect(() => {
+    fetchFinanceiro();
+  }, []);
 
-    if (p === 'personalizado') {
-      return { start: dataInicial, end: dataFinal };
-    }
-
-    if (p === 'todos') {
-      return { start: null, end: null }; // ✅ sem filtro
-    }
-
-    switch (p) {
-      case 'hoje': inicio = agora.startOf('day'); break;
-      case 'semana': inicio = agora.startOf('week'); break;
-      case 'mes': inicio = agora.startOf('month'); break;
-      case 'trimestre': inicio = agora.subtract(3, 'month').startOf('day'); break;
-      case 'semestre': inicio = agora.subtract(6, 'month').startOf('day'); break;
-      case 'ano': inicio = agora.startOf('year'); break;
-      default: inicio = agora.startOf('month');
-    }
-
-    return {
-      start: inicio.format('YYYY-MM-DD'),
-      end: agora.format('YYYY-MM-DD'),
-    };
-  };
-
-  const buscarRelatorio = async () => {
+  const fetchFinanceiro = async () => {
     setLoading(true);
     try {
-      const { start, end } = calcularPeriodo(periodo);
-
-      const params = {};
-      if (start && end) {
-        params.startDate = start;
-        params.endDate = end;
-      }
-
-      const res = await api.get('/financeiro', {
-        params,
-      });
-
-      setDados({
-        totalArrecadado: res.data.totalArrecadado || 0,
-        totalGasto: res.data.totalGasto || 0,
-        saldo: res.data.saldo || 0,
-      });
+      const res = await api.get("/relatorio/financeiro-geral");
+      setFinanceiro(res.data);
     } catch (err) {
       console.error(err);
+      showToast("Erro ao carregar dados financeiros.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const exportarPDF = () => {
-    const doc = new jsPDF();
-    const { start, end } = calcularPeriodo(periodo);
-
-    doc.setFontSize(16);
-    doc.text('Relatório Financeiro Geral', 14, 20);
-    doc.setFontSize(12);
-
-    doc.text(
-      `Período: ${periodo === 'todos' ? 'Todos os períodos' : `${start} até ${end}`}`,
-      14,
-      30
-    );
-
-    autoTable(doc, {
-      head: [['Descrição', 'Valor (Kz)']],
-      body: [
-        ['Total Arrecadado', formatKz(dados.totalArrecadado)],
-        ['Total Gasto', formatKz(dados.totalGasto)],
-        ['Saldo', formatKz(dados.saldo)],
-      ],
-      startY: 40,
-    });
-
-    doc.save('relatorio-financeiro.pdf');
+  const formatKz = (valor) => {
+    return `${Number(valor || 0).toLocaleString("pt-AO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
   };
 
-  const dadosGrafico = [
-    {
-      nome: 'Financeiro',
-      Contribuicao: dados.totalArrecadado,
-      Despesas: dados.totalGasto,
-      Saldo: dados.saldo,
-    },
-  ];
-
-  const cardStyle = (color, glow) => ({
-    height: '100%',
-    borderRadius: 4,
-    background: 'rgba(255,255,255,0.7)',
-    backdropFilter: 'blur(20px)',
-    border: `1px solid ${color}20`,
-    boxShadow: `0 8px 30px ${glow}`,
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: `0 12px 40px ${glow}`,
-    },
-  });
-
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        p: { xs: 2, md: 4 },
-        background: '#F8F9FB',
-      }}
-    >
-      <Typography variant="h4" fontWeight={700} mb={3} sx={{ color: '#0D0D12', fontSize: '20px' }}>
-        Relatório Financeiro
-      </Typography>
+    <AppPage subtitle="Balanço financeiro consolidado da igreja.">
+      {toast && (
+        <div className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+          toast.type === "error" ? "bg-danger/5 border-danger/20 text-danger" : "bg-successSoft border-success/20 text-success"
+        }`}>
+          {toast.message}
+        </div>
+      )}
 
-      {/* FILTROS */}
-      <Card sx={{ mb: 4, borderRadius: 4, background: 'rgba(255,255,255,0.8)' }}>
-        <CardContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Período</InputLabel>
-                <Select
-                  value={periodo}
-                  label="Período"
-                  onChange={(e) => setPeriodo(e.target.value)}
-                >
-                  <MenuItem value="todos">Todos</MenuItem> {/* ✅ NOVO */}
-                  <MenuItem value="hoje">Hoje</MenuItem>
-                  <MenuItem value="semana">Semana</MenuItem>
-                  <MenuItem value="mes">Mês</MenuItem>
-                  <MenuItem value="trimestre">Trimestre</MenuItem>
-                  <MenuItem value="semestre">Semestre</MenuItem>
-                  <MenuItem value="ano">Ano</MenuItem>
-                  <MenuItem value="personalizado">
-                    Personalizado - Escolha voce mesmo
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {periodo === 'personalizado' && (
-              <>
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Data Inicial"
-                    type="date"
-                    value={dataInicial}
-                    onChange={(e) => setDataInicial(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Data Final"
-                    type="date"
-                    value={dataFinal}
-                    onChange={(e) => setDataFinal(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-              </>
-            )}
-
-            <Grid item xs={12} sm={6} md={2}>
-              <Button fullWidth variant="contained" onClick={buscarRelatorio}>
-                Gerar
-              </Button>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={2}>
-              <Button fullWidth variant="outlined" onClick={exportarPDF}>
-                PDF
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-primarySoft flex items-center justify-center text-primary">
+            <Wallet size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Relatório Financeiro Geral</h2>
+            <p className="text-muted text-textMuted mt-0.5">Balanço consolidado</p>
+          </div>
+        </div>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => showToast("Funcionalidade de exportação em desenvolvimento", "info")}
+        >
+          <Download size={15} className="w-4 h-4 shrink-0 mr-2" />
+          Exportar
+        </Button>
+      </div>
 
       {loading ? (
-        <Box display="flex" justifyContent="center" mt={6}>
-          <CircularProgress />
-        </Box>
+        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
+          <span className="text-body">Carregando relatório...</span>
+        </div>
+      ) : !financeiro ? (
+        <Card className="text-center py-12">
+          <p className="text-body text-textMuted">Dados financeiros não disponíveis.</p>
+        </Card>
       ) : (
-        <>
-          {/* CARDS */}
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Card sx={cardStyle('#2563eb', 'rgba(37,99,235,0.15)')}>
-                <CardContent>
-                  <Typography variant="subtitle2">Contribuição Total</Typography>
-                  <Typography variant="h5">
-                    Kz {formatKz(dados.totalArrecadado)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+        <div className="space-y-6">
+          {/* Cards de Resumo */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="bg-success text-white">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp size={16} />
+                <span className="text-[10px] font-semibold opacity-90 uppercase">Total Receitas</span>
+              </div>
+              <p className="text-2xl font-bold">{formatKz(financeiro.totalReceitas || 0)}</p>
+            </Card>
+            <Card className="bg-danger text-white">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingDown size={16} />
+                <span className="text-[10px] font-semibold opacity-90 uppercase">Total Despesas</span>
+              </div>
+              <p className="text-2xl font-bold">{formatKz(financeiro.totalDespesas || 0)}</p>
+            </Card>
+            <Card className={financeiro.saldo >= 0 ? "bg-primary text-white" : "bg-warning text-white"}>
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet size={16} />
+                <span className="text-[10px] font-semibold opacity-90 uppercase">Saldo</span>
+              </div>
+              <p className="text-2xl font-bold">{formatKz(financeiro.saldo || 0)}</p>
+            </Card>
+          </div>
 
-            <Grid item xs={12} md={4}>
-              <Card sx={cardStyle('#dc2626', 'rgba(220,38,38,0.15)')}>
-                <CardContent>
-                  <Typography variant="subtitle2">Despesas Totais</Typography>
-                  <Typography variant="h5">
-                    Kz {formatKz(dados.totalGasto)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Card sx={cardStyle('#16a34a', 'rgba(22,163,74,0.15)')}>
-                <CardContent>
-                  <Typography variant="subtitle2">Saldo Atual</Typography>
-                  <Typography variant="h5">
-                    Kz {formatKz(dados.saldo)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* GRÁFICO */}
-          <Card sx={{ mt: 5, borderRadius: 4, background: 'rgba(255,255,255,0.8)' }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight={700} mb={2}>
-                Análise Financeira
-              </Typography>
-
-              <Box height={360}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dadosGrafico}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="nome" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `Kz ${formatKz(value)}`} />
-                    <Legend />
-                    <Bar dataKey="Contribuicao" fill="#2563eb" />
-                    <Bar dataKey="Despesas" fill="#dc2626" />
-                    <Bar dataKey="Saldo" fill="#16a34a" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Box>
-            </CardContent>
-          </Card>
-        </>
+          {/* Detalhamento */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card padding="p-4">
+              <h3 className="text-sm font-bold text-text mb-4">Receitas por Categoria</h3>
+              <div className="space-y-3">
+                {financeiro.receitasPorCategoria?.map((cat, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-sm text-text">{cat.categoria}</span>
+                    <Badge variant="success">{formatKz(cat.valor)}</Badge>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card padding="p-4">
+              <h3 className="text-sm font-bold text-text mb-4">Despesas por Categoria</h3>
+              <div className="space-y-3">
+                {financeiro.despesasPorCategoria?.map((cat, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-sm text-text">{cat.categoria}</span>
+                    <Badge variant="danger">{formatKz(cat.valor)}</Badge>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
       )}
-    </Box>
+    </AppPage>
   );
 }

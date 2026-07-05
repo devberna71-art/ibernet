@@ -1,470 +1,259 @@
-// src/pages/RelatorioMembros.js
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Container,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  OutlinedInput,
-  Checkbox,
-  ListItemText,
-  Button,
-  Box,
-  Stack,
-  Chip,
-  CircularProgress,
-  CssBaseline,
-  Snackbar,
-  Alert,
-  Switch,
-  FormControlLabel,
-  Fade,
-  Slide,
-  TextField,
-} from "@mui/material";
-import {
-  Brightness4,
-  Brightness7,
-  FilterAlt,
-  Search,
-  PictureAsPdf,
-  Description,
-} from "@mui/icons-material";
-import { createTheme, ThemeProvider, styled } from "@mui/material/styles";
-import { DataGrid } from "@mui/x-data-grid";
+  Building2,
+  Filter,
+  Download,
+  Loader2,
+  X,
+  Users,
+  DollarSign,
+  TrendingUp,
+} from "lucide-react";
 import api from "../../api/axiosConfig";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
+import AppPage from "../../components/ui/AppPage";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
-/* ---------- Styled ---------- */
-const GradientHeader = styled(Box)(({ theme }) => ({
-  borderRadius: 18,
-  padding: theme.spacing(3),
-  marginBottom: theme.spacing(4),
-  background:
-    theme.palette.mode === "dark"
-      ? "linear-gradient(90deg, rgba(63,81,181,0.18), rgba(156,39,176,0.12))"
-      : "linear-gradient(90deg, rgba(63,81,181,0.12), rgba(33,150,243,0.12))",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-}));
+/** Modal genérico leve */
+function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div
+        className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
+          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+          >
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
 
-export default function RelatorioMembros() {
-  const [filtros, setFiltros] = useState({
-    generos: [],
-    estadosCivis: [],
-    profissoes: [],
-    idades: [],
-    batizados: [],
-    cargos: [],
-    departamentos: [],
-    categoriasMinisteriais: [],
-    habilitacoes: [],
-  });
-
-  const [filtroAtivo, setFiltroAtivo] = useState({
-    generos: [],
-    estadosCivis: [],
-    profissoes: [],
-    idades: [],
-    batizados: [],
-    cargos: [],
-    departamentos: [],
-    categoriasMinisteriais: [],
-    habilitacoes: [],
-  });
-
-  const [relatorio, setRelatorio] = useState([]);
+export default function RelatorioSede() {
+  const [sedes, setSedes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState("light");
-  const [snack, setSnack] = useState({ open: false, message: "", severity: "success" });
-  const [search, setSearch] = useState("");
+  const [selectedSede, setSelectedSede] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  // 🔹 Busca filtros iniciais
-  useEffect(() => {
-    const fetchFiltros = async () => {
-      try {
-        const res = await api.get("/membros-filtros");
-        const data = res.data;
-
-        const addContagem = (arr, campo) => {
-          return arr.map((val) => {
-            const valorSemParenteses = val.replace(/\s\(\d+\smembros\)$/, "");
-            const count = data.membros.filter((m) => {
-              if (campo === "batizados") return m.batizadoStatus === valorSemParenteses;
-              if (campo === "idades") {
-                const idade = m.idade || 0;
-                if (valorSemParenteses === "0-18") return idade >= 0 && idade <= 18;
-                if (valorSemParenteses === "19-30") return idade >= 19 && idade <= 30;
-                if (valorSemParenteses === "31-50") return idade >= 31 && idade <= 50;
-                if (valorSemParenteses === "51+") return idade >= 51;
-              }
-              return m[campo] === valorSemParenteses;
-            }).length;
-            return `${valorSemParenteses} (${count} membros)`;
-          });
-        };
-
-        setFiltros({
-          generos: addContagem(data.filtros.generos, "genero"),
-          estadosCivis: addContagem(data.filtros.estadosCivis, "estado_civil"),
-          profissoes: addContagem(data.filtros.profissoes, "profissao"),
-          idades: addContagem(data.filtros.idades, "idades"),
-          batizados: addContagem(data.filtros.batizados, "batizados"),
-          cargos: data.filtros.cargos || [],
-          departamentos: data.filtros.departamentos || [],
-          categoriasMinisteriais: data.filtros.categoriasMinisteriais || [],
-          habilitacoes: data.filtros.habilitacoes || [],
-        });
-      } catch (err) {
-        console.error(err);
-        setSnack({ open: true, message: "Erro ao carregar filtros.", severity: "error" });
-      }
-    };
-    fetchFiltros();
-  }, []);
-
-  const handleChange = (e, key) => {
-    const { value } = e.target;
-    const selecionados = typeof value === "string" ? value.split(",") : value;
-    setFiltroAtivo({
-      ...filtroAtivo,
-      [key]: selecionados.map((v) => v.replace(/\s\(\d+\smembros\)$/, "")),
-    });
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  const gerarRelatorio = async () => {
+  useEffect(() => {
+    fetchSedes();
+  }, []);
+
+  const fetchSedes = async () => {
     setLoading(true);
     try {
-      const res = await api.post("/membros-relatorio", filtroAtivo);
-      setRelatorio(res.data);
-      setSnack({ open: true, message: "Relatório gerado com sucesso.", severity: "success" });
+      const res = await api.get("/sedes-com-filhais");
+      setSedes(res.data || []);
     } catch (err) {
       console.error(err);
-      setSnack({ open: true, message: "Erro ao gerar relatório.", severity: "error" });
+      showToast("Erro ao carregar dados das sedes.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // 📦 Exportar para Excel
-  const exportarExcel = () => {
-    if (relatorio.length === 0) return;
-    const ws = XLSX.utils.json_to_sheet(relatorio);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Relatório de Membros");
-    XLSX.writeFile(wb, "relatorio_membros.xlsx");
+  const formatKz = (valor) => {
+    return `${Number(valor || 0).toLocaleString("pt-AO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
   };
-
-  // 📦 Exportar para PDF (corrigido)
-  const exportarPDF = async () => {
-    if (relatorio.length === 0) return;
-
-    const { default: autoTable } = await import("jspdf-autotable");
-    const doc = new jsPDF("p", "pt");
-    doc.setFontSize(14);
-    doc.text("Relatório de Membros", 40, 40);
-
-    const colunas = ["Nome", "Gênero", "Idade", "Estado Civil", "Profissão"];
-    const linhas = relatorio.map((r) => [
-      r.nome || "",
-      r.genero || "",
-      r.idade || "",
-      r.estado_civil || "",
-      r.profissao || "",
-    ]);
-
-    autoTable(doc, {
-      head: [colunas],
-      body: linhas,
-      startY: 60,
-      styles: { fontSize: 10, cellPadding: 6 },
-      headStyles: { fillColor: [13, 71, 161] },
-    });
-
-    doc.save("relatorio_membros.pdf");
-  };
-
-  // 🌙 Tema moderno
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-          ...(mode === "light"
-            ? {
-                primary: { main: "#4F5EF7", light: "#EEF0FE", contrastText: "#FFFFFF" },
-                background: { default: "#FFFFFF", paper: "#FFFFFF" },
-                text: { primary: "#0D0D12", secondary: "#4A4A5A" },
-              }
-            : {
-                primary: { main: "#818CF8", light: "#EEF0FE", contrastText: "#FFFFFF" },
-                background: { default: "#0D0D12", paper: "#16161E" },
-                text: { primary: "#F8F9FB", secondary: "#8C8CA1" },
-              }),
-        },
-        typography: {
-          fontFamily: '"Inter", "system-ui", "-apple-system", sans-serif',
-          h3: { fontWeight: 800, fontSize: "24px" },
-          h5: { fontWeight: 700, fontSize: "16px" },
-          body1: { fontSize: "14px" },
-          body2: { fontSize: "13px" },
-        },
-        shape: {
-          borderRadius: 8,
-        },
-      }),
-    [mode]
-  );
-
-  // ✅ Colunas da tabela
-  const columns = [
-    {
-      field: "foto",
-      headerName: "Foto",
-      width: 90,
-      sortable: false,
-      renderCell: (params) =>
-        params.value ? (
-          <img
-            src={params.value}
-            alt={params.row.nome}
-            style={{
-              width: 45,
-              height: 45,
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: "2px solid #bbdefb",
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              width: 45,
-              height: 45,
-              borderRadius: "50%",
-              background: "#bbdefb",
-            }}
-          />
-        ),
-    },
-    { field: "nome", headerName: "Nome", flex: 1.5, minWidth: 200 },
-    { field: "genero", headerName: "Gênero", flex: 1 },
-    { field: "idade", headerName: "Idade", flex: 0.7 },
-    { field: "estado_civil", headerName: "Estado Civil", flex: 1 },
-    { field: "profissao", headerName: "Profissão", flex: 1 },
-  ];
-
-  const filteredRelatorio = relatorio.filter((m) =>
-    m.nome?.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
-        sx={{
-          minHeight: "100vh",
-          py: 6,
-          px: { xs: 2, sm: 4 },
-          background:
-            mode === "dark"
-              ? "radial-gradient(1200px 400px at 10% 10%, rgba(63,81,181,0.06), transparent)"
-              : "radial-gradient(1200px 400px at 90% 20%, rgba(33,150,243,0.05), transparent)",
-        }}
-      >
-        <Container maxWidth="xl">
-          {/* Cabeçalho */}
-          <GradientHeader>
-            <Box>
-              <Fade in>
-                <Typography variant="h3" sx={{ lineHeight: 1 }}>
-                  Relatório de{" "}
-                  <Box component="span" sx={{ color: "primary.main" }}>
-                    Membros
-                  </Box>
-                </Typography>
-              </Fade>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Gere relatórios detalhados de membros aplicando múltiplos filtros.
-              </Typography>
-            </Box>
+    <AppPage subtitle="Relatório consolidado por sede e filiais.">
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+            toast.type === "error"
+              ? "bg-danger/5 border-danger/20 text-danger"
+              : "bg-successSoft border-success/20 text-success"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
 
-            <Stack direction="row" spacing={2} alignItems="center">
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={mode === "dark"}
-                    onChange={() => setMode((m) => (m === "dark" ? "light" : "dark"))}
-                    icon={<Brightness7 />}
-                    checkedIcon={<Brightness4 />}
-                  />
-                }
-                label={mode === "dark" ? "Dark" : "Light"}
-                sx={{ mr: 2 }}
-              />
-              <Button
-                variant="contained"
-                startIcon={<FilterAlt />}
-                onClick={gerarRelatorio}
-                disabled={loading}
-                sx={{
-                  textTransform: "none",
-                  px: 2.5,
-                  py: 1.1,
-                  borderRadius: 12,
-                  fontWeight: 700,
-                }}
-              >
-                {loading ? <CircularProgress size={22} sx={{ color: "#fff" }} /> : "Gerar Relatório"}
-              </Button>
-            </Stack>
-          </GradientHeader>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-primarySoft flex items-center justify-center text-primary">
+            <Building2 size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Relatório por Sede</h2>
+            <p className="text-muted text-textMuted mt-0.5">Visão consolidada de congregações</p>
+          </div>
+        </div>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => showToast("Funcionalidade de exportação em desenvolvimento", "info")}
+        >
+          <Download size={15} className="w-4 h-4 shrink-0 mr-2" />
+          Exportar
+        </Button>
+      </div>
 
-          {/* Filtros */}
-          <Stack direction="row" spacing={3} justifyContent="center" sx={{ mb: 2, flexWrap: "wrap" }}>
-            {[
-              { key: "generos", label: "Gênero", values: filtros.generos },
-              { key: "estadosCivis", label: "Estado Civil", values: filtros.estadosCivis },
-              { key: "profissoes", label: "Profissão", values: filtros.profissoes },
-              { key: "idades", label: "Idade", values: filtros.idades },
-              { key: "batizados", label: "Batizado", values: filtros.batizados },
-              { key: "cargos", label: "Cargo", values: filtros.cargos },
-              { key: "departamentos", label: "Departamento", values: filtros.departamentos },
-              { key: "categoriasMinisteriais", label: "Categoria Ministerial", values: filtros.categoriasMinisteriais },
-              { key: "habilitacoes", label: "Habilitações", values: filtros.habilitacoes },
-            ].map(({ key, label, values }) => (
-              <FormControl key={key} sx={{ minWidth: 220, mb: 2 }}>
-                <InputLabel>{label}</InputLabel>
-                <Select
-                  multiple
-                  value={filtroAtivo[key]}
-                  onChange={(e) => handleChange(e, key)}
-                  input={<OutlinedInput label={label} />}
-                  renderValue={(selected) => selected.join(", ")}
-                >
-                  {values.map((val, i) => {
-                    const valorReal = val.replace(/\s\(\d+\smembros\)$/, "");
-                    const count = val.match(/\((\d+)\smembros\)/)?.[1] || 0;
-                    return (
-                      <MenuItem key={i} value={valorReal}>
-                        <Checkbox checked={filtroAtivo[key].indexOf(valorReal) > -1} />
-                        <ListItemText primary={`${valorReal} (${count} membros)`} />
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-            ))}
-          </Stack>
+      {/* Loading */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
+          <span className="text-body">Carregando relatório...</span>
+        </div>
+      ) : sedes.length === 0 ? (
+        <Card className="text-center py-12">
+          <p className="text-body text-textMuted">Nenhuma sede encontrada.</p>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {sedes.map((sede) => (
+            <Card key={sede.id} padding="p-4" className="hover:border-primary/20 transition-all duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-md bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white shadow-lg">
+                    <Building2 size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-text">{sede.nome}</h3>
+                    <p className="text-xs text-textMuted">{sede.endereco || "Sem endereço"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={sede.status === "ativo" ? "success" : "warning"}>
+                    {sede.status || "Pendente"}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedSede(sede);
+                      setOpenModal(true);
+                    }}
+                  >
+                    <Filter size={13} className="mr-1" />
+                    Detalhes
+                  </Button>
+                </div>
+              </div>
 
-          {/* Chips de Filtros Ativos */}
-          {Object.entries(filtroAtivo).some(([k, v]) => v.length > 0) && (
-            <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: "wrap" }}>
-              {Object.entries(filtroAtivo).map(([key, valores]) =>
-                valores.map((v) => (
-                  <Chip
-                    key={`${key}-${v}`}
-                    label={`${key}: ${v}`}
-                    color="primary"
-                    onDelete={() =>
-                      setFiltroAtivo((prev) => ({
-                        ...prev,
-                        [key]: prev[key].filter((item) => item !== v),
-                      }))
-                    }
-                    sx={{ mb: 1 }}
-                  />
-                ))
+              {/* Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 bg-bgSection/50 rounded-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users size={14} className="text-textMuted" />
+                    <span className="text-[10px] font-semibold text-textMuted uppercase">Membros</span>
+                  </div>
+                  <p className="text-lg font-bold text-text">{sede.quantidadeMembros || 0}</p>
+                </div>
+                <div className="p-3 bg-bgSection/50 rounded-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Building2 size={14} className="text-textMuted" />
+                    <span className="text-[10px] font-semibold text-textMuted uppercase">Filiais</span>
+                  </div>
+                  <p className="text-lg font-bold text-text">{sede.Filhals?.length || 0}</p>
+                </div>
+                <div className="p-3 bg-bgSection/50 rounded-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <DollarSign size={14} className="text-textMuted" />
+                    <span className="text-[10px] font-semibold text-textMuted uppercase">Receita</span>
+                  </div>
+                  <p className="text-lg font-bold text-success">{formatKz(sede.totalReceita || 0)}</p>
+                </div>
+                <div className="p-3 bg-bgSection/50 rounded-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp size={14} className="text-textMuted" />
+                    <span className="text-[10px] font-semibold text-textMuted uppercase">Despesas</span>
+                  </div>
+                  <p className="text-lg font-bold text-danger">{formatKz(sede.totalDespesas || 0)}</p>
+                </div>
+              </div>
+
+              {/* Filiais */}
+              {sede.Filhals && sede.Filhals.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <h4 className="text-xs font-bold text-text uppercase tracking-wide mb-3">Filiais</h4>
+                  <div className="space-y-2">
+                    {sede.Filhals.map((filial) => (
+                      <div key={filial.id} className="p-3 bg-bgSection/30 rounded-sm border border-border">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-semibold text-text">{filial.nome}</p>
+                            <p className="text-[10px] text-textMuted">{filial.endereco || "Sem endereço"}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-textMuted">{filial.quantidadeMembros || 0} membros</span>
+                            <Badge variant={filial.status === "ativo" ? "success" : "warning"} className="text-[10px]">
+                              {filial.status || "Pendente"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
-            </Stack>
-          )}
+            </Card>
+          ))}
+        </div>
+      )}
 
-          {/* Resultado */}
-          {relatorio.length > 0 ? (
-            <Box sx={{ mt: 4 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                <Typography variant="h4" fontWeight="bold">
-                  Resultado do Relatório
-                </Typography>
-                <TextField
-                  size="small"
-                  placeholder="Buscar por nome..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  InputProps={{
-                    startAdornment: <Search sx={{ mr: 1, color: "text.secondary" }} />,
-                  }}
-                />
-              </Stack>
+      {/* Modal Detalhes */}
+      <Modal
+        open={openModal}
+        onClose={() => {
+          setOpenModal(false);
+          setSelectedSede(null);
+        }}
+        title={`Detalhes: ${selectedSede?.nome || ""}`}
+        maxWidth="max-w-lg"
+      >
+        {selectedSede && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-bold text-text mb-2">Informações Gerais</h4>
+              <div className="space-y-2 text-sm">
+                <p><span className="font-semibold text-textSecondary">Nome:</span> {selectedSede.nome}</p>
+                <p><span className="font-semibold text-textSecondary">Endereço:</span> {selectedSede.endereco || "Não informado"}</p>
+                <p><span className="font-semibold text-textSecondary">Telefone:</span> {selectedSede.telefone || "Não informado"}</p>
+                <p><span className="font-semibold text-textSecondary">Email:</span> {selectedSede.email || "Não informado"}</p>
+                <p><span className="font-semibold text-textSecondary">Status:</span> {selectedSede.status || "Pendente"}</p>
+              </div>
+            </div>
 
-              {/* Botões de exportação */}
-              <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ mb: 2 }}>
-                <Button variant="outlined" startIcon={<Description />} onClick={exportarExcel}>
-                  Exportar Excel
-                </Button>
-                <Button variant="outlined" startIcon={<PictureAsPdf />} onClick={exportarPDF}>
-                  Exportar PDF
-                </Button>
-              </Stack>
-
-              <Box sx={{ height: "70vh", width: "100%" }}>
-                <DataGrid
-                  rows={filteredRelatorio}
-                  columns={columns}
-                  pageSize={10}
-                  rowsPerPageOptions={[10, 25, 50]}
-                  disableSelectionOnClick
-                  sx={{
-                    borderRadius: 4,
-                    boxShadow: 4,
-                    border: "none",
-                    "& .MuiDataGrid-columnHeaders": {
-                      backgroundColor:
-                        theme.palette.mode === "dark" ? "#1e293b" : "#e3f2fd",
-                      color: theme.palette.text.primary,
-                      fontWeight: 700,
-                      fontSize: 16,
-                    },
-                    "& .MuiDataGrid-row": {
-                      transition: "all 0.25s ease",
-                      "&:hover": {
-                        backgroundColor:
-                          theme.palette.mode === "dark"
-                            ? "rgba(144,202,249,0.08)"
-                            : "rgba(13,71,161,0.06)",
-                      },
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
-          ) : (
-            !loading && (
-              <Slide direction="up" in>
-                <Typography align="center" sx={{ mt: 4, color: "text.secondary" }}>
-                  Nenhum membro encontrado com os filtros selecionados.
-                </Typography>
-              </Slide>
-            )
-          )}
-
-          {/* Snackbar */}
-          <Snackbar
-            open={snack.open}
-            autoHideDuration={3500}
-            onClose={() => setSnack((s) => ({ ...s, open: false }))}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          >
-            <Alert severity={snack.severity} sx={{ width: "100%" }}>
-              {snack.message}
-            </Alert>
-          </Snackbar>
-        </Container>
-      </Box>
-    </ThemeProvider>
+            <div>
+              <h4 className="text-sm font-bold text-text mb-2">Estatísticas</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-bgSection/50 rounded-sm">
+                  <p className="text-[10px] text-textMuted uppercase">Membros</p>
+                  <p className="text-lg font-bold text-text">{selectedSede.quantidadeMembros || 0}</p>
+                </div>
+                <div className="p-3 bg-bgSection/50 rounded-sm">
+                  <p className="text-[10px] text-textMuted uppercase">Filiais</p>
+                  <p className="text-lg font-bold text-text">{selectedSede.Filhals?.length || 0}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </AppPage>
   );
 }
