@@ -45,7 +45,7 @@ export default function NovosMembros() {
             <img
               src={
                 membro.foto ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(membro.nome)}&background=EEF0FE&color=4F5EF7&size=64`
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(membro.nome)}&background=EFF6FF&color=2563EB&size=64`
               }
               alt={membro.nome}
               className="w-9 h-9 rounded-full object-cover shrink-0"

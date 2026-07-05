@@ -3,22 +3,6 @@ import api from '../api/axiosConfig';
 
 const AuthContext = createContext(null);
 
-function decodificarToken(token) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      window.atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
@@ -34,11 +18,11 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      await api.get('/usuario/status');
-      const payload = decodificarToken(token);
-      if (payload && payload.funcao) {
-        setUser(payload);
-        setRole(payload.funcao);
+      const response = await api.get('/usuario/status');
+      const usuarioData = response.data.usuario;
+      if (usuarioData && usuarioData.funcao) {
+        setUser(usuarioData);
+        setRole(usuarioData.funcao);
       } else {
         setUser(null);
         setRole(null);
@@ -57,7 +41,11 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (token, userData) => {
     localStorage.setItem('token', token);
-    if (userData) localStorage.setItem('usuario', JSON.stringify(userData));
+    if (userData) {
+      localStorage.setItem('usuario', JSON.stringify(userData));
+      setUser(userData);
+      setRole(userData.funcao);
+    }
     await verifyAuth();
   }, [verifyAuth]);
 

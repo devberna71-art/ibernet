@@ -32,6 +32,7 @@ import {
 /* ─── Role badge colors ────────────────────────────────────────────── */
 const ROLE_META = {
   superadmin: { label: "Super Admin", color: "bg-violet-100 text-violet-700" },
+  super_admin: { label: "Super Admin", color: "bg-violet-100 text-violet-700" },
   admin:      { label: "Administrador", color: "bg-primarySoft text-primary" },
   moderador:  { label: "Moderador", color: "bg-amber-100 text-amber-700" },
   usuario:    { label: "Membro", color: "bg-green-100 text-green-700" },
@@ -58,15 +59,23 @@ function NavItem({ to, icon: Icon, label, active, badge, onClick, className = ""
     </>
   );
 
+  const handleClick = (e) => {
+    if (onClick) onClick();
+    // Log para debug de links não funcionantes
+    if (to) {
+      console.log(`[Sidebar] Navegando para: ${to}`);
+    }
+  };
+
   if (to) {
     return (
-      <Link to={to} className={`${base} ${state} ${className}`} onClick={onClick}>
+      <Link to={to} className={`${base} ${state} ${className}`} onClick={handleClick}>
         {content}
       </Link>
     );
   }
   return (
-    <button type="button" onClick={onClick} className={`${base} ${state} w-[calc(100%-16px)] ${className}`}>
+    <button type="button" onClick={handleClick} className={`${base} ${state} w-[calc(100%-16px)] ${className}`}>
       {content}
     </button>
   );
@@ -74,10 +83,15 @@ function NavItem({ to, icon: Icon, label, active, badge, onClick, className = ""
 
 /* ─── SubNavItem ───────────────────────────────────────────────────── */
 function SubNavItem({ to, label, active, onClick }) {
+  const handleClick = () => {
+    if (onClick) onClick();
+    console.log(`[Sidebar] Navegando para submenu: ${to}`);
+  };
+
   return (
     <Link
       to={to}
-      onClick={onClick}
+      onClick={handleClick}
       className={[
         "block py-1.5 pl-9 pr-3 mx-2 rounded-sm text-[12px] transition-colors duration-150",
         active
@@ -152,7 +166,7 @@ export default function Sidebar({
   const isAdmin      = userRole === "admin";
   const isModerador  = userRole === "moderador";
   const isUsuario    = userRole === "usuario";
-  const isSuperAdmin = userRole === "superadmin";
+  const isSuperAdmin = userRole === "superadmin" || userRole === "super_admin";
 
   return (
     <aside

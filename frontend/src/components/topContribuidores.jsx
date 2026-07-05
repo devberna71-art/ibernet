@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { CircularProgress } from "@mui/material";
-import { Trophy } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosConfig";
-import Card, { CardHeader } from "./ui/Card";
+import Card, { CardHeader, CardLink } from "./ui/Card";
 import Badge from "./ui/Badge";
 
 export default function TopContribuidores() {
@@ -21,8 +20,8 @@ export default function TopContribuidores() {
 
   if (loading) {
     return (
-      <div className="bg-surface rounded-lg shadow-soft border border-surfaceMuted/60 h-96 flex items-center justify-center">
-        <CircularProgress size={28} />
+      <div className="bg-surface rounded-md border border-border h-96 flex items-center justify-center">
+        <Loader2 size={28} strokeWidth={1.75} className="text-primary animate-spin" />
       </div>
     );
   }
@@ -36,13 +35,9 @@ export default function TopContribuidores() {
           title="Maiores contribuidores"
           subtitle="Reconhecimento dos membros mais engajados"
           action={
-            <button
-              type="button"
-              onClick={() => navigate("/gestao/relatorioContribuicoes")}
-              className="text-body font-semibold text-primary hover:text-[#C56A3F]"
-            >
+            <CardLink onClick={() => navigate("/gestao/relatorioContribuicoes")}>
               Ver relatório
-            </button>
+            </CardLink>
           }
         />
       </div>
@@ -54,15 +49,15 @@ export default function TopContribuidores() {
             <img
               src={
                 top.membro?.foto ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(top.membro?.nome || "?")}&background=ffffff&color=D97A4D`
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(top.membro?.nome || "?")}&background=EFF6FF&color=2563EB`
               }
               alt={top.membro?.nome}
               className="w-16 h-16 rounded-sm object-cover border-2 border-white/30"
             />
             <div className="flex-1">
-              <Badge variant="soft" className="!bg-white/20 !text-white mb-2">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-sm text-[11px] font-semibold bg-white/20 text-white mb-2">
                 Top 1
-              </Badge>
+              </span>
               <p className="text-lg font-bold">{top.membro?.nome}</p>
               <p className="text-sm text-white/80">Líder do ranking</p>
             </div>
@@ -85,7 +80,7 @@ export default function TopContribuidores() {
             <img
               src={
                 item.membro?.foto ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(item.membro?.nome || "?")}&background=FBE3CF&color=D97A4D`
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(item.membro?.nome || "?")}&background=EFF6FF&color=2563EB`
               }
               alt={item.membro?.nome}
               className="w-10 h-10 rounded-sm object-cover"

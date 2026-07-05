@@ -189,7 +189,7 @@ export default function LoginPage() {
             <p className="text-body text-textMuted mb-3">Ainda não tem conta?</p>
             <Link
               to="/criar-usuarios"
-              className="inline-flex items-center gap-1.5 text-body font-semibold text-primary hover:text-[#3B4AE8] transition-colors"
+              className="inline-flex items-center gap-1.5 text-body font-semibold text-primary hover:text-primaryHover transition-colors"
               id="login-create-account-link"
             >
               Criar conta

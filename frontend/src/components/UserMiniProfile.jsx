@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { ChevronDown, LogOut, User, Lock, X, Eye, EyeOff } from "lucide-react";
-
 import Perfil from "../pages/Perfil";
 import api from "../api/axiosConfig";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
 
 export default function UserMiniProfile({ membro }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,61 +39,56 @@ export default function UserMiniProfile({ membro }) {
     }
   };
 
+  const inputClass =
+    "w-full rounded-sm border border-border px-4 py-2.5 text-body text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20";
+
   return (
     <>
-      {/* Profile Button */}
-      <div
+      <button
+        type="button"
         onClick={() => setMenuOpen(true)}
-        className="flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-[#ECE5D8] bg-white px-1.5 py-1 shadow-sm transition-all hover:bg-[#FBE3CF]"
+        className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-1.5 py-1 shadow-sm transition-all hover:bg-bgSection"
       >
-        {/* Avatar with online indicator */}
         <div className="relative">
-          <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#5C8A5C]" />
+          <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-success" />
           <img
             src={membro.foto || ""}
             alt={membro.nome}
-            className="h-[55px] w-[55px] rounded-[18px] border-3 border-white object-cover shadow-lg"
+            className="h-[55px] w-[55px] rounded-md border-2 border-white object-cover shadow-sm"
           />
         </div>
 
-        {/* User info */}
-        <div className="hidden sm:block">
-          <p className="text-sm font-semibold text-[#211D19]">{membro.nome}</p>
-          <p className="mt-0.5 text-xs font-medium text-[#5C8A5C]">● Online agora</p>
+        <div className="hidden sm:block text-left">
+          <p className="text-sm font-semibold text-text">{membro.nome}</p>
+          <p className="mt-0.5 text-xs font-medium text-success">● Online agora</p>
         </div>
 
-        <ChevronDown className="h-6 w-6 text-[#8B8378] transition-transform group-hover:rotate-180" />
-      </div>
+        <ChevronDown className="h-6 w-6 text-textMuted" />
+      </button>
 
-      {/* Dropdown Menu */}
       {menuOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setMenuOpen(false)}
-          />
-          <div className="absolute right-0 top-full z-50 mt-1.5 w-[260px] overflow-hidden rounded-[24px] border border-[#ECE5D8] bg-white shadow-lg">
-            {/* Header */}
-            <div className="py-2 text-center">
+          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-0 top-full z-50 mt-1.5 w-[260px] overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
+            <div className="py-3 text-center">
               <img
                 src={membro.foto || ""}
                 alt={membro.nome}
-                className="mx-auto mb-1 h-[75px] w-[75px] rounded-full border-4 border-white object-cover shadow-lg"
+                className="mx-auto mb-1 h-[75px] w-[75px] rounded-full border-4 border-white object-cover shadow-sm"
               />
-              <p className="font-extrabold text-[#0f172a]">{membro.nome}</p>
-              <p className="text-xs text-[#64748b]">Conta Premium</p>
+              <p className="font-semibold text-text">{membro.nome}</p>
+              <p className="text-xs text-textMuted">Conta Premium</p>
             </div>
 
-            <div className="my-1 border-b border-gray-200" />
+            <div className="my-1 border-b border-border" />
 
-            {/* Menu Items */}
             <button
               onClick={() => {
                 setProfileOpen(true);
                 setViewMode("perfil");
                 setMenuOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-[15px] px-4 py-1.5 text-left font-bold text-[#211D19] transition hover:bg-[#FBE3CF] hover:translate-x-1"
+              className="flex w-full items-center gap-2 rounded-sm px-4 py-2 text-left text-body font-semibold text-text transition hover:bg-bgSection"
             >
               <User size={18} />
               Meu Perfil
@@ -104,17 +100,17 @@ export default function UserMiniProfile({ membro }) {
                 setViewMode("senha");
                 setMenuOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-[15px] px-4 py-1.5 text-left font-bold text-[#211D19] transition hover:bg-[#FBE3CF] hover:translate-x-1"
+              className="flex w-full items-center gap-2 rounded-sm px-4 py-2 text-left text-body font-semibold text-text transition hover:bg-bgSection"
             >
               <Lock size={18} />
               Alterar password
             </button>
 
-            <div className="my-1 border-b border-gray-200" />
+            <div className="my-1 border-b border-border" />
 
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 rounded-[15px] px-4 py-1.5 text-left font-extrabold text-[#B5332C] transition hover:bg-red-50 hover:translate-x-1"
+              className="flex w-full items-center gap-2 rounded-sm px-4 py-2 text-left text-body font-semibold text-danger transition hover:bg-dangerSoft"
             >
               <LogOut size={18} />
               Terminar Sessão
@@ -123,39 +119,36 @@ export default function UserMiniProfile({ membro }) {
         </>
       )}
 
-      {/* Profile Modal */}
       {profileOpen && (
         <>
           <div
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={() => setProfileOpen(false)}
           />
-          <div className="fixed right-4 top-4 z-[60] w-[95vw] max-w-[430px] overflow-hidden rounded-[30px] border border-white/70 bg-white/92 shadow-2xl backdrop-blur-xl sm:right-auto sm:left-1/2 sm:-translate-x-1/2">
-            {/* Header */}
-            <div className="relative bg-[#D97A4D] px-4 py-3 text-center text-white">
+          <div className="fixed right-4 top-4 z-[60] w-[95vw] max-w-[430px] overflow-hidden rounded-lg border border-border bg-surface shadow-lg sm:right-auto sm:left-1/2 sm:-translate-x-1/2">
+            <div className="relative bg-primary px-4 py-4 text-center text-white">
               <button
                 onClick={() => setProfileOpen(false)}
-                className="absolute right-3 top-3 rounded-md bg-white/15 p-2 text-white transition hover:bg-white/25"
+                className="absolute right-3 top-3 rounded-sm bg-white/15 p-2 text-white transition hover:bg-white/25"
               >
                 <X size={20} />
               </button>
               <img
                 src={membro.foto || ""}
                 alt={membro.nome}
-                className="mx-auto mb-1 h-[90px] w-[90px] rounded-full border-4 border-white object-cover shadow-xl"
+                className="mx-auto mb-1 h-[90px] w-[90px] rounded-full border-4 border-white object-cover shadow-sm"
               />
-              <p className="text-xl font-black">{membro.nome}</p>
+              <p className="text-xl font-bold">{membro.nome}</p>
               <p className="text-sm opacity-85">Área pessoal segura</p>
             </div>
 
-            {/* Content */}
-            <div className="p-3">
+            <div className="p-4">
               {feedback && (
                 <div
-                  className={`mb-2 rounded-[15px] px-4 py-3 font-bold ${
+                  className={`mb-3 rounded-sm px-4 py-3 text-body font-semibold ${
                     feedback.type === "success"
-                      ? "bg-green-50 text-green-800"
-                      : "bg-red-50 text-red-800"
+                      ? "bg-successSoft text-success"
+                      : "bg-dangerSoft text-danger"
                   }`}
                 >
                   {feedback.text}
@@ -165,14 +158,13 @@ export default function UserMiniProfile({ membro }) {
               {viewMode === "perfil" ? (
                 <Perfil membro={membro} />
               ) : (
-                <div className="space-y-2.5">
-                  <p className="text-lg font-extrabold text-[#0f172a]">
+                <div className="space-y-3">
+                  <p className="text-lg font-semibold text-text">
                     Alterar Credenciais
                   </p>
 
-                  {/* Current Password */}
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-textSecondary">
                       Senha Atual
                     </label>
                     <input
@@ -181,13 +173,12 @@ export default function UserMiniProfile({ membro }) {
                       onChange={(e) =>
                         setPasswords({ ...passwords, senhaAtual: e.target.value })
                       }
-                      className="w-full rounded-[16px] border border-gray-300 px-4 py-2.5 focus:border-[#D97A4D] focus:outline-none focus:ring-2 focus:ring-[#D97A4D]/20"
+                      className={inputClass}
                     />
                   </div>
 
-                  {/* New Password */}
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                    <label className="mb-1 block text-sm font-medium text-textSecondary">
                       Nova Senha
                     </label>
                     <div className="relative">
@@ -197,25 +188,21 @@ export default function UserMiniProfile({ membro }) {
                         onChange={(e) =>
                           setPasswords({ ...passwords, novaSenha: e.target.value })
                         }
-                        className="w-full rounded-[16px] border border-gray-300 px-4 py-2.5 pr-12 focus:border-[#D97A4D] focus:outline-none focus:ring-2 focus:ring-[#D97A4D]/20"
+                        className={`${inputClass} pr-12`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-text"
                       >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Submit Button */}
-                  <button
-                    onClick={handleUpdatePassword}
-                    className="mt-1 w-full rounded-[18px] bg-[#D97A4D] py-1.6 font-extrabold text-white transition hover:bg-[#C56A3F]"
-                  >
+                  <Button onClick={handleUpdatePassword} className="w-full">
                     Atualizar Credenciais
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

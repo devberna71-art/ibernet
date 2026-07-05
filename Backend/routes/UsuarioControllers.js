@@ -5325,7 +5325,8 @@ router.get('/usuario/status', auth, async (req, res) => {
         SedeId,
         FilhalId,
         funcao: req.usuario.funcao,
-        nome: req.usuario.nome
+        nome: req.usuario.nome,
+        MembroId: req.usuario.MembroId
       }
     });
 

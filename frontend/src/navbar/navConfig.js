@@ -44,3 +44,4 @@ export const platformSubmenus = [
   { path: "/gestao-igrejas",        label: "Igrejas & Sedes" },
   { path: "/cadastrar-igreja-dono", label: "Onboarding Igreja" },
 ];
+

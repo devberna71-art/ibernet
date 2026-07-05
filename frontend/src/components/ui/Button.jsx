@@ -2,13 +2,13 @@ import React from "react";
 
 const variants = {
   primary:
-    "bg-primary text-white hover:bg-[#3B4AE8] focus-visible:ring-2 focus-visible:ring-primary/30",
+    "bg-primary text-white hover:bg-primaryHover focus-visible:ring-2 focus-visible:ring-primary/30",
   secondary:
     "bg-surface border border-border text-text hover:bg-bgSection focus-visible:ring-2 focus-visible:ring-border",
   ghost:
     "bg-transparent border border-border text-text hover:bg-bgSection",
   danger:
-    "bg-danger text-white hover:bg-[#DC2626] focus-visible:ring-2 focus-visible:ring-danger/30",
+    "bg-danger text-white hover:bg-danger/90 focus-visible:ring-2 focus-visible:ring-danger/30",
   onImage:
     "bg-surface text-text hover:bg-white/90",
 };

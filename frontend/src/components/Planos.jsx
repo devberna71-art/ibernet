@@ -5,8 +5,8 @@ import { styled } from "@mui/material/styles";
 import { motion } from "framer-motion";
 
 /* ---------- ESTILOS ---------- */
-const HeroSection = styled(Box)(() => ({
-  background: "linear-gradient(135deg, #5daeff 0%, #4682ff 100%)", // azul-bebê forte
+const HeroSection = styled(Box)(({ theme }) => ({
+  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
   color: "#fff",
   textAlign: "center",
   padding: "100px 20px 80px",
@@ -20,82 +20,74 @@ const HeroGlow = styled(Box)(() => ({
   height: "400px",
   borderRadius: "50%",
   background:
-    "radial-gradient(circle at center, rgba(255,255,255,0.25) 0%, transparent 70%)",
+    "radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, transparent 70%)",
   filter: "blur(100px)",
   top: "20%",
   left: "30%",
   zIndex: 0,
 }));
 
-const PlanCard = styled(Paper)(({ highlight, premium, free }) => ({
+const PlanCard = styled(Paper)(({ theme, highlight, premium }) => ({
   padding: "40px 30px",
-  borderRadius: "25px",
+  borderRadius: "14px",
   background: premium
-    ? "linear-gradient(145deg, #fdfdfd, #fff7f0)"
-    : free
-    ? "linear-gradient(145deg, #e3f2fd, #ffffff)"
+    ? `linear-gradient(145deg, #ffffff, ${theme.palette.warning.light})`
     : highlight
-    ? "linear-gradient(135deg, #ffffff, #f0f4ff)"
-    : "#fff",
-  boxShadow: premium
-    ? "0 25px 60px rgba(255,215,0,0.35)"
-    : free
-    ? "0 20px 50px rgba(0,150,255,0.3)"
-    : highlight
-    ? "0 20px 60px rgba(0,86,255,0.3)"
-    : "0 10px 30px rgba(0,0,0,0.1)",
+    ? `linear-gradient(145deg, #ffffff, ${theme.palette.primary.light})`
+    : "#ffffff",
   border: premium
-    ? "2px solid gold"
-    : free
-    ? "2px solid #00bfff"
-    : "none",
-  transform: premium || free ? "scale(1.07)" : "scale(1)",
-  transition: "all 0.4s ease",
+    ? `2px solid ${theme.palette.warning.main}`
+    : highlight
+    ? `2px solid ${theme.palette.primary.main}`
+    : `1px solid ${theme.palette.divider}`,
+  boxShadow: highlight || premium
+    ? "0 10px 30px rgba(37,99,235,0.1)"
+    : "0 1px 3px rgba(0,0,0,0.06)",
+  transition: "all 0.3s ease",
   "&:hover": {
-    transform: "translateY(-10px) scale(1.08)",
-    boxShadow: premium
-      ? "0 30px 70px rgba(255,215,0,0.5)"
-      : "0 25px 60px rgba(0,86,255,0.4)",
+    transform: "translateY(-5px)",
+    boxShadow: highlight || premium
+      ? "0 15px 40px rgba(37,99,235,0.15)"
+      : "0 4px 16px rgba(0,0,0,0.08)",
   },
   textAlign: "center",
   position: "relative",
   zIndex: 2,
 }));
 
-const Price = styled("div")({
+const Price = styled("div")(({ theme }) => ({
   fontSize: "2rem",
   fontWeight: 800,
-  color: "#0056FF",
+  color: theme.palette.primary.main,
   marginBottom: "8px",
-  fontFamily: "'Poppins', sans-serif",
-});
+}));
 
-const OldPrice = styled("span")({
+const OldPrice = styled("span")(({ theme }) => ({
   textDecoration: "line-through",
-  textDecorationColor: "#800020",
-  color: "#800020",
+  textDecorationColor: theme.palette.error.main,
+  color: theme.palette.text.disabled,
   fontWeight: 600,
   fontSize: "1.1rem",
   marginLeft: "8px",
-});
+}));
 
 /* ---------- COMPONENTE ---------- */
 export default function Planos() {
   return (
-    <Box sx={{ backgroundColor: "#f7f9ff", minHeight: "100vh" }}>
+    <Box sx={{ backgroundColor: "#f8faff", minHeight: "100vh" }}>
       {/* HERO */}
       <HeroSection>
         <HeroGlow />
         <Typography
           variant="h2"
           sx={{
-            fontWeight: 900,
-            fontFamily: "'Poppins', sans-serif",
+            fontWeight: 800,
             mb: 2,
-            fontSize: { xs: "2rem", md: "3.5rem" },
+            fontSize: { xs: "2rem", md: "3rem" },
             position: "relative",
             zIndex: 2,
             color: "#fff",
+            letterSpacing: "-0.02em",
           }}
         >
           Escolha o Plano Ideal para a Sua Igreja
@@ -103,11 +95,11 @@ export default function Planos() {
         <Typography
           variant="h6"
           sx={{
-            color: "rgba(255,255,255,0.85)",
+            color: "rgba(255,255,255,0.9)",
             maxWidth: "700px",
             mx: "auto",
-            fontFamily: "'Poppins', sans-serif",
             lineHeight: 1.6,
+            fontWeight: 400,
             position: "relative",
             zIndex: 2,
           }}
@@ -118,40 +110,32 @@ export default function Planos() {
 
       {/* PLANOS */}
       <Box sx={{ py: 10, px: { xs: 3, md: 10 } }}>
-        <Grid container spacing={6} justifyContent="center">
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
           {/* PLANO 1 - GRÁTIS */}
-          <Grid item xs={12} sm={6} md={3}>
-            <PlanCard component={motion.div} whileHover={{ scale: 1.05 }} free>
+          <Grid item xs={12} sm={6} md={3} sx={{ display: "flex" }}>
+            <PlanCard component={motion.div} highlight={false} premium={false} sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <Typography
                 variant="h5"
                 sx={{
                   fontWeight: 700,
                   mb: 2,
-                  fontFamily: "'Poppins', sans-serif",
-                  color: "#0077ff",
+                  color: "text.primary",
                 }}
               >
                 Plano Grátis 💎
               </Typography>
               <Price>0 Kz</Price>
-              <Typography sx={{ color: "#333", mb: 3 }}>
+              <Typography sx={{ color: "text.secondary", mb: 3, flexGrow: 1, lineHeight: 1.8 }}>
                 <b>Duração:</b> 7 dias <br />
                 <b>Membros:</b> até 30 <br />
                 <b>Usuários:</b> até 3 <br />
                 <b>Funcionalidades:</b> todas ativas
               </Typography>
               <Button
-                variant="contained"
-                sx={{
-                  mt: 2,
-                  backgroundColor: "#0077ff",
-                  borderRadius: "20px",
-                  textTransform: "none",
-                  px: 4,
-                  py: 1.2,
-                  fontWeight: 600,
-                  "&:hover": { backgroundColor: "#005fd1" },
-                }}
+                variant="outlined"
+                color="primary"
+                fullWidth
+                sx={{ mt: "auto" }}
               >
                 Aderir Agora
               </Button>
@@ -159,39 +143,32 @@ export default function Planos() {
           </Grid>
 
           {/* PLANO 2 - INTERMÉDIO */}
-          <Grid item xs={12} sm={6} md={3}>
-            <PlanCard component={motion.div} whileHover={{ scale: 1.05 }} highlight>
+          <Grid item xs={12} sm={6} md={3} sx={{ display: "flex" }}>
+            <PlanCard component={motion.div} highlight sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <Typography
                 variant="h5"
                 sx={{
                   fontWeight: 700,
                   mb: 2,
-                  fontFamily: "'Poppins', sans-serif",
+                  color: "primary.main",
                 }}
               >
                 Plano Intermédio
               </Typography>
               <Price>
-                10.000 Kz<span> /mês</span>
+                10.000 Kz<span style={{ fontSize: "14px", fontWeight: 500, color: "#64748b" }}>/mês</span>
                 <OldPrice>25.000 Kz</OldPrice>
               </Price>
-              <Typography sx={{ color: "#555", mb: 3 }}>
+              <Typography sx={{ color: "text.secondary", mb: 3, flexGrow: 1, lineHeight: 1.8 }}>
                 <b>Membros:</b> até 150 <br />
                 <b>Usuários:</b> até 10 <br />
                 <b>Funcionalidades:</b> todas ativas
               </Typography>
               <Button
                 variant="contained"
-                sx={{
-                  mt: 2,
-                  backgroundColor: "#0056FF",
-                  borderRadius: "20px",
-                  textTransform: "none",
-                  px: 4,
-                  py: 1.2,
-                  fontWeight: 600,
-                  "&:hover": { backgroundColor: "#003cd1" },
-                }}
+                color="primary"
+                fullWidth
+                sx={{ mt: "auto" }}
               >
                 Aderir Agora
               </Button>
@@ -199,39 +176,32 @@ export default function Planos() {
           </Grid>
 
           {/* PLANO 3 - AVANÇADO */}
-          <Grid item xs={12} sm={6} md={3}>
-            <PlanCard component={motion.div} whileHover={{ scale: 1.05 }}>
+          <Grid item xs={12} sm={6} md={3} sx={{ display: "flex" }}>
+            <PlanCard component={motion.div} highlight={false} premium={false} sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <Typography
                 variant="h5"
                 sx={{
                   fontWeight: 700,
                   mb: 2,
-                  fontFamily: "'Poppins', sans-serif",
+                  color: "text.primary",
                 }}
               >
                 Plano Avançado
               </Typography>
               <Price>
-                20.000 Kz<span> /mês</span>
+                20.000 Kz<span style={{ fontSize: "14px", fontWeight: 500, color: "#64748b" }}>/mês</span>
                 <OldPrice>50.000 Kz</OldPrice>
               </Price>
-              <Typography sx={{ color: "#555", mb: 3 }}>
+              <Typography sx={{ color: "text.secondary", mb: 3, flexGrow: 1, lineHeight: 1.8 }}>
                 <b>Membros:</b> até 300 <br />
                 <b>Usuários:</b> até 25 <br />
                 <b>Funcionalidades:</b> todas ativas
               </Typography>
               <Button
                 variant="contained"
-                sx={{
-                  mt: 2,
-                  backgroundColor: "#0056FF",
-                  borderRadius: "20px",
-                  textTransform: "none",
-                  px: 4,
-                  py: 1.2,
-                  fontWeight: 600,
-                  "&:hover": { backgroundColor: "#003cd1" },
-                }}
+                color="primary"
+                fullWidth
+                sx={{ mt: "auto" }}
               >
                 Aderir Agora
               </Button>
@@ -239,41 +209,32 @@ export default function Planos() {
           </Grid>
 
           {/* PLANO 4 - ILIMITADO */}
-          <Grid item xs={12} sm={6} md={3}>
-            <PlanCard component={motion.div} whileHover={{ scale: 1.05 }} premium>
+          <Grid item xs={12} sm={6} md={3} sx={{ display: "flex" }}>
+            <PlanCard component={motion.div} premium sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <Typography
                 variant="h5"
                 sx={{
                   fontWeight: 700,
                   mb: 2,
-                  fontFamily: "'Poppins', sans-serif",
-                  color: "#d4af37",
+                  color: "warning.main",
                 }}
               >
                 Plano Ilimitado ⭐
               </Typography>
-              <Price>
-                35.000 Kz<span> /mês</span>
+              <Price sx={{ color: "warning.main" }}>
+                35.000 Kz<span style={{ fontSize: "14px", fontWeight: 500, color: "#64748b" }}>/mês</span>
                 <OldPrice>80.000 Kz</OldPrice>
               </Price>
-              <Typography sx={{ color: "#333", mb: 3 }}>
+              <Typography sx={{ color: "text.secondary", mb: 3, flexGrow: 1, lineHeight: 1.8 }}>
                 <b>Membros:</b> ilimitados <br />
                 <b>Usuários:</b> ilimitados <br />
                 <b>Funcionalidades:</b> todas ativas
               </Typography>
               <Button
                 variant="contained"
-                sx={{
-                  mt: 2,
-                  backgroundColor: "#d4af37",
-                  color: "#fff",
-                  borderRadius: "20px",
-                  textTransform: "none",
-                  px: 4,
-                  py: 1.2,
-                  fontWeight: 600,
-                  "&:hover": { backgroundColor: "#b08d28" },
-                }}
+                color="warning"
+                fullWidth
+                sx={{ mt: "auto" }}
               >
                 Aderir Agora
               </Button>

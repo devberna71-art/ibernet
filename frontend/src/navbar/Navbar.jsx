@@ -92,7 +92,7 @@ export default function Navbar() {
   if (userRole === undefined) {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#4F5EF7] border-t-transparent" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -118,14 +118,14 @@ export default function Navbar() {
 
       {/* Mobile header */}
       {isMobile && (
-        <header className="fixed top-0 left-0 right-0 z-[1200] bg-white border-b border-gray-200">
+        <header className="fixed top-0 left-0 right-0 z-[1200] bg-bg border-b border-border">
           <div className="flex h-16 items-center justify-between px-2">
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Abrir menu"
-              className="rounded-md p-2 hover:bg-gray-100"
+              className="rounded-sm p-2 hover:bg-bgSection"
             >
-              <Menu size={22} strokeWidth={1.75} className="text-gray-700" />
+              <Menu size={22} strokeWidth={1.75} className="text-textSecondary" />
             </button>
             <img src={logoEclesia} alt="Logo" className="h-10 object-contain" />
             {userRole && membro ? <UserBadge membro={membro} /> : <div className="w-10" />}
@@ -142,15 +142,15 @@ export default function Navbar() {
             onClick={() => setDrawerOpen(false)}
           />
           {/* Drawer content */}
-          <div className="relative z-10 w-[280px] bg-white shadow-xl">
-            <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
+          <div className="relative z-10 w-[280px] bg-bg shadow-lg">
+            <div className="flex h-16 items-center justify-between px-4 border-b border-border">
               <img src={logoEclesia} alt="Logo" className="h-8 object-contain" />
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Fechar menu"
-                className="rounded-md p-2 hover:bg-gray-100"
+                className="rounded-sm p-2 hover:bg-bgSection"
               >
-                <X size={20} className="text-gray-700" />
+                <X size={20} className="text-textSecondary" />
               </button>
             </div>
             <div className="h-[calc(100vh-4rem)] overflow-y-auto">

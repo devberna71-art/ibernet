@@ -15,117 +15,37 @@ import {
   TableBody,
   Avatar,
   Paper,
-  Divider,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { motion } from "framer-motion";
 import { FaBirthdayCake, FaCalendarAlt } from "react-icons/fa";
 
-/* 🌈 Fundo elegante com luzes flutuantes */
+/* 🌈 Fundo elegante alinhado ao Design System */
 const Background = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
   width: "100%",
-  background: "linear-gradient(135deg, #f6f9ff 0%, #eef3ff 50%, #ffffff 100%)",
+  background: "linear-gradient(to bottom, #f8faff, #ffffff)",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "flex-start",
-  padding: theme.spacing(10, 3),
+  padding: theme.spacing(8, 3),
   position: "relative",
   overflow: "hidden",
-}));
-
-const FloatingLights = styled("div")({
-  position: "absolute",
-  inset: 0,
-  zIndex: 0,
-  "&::before, &::after": {
-    content: '""',
-    position: "absolute",
-    borderRadius: "50%",
-    filter: "blur(180px)",
-    animation: "float 12s ease-in-out infinite alternate",
-  },
-  "&::before": {
-    top: "10%",
-    left: "-15%",
-    width: "500px",
-    height: "500px",
-    background: "rgba(0,132,255,0.25)",
-  },
-  "&::after": {
-    bottom: "-15%",
-    right: "-10%",
-    width: "600px",
-    height: "600px",
-    background: "rgba(0,212,255,0.25)",
-  },
-  "@keyframes float": {
-    "0%": { transform: "translateY(0)" },
-    "100%": { transform: "translateY(25px)" },
-  },
-});
-
-/* ✨ Cabeçalho */
-const Title = styled(Typography)(({ theme }) => ({
-  fontFamily: "'Raleway', sans-serif",
-  fontWeight: 900,
-  fontSize: "3rem",
-  background: "linear-gradient(90deg, #0038ff, #00c3ff)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  textAlign: "center",
-  marginBottom: theme.spacing(1),
-  zIndex: 2,
-}));
-
-const Subtitle = styled(Typography)(({ theme }) => ({
-  fontFamily: "'Inter', sans-serif",
-  fontSize: "1.2rem",
-  color: "#003366",
-  opacity: 0.85,
-  textAlign: "center",
-  marginBottom: theme.spacing(5),
-  zIndex: 2,
 }));
 
 const SelectBox = styled(FormControl)(({ theme }) => ({
   minWidth: 220,
-  marginBottom: theme.spacing(6),
+  marginBottom: theme.spacing(4),
   zIndex: 3,
 }));
 
-/* 📓 Estilo premium de “papel de caderno” */
 const TablePaper = styled(Paper)(({ theme }) => ({
   width: "100%",
   maxWidth: "1000px",
-  borderRadius: "20px",
-  padding: theme.spacing(2),
-  background: "repeating-linear-gradient(0deg, #ffffff, #ffffff 29px, #d8e3ff 30px)",
-  boxShadow: "0 15px 45px rgba(0,0,0,0.1)",
-  border: "1px solid #ccd9ff",
-  backdropFilter: "blur(20px)",
-  position: "relative",
+  padding: theme.spacing(1),
   overflow: "hidden",
-}));
-
-const TableHeader = styled(TableRow)(() => ({
-  background: "linear-gradient(90deg, #005cff, #00c8ff)",
-}));
-
-const HeaderCell = styled(TableCell)(() => ({
-  color: "#fff",
-  fontWeight: 700,
-  fontFamily: "'Poppins', sans-serif",
-  fontSize: "1rem",
-  textTransform: "uppercase",
-}));
-
-const DataCell = styled(TableCell)(() => ({
-  fontFamily: "'Inter', sans-serif",
-  color: "#002244",
-  fontWeight: 500,
-  fontSize: "1rem",
+  zIndex: 2,
 }));
 
 const meses = [
@@ -157,16 +77,33 @@ const AniversarianteMes = () => {
 
   return (
     <Background>
-      <FloatingLights />
-
       <motion.div
-        initial={{ opacity: 0, y: -30 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        style={{ zIndex: 2 }}
+        transition={{ duration: 0.6 }}
+        style={{ zIndex: 2, textAlign: "center" }}
       >
-        <Title>🎉 Aniversariantes do Mês</Title>
-        <Subtitle>Veja quem está comemorando neste mês 💙</Subtitle>
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: 800,
+            mb: 1,
+            color: "primary.main",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          🎉 Aniversariantes do Mês
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            color: "text.secondary",
+            fontWeight: 400,
+            mb: 4,
+          }}
+        >
+          Veja quem está comemorando neste mês 💙
+        </Typography>
 
         <SelectBox variant="outlined">
           <InputLabel>Mês</InputLabel>
@@ -189,15 +126,15 @@ const AniversarianteMes = () => {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          height="50vh"
+          height="40vh"
           zIndex={2}
         >
-          <CircularProgress sx={{ color: "#0048ff" }} />
+          <CircularProgress />
         </Box>
       ) : lista.length === 0 ? (
         <Typography
           variant="h6"
-          sx={{ color: "#003366", mt: 8, opacity: 0.85 }}
+          sx={{ color: "text.secondary", mt: 6 }}
         >
           Nenhum aniversariante neste mês 🎈
         </Typography>
@@ -205,18 +142,18 @@ const AniversarianteMes = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }}
           style={{ width: "100%", display: "flex", justifyContent: "center", zIndex: 2 }}
         >
-          <TablePaper elevation={5}>
+          <TablePaper>
             <Table>
               <TableHead>
-                <TableHeader>
-                  <HeaderCell>Foto</HeaderCell>
-                  <HeaderCell>Nome</HeaderCell>
-                  <HeaderCell>Data de Nascimento</HeaderCell>
-                  <HeaderCell>Idade</HeaderCell>
-                </TableHeader>
+                <TableRow>
+                  <TableCell>Foto</TableCell>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Data de Nascimento</TableCell>
+                  <TableCell>Idade</TableCell>
+                </TableRow>
               </TableHead>
               <TableBody>
                 {lista.map((pessoa, index) => {
@@ -229,36 +166,35 @@ const AniversarianteMes = () => {
                       ? 1
                       : 0);
                   return (
-                    <TableRow
-                      key={pessoa.id || index}
-                      sx={{
-                        transition: "background 0.3s",
-                        "&:hover": { background: "rgba(0,102,255,0.08)" },
-                      }}
-                    >
-                      <DataCell>
+                    <TableRow key={pessoa.id || index}>
+                      <TableCell>
                         <Avatar
                           src={pessoa.foto || "/default-user.png"}
                           alt={pessoa.nome}
                           sx={{
-                            width: 65,
-                            height: 65,
-                            borderRadius: "15%",
-                            border: "2px solid rgba(0,102,255,0.2)",
+                            width: 50,
+                            height: 50,
+                            borderRadius: "8px",
+                            border: "1px solid",
+                            borderColor: "divider",
                           }}
                         />
-                      </DataCell>
-                      <DataCell sx={{ fontWeight: 700, color: "#0033aa" }}>
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>
                         {pessoa.nome}
-                      </DataCell>
-                      <DataCell>
-                        <FaCalendarAlt style={{ marginRight: 8, color: "#0048ff" }} />
-                        {dataNasc.toLocaleDateString("pt-BR")}
-                      </DataCell>
-                      <DataCell>
-                        <FaBirthdayCake style={{ marginRight: 6, color: "#ff7b00" }} />
-                        {idade} anos
-                      </DataCell>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <FaCalendarAlt style={{ color: "#2563EB" }} />
+                          {dataNasc.toLocaleDateString("pt-BR")}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <FaBirthdayCake style={{ color: "#D97706" }} />
+                          {idade} anos
+                        </Box>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -272,3 +208,4 @@ const AniversarianteMes = () => {
 };
 
 export default AniversarianteMes;
+

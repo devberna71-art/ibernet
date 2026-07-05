@@ -148,16 +148,33 @@ function AppRoutes() {
               <Route path="/relatorios/sede"             element={<RequireAdminOnly><RelatorioSede /></RequireAdminOnly>} />
               <Route path="/relatorios/financeiro-geral" element={<RequireAdminOnly><RelatorioFinanceiro /></RequireAdminOnly>} />
               <Route path="/relatorios/contribuicoes"    element={<RequireAdminOnly><RelatorioContrib /></RequireAdminOnly>} />
+              
+              {/* Rotas legadas para compatibilidade com menus antigos */}
+              <Route path="/gestao/relatorioContribuicoes" element={<RequireAdminOnly><RelatorioContrib /></RequireAdminOnly>} />
+              <Route path="/gestao/relatorioDespesas"      element={<RequireAdminOnly><RelatorioDespesa /></RequireAdminOnly>} />
+              <Route path="/gestao/relatorioFinanceiroGeral" element={<RequireAdminOnly><RelatorioFinanceiro /></RequireAdminOnly>} />
+              <Route path="/gestao/relatorioSede"           element={<RequireAdminOnly><RelatorioSede /></RequireAdminOnly>} />
+              <Route path="/gestao/RelatorioPresencas"     element={<RequireAdminOrModerador><ReltorioPresencas /></RequireAdminOrModerador>} />
+              <Route path="/gestao/contribuicoes"           element={<RequireAdminOnly><GestaoContribuicoes /></RequireAdminOnly>} />
+              <Route path="/gestao/despesas"                element={<RequireAdminOnly><GestaoDespesas /></RequireAdminOnly>} />
+              <Route path="/gestao/membros"                 element={<RequireAdminOrModerador><GestaoMembros /></RequireAdminOrModerador>} />
+              <Route path="/gestao/cargos"                  element={<RequireAdminOnly><GestaoCargos /></RequireAdminOnly>} />
+              <Route path="/gestao/departamentos"           element={<RequireAdminOnly><GestaoDepartamentos /></RequireAdminOnly>} />
+              <Route path="/TabelaCulto"                    element={<RequireAdminOrModerador><ListaCultos /></RequireAdminOrModerador>} />
+              <Route path="/listaCultos"                    element={<RequireAdminOrModerador><ListaCultos /></RequireAdminOrModerador>} />
+              <Route path="/gestao/gestaoigrejas"           element={<RequireSuperAdmin><GestaoIgrejas /></RequireSuperAdmin>} />
 
               {/* Finanças — admin apenas */}
               <Route path="/gestao-contribuicoes"  element={<RequireAdminOnly><GestaoContribuicoes /></RequireAdminOnly>} />
               <Route path="/gestao-despesas"       element={<RequireAdminOnly><GestaoDespesas /></RequireAdminOnly>} />
               <Route path="/salarios"              element={<RequireAdminOnly><Salarios /></RequireAdminOnly>} />
+              <Route path="/tabelaSalarios"         element={<RequireAdminOnly><Salarios /></RequireAdminOnly>} />
 
               {/* Secretaria — admin apenas */}
               <Route path="/gestao-departamentos" element={<RequireAdminOnly><GestaoDepartamentos /></RequireAdminOnly>} />
               <Route path="/gestao-cargos"        element={<RequireAdminOnly><GestaoCargos /></RequireAdminOnly>} />
               <Route path="/ministerios"          element={<RequireAdminOnly><Ministerios /></RequireAdminOnly>} />
+              <Route path="/cartao/membro"         element={<RequireAdminOnly><Cartao /></RequireAdminOnly>} />
 
               {/* Criar conta de membro — admin apenas */}
               <Route path="/criar-conta-membro" element={<RequireAdminOnly><CriarContaMembro /></RequireAdminOnly>} />

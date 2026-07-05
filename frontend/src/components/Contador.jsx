@@ -32,7 +32,7 @@ export default function NotificationBell({ userRole }) {
       <IconButton
         color="inherit"
         sx={{ mr: 2 }}
-        onClick={() => navigate('/aniversarios')}
+        onClick={() => navigate('/notificacoes')}
       >
         <Badge
           badgeContent={contador}

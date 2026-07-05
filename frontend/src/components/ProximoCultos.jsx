@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CircularProgress } from "@mui/material";
+import { Loader2 } from "lucide-react";
 import api from "../api/axiosConfig";
 import ListCard, { ListCardItem } from "./ui/ListCard";
 
@@ -16,8 +16,8 @@ export default function ProximosCultos() {
 
   if (loading) {
     return (
-      <div className="bg-surface rounded-lg shadow-soft border border-surfaceMuted/60 h-72 flex items-center justify-center">
-        <CircularProgress size={26} />
+      <div className="bg-surface rounded-md border border-border h-72 flex items-center justify-center">
+        <Loader2 size={26} strokeWidth={1.75} className="text-primary animate-spin" />
       </div>
     );
   }

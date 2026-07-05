@@ -49,7 +49,7 @@ export function CardLink({ to, onClick, children, className = "" }) {
     return (
       <Link
         to={to}
-        className={`text-muted font-semibold text-primary hover:text-[#3B4AE8] transition-colors ${className}`}
+        className={`text-muted font-semibold text-primary hover:text-primaryHover transition-colors ${className}`}
       >
         {children}
       </Link>
@@ -59,7 +59,7 @@ export function CardLink({ to, onClick, children, className = "" }) {
     <button
       type="button"
       onClick={onClick}
-      className={`text-muted font-semibold text-primary hover:text-[#3B4AE8] transition-colors ${className}`}
+      className={`text-muted font-semibold text-primary hover:text-primaryHover transition-colors ${className}`}
     >
       {children}
     </button>

@@ -20,10 +20,9 @@ export default function Footer() {
   return (
     <Box
       sx={{
-        background:
-          "radial-gradient(circle at top left, #1e3a8a 0%, #0b2045 50%, #020617 100%)",
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, #020617 100%)`,
         color: "#fff",
-        pt: 12,
+        pt: 10,
         pb: 5,
         px: { xs: 3, md: 10 },
         position: "relative",
@@ -34,15 +33,15 @@ export default function Footer() {
       <Box
         component={motion.div}
         initial={{ opacity: 0 }}
-        animate={{ opacity: [0.2, 0.5, 0.2] }}
+        animate={{ opacity: [0.1, 0.3, 0.1] }}
         transition={{ duration: 5, repeat: Infinity }}
         sx={{
           position: "absolute",
           width: "800px",
           height: "800px",
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle at center, rgba(59,130,246,0.15), transparent 80%)",
+          background: (theme) =>
+            `radial-gradient(circle at center, ${theme.palette.primary.main}1a, transparent 80%)`,
           top: "-100px",
           left: "40%",
           filter: "blur(120px)",
@@ -58,8 +57,8 @@ export default function Footer() {
           width: "700px",
           height: "700px",
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle at center, rgba(147,197,253,0.1), transparent 80%)",
+          background: (theme) =>
+            `radial-gradient(circle at center, ${theme.palette.primary.light}0d, transparent 80%)`,
           filter: "blur(100px)",
         }}
       />
@@ -73,9 +72,8 @@ export default function Footer() {
             sx={{
               fontWeight: 800,
               mb: 2,
-              fontFamily: "'Poppins', sans-serif",
-              background:
-                "linear-gradient(90deg, #60a5fa, #c084fc, #a5b4fc)",
+              background: (theme) =>
+                `linear-gradient(90deg, ${theme.palette.primary.light}, #a5b4fc)`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -84,10 +82,9 @@ export default function Footer() {
           </Typography>
           <Typography
             sx={{
-              color: "rgba(255,255,255,0.85)",
+              color: "rgba(255,255,255,0.8)",
               maxWidth: 360,
               lineHeight: 1.8,
-              fontFamily: "'Inter', sans-serif",
               fontSize: "0.95rem",
             }}
           >
@@ -104,9 +101,8 @@ export default function Footer() {
             sx={{
               fontWeight: 700,
               mb: 2,
-              fontFamily: "'Poppins', sans-serif",
               letterSpacing: "0.5px",
-              color: "#93c5fd",
+              color: "primary.light",
             }}
           >
             Navegação
@@ -116,13 +112,12 @@ export default function Footer() {
               <Typography
                 key={i}
                 component={motion.div}
-                whileHover={{ x: 5, color: "#60a5fa" }}
+                whileHover={{ x: 5, color: "primary.light" }}
                 transition={{ duration: 0.2 }}
                 sx={{
                   mb: 1.2,
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(255,255,255,0.8)",
                   cursor: "pointer",
-                  fontFamily: "'Inter', sans-serif",
                 }}
               >
                 <Link
@@ -144,24 +139,23 @@ export default function Footer() {
             sx={{
               fontWeight: 700,
               mb: 2,
-              fontFamily: "'Poppins', sans-serif",
               letterSpacing: "0.5px",
-              color: "#93c5fd",
+              color: "primary.light",
             }}
           >
             Contato
           </Typography>
           {[
             {
-              icon: <PhoneIcon sx={{ color: "#60a5fa", mr: 1 }} />,
+              icon: <PhoneIcon sx={{ color: "primary.light", mr: 1 }} />,
               text: "+244 923 519 571",
             },
             {
-              icon: <EmailIcon sx={{ color: "#60a5fa", mr: 1 }} />,
+              icon: <EmailIcon sx={{ color: "primary.light", mr: 1 }} />,
               text: "contato@bernet-eclesia.com",
             },
             {
-              icon: <LocationOnIcon sx={{ color: "#60a5fa", mr: 1 }} />,
+              icon: <LocationOnIcon sx={{ color: "primary.light", mr: 1 }} />,
               text: "Luanda, Angola — Av. Deolinda Rodrigues",
             },
           ].map((item, i) => (
@@ -171,7 +165,7 @@ export default function Footer() {
                 display: "flex",
                 alignItems: "center",
                 mb: 1.5,
-                color: "rgba(255,255,255,0.85)",
+                color: "rgba(255,255,255,0.8)",
               }}
             >
               {item.icon}
@@ -187,9 +181,8 @@ export default function Footer() {
             sx={{
               fontWeight: 700,
               mb: 2,
-              fontFamily: "'Poppins', sans-serif",
               letterSpacing: "0.5px",
-              color: "#93c5fd",
+              color: "primary.light",
             }}
           >
             Siga-nos
@@ -237,8 +230,7 @@ export default function Footer() {
         variant="body2"
         align="center"
         sx={{
-          color: "rgba(255,255,255,0.8)",
-          fontFamily: "'Inter', sans-serif",
+          color: "rgba(255,255,255,0.6)",
           fontSize: "0.9rem",
         }}
       >

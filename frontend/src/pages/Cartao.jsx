@@ -91,11 +91,11 @@ export default function Cartao() {
         width:${isHorizontal ? '900px' : '420px'};
         height:${isHorizontal ? '360px' : '650px'};
         position:relative;
-        font-family:'Poppins','Inter','Segoe UI',sans-serif;
+        font-family:'Inter',sans-serif;
         background-image:url(${fundo || ''});
         background-size:cover;
         background-position:center;
-        border-radius:24px;
+        border-radius:14px;
         overflow:hidden;
       ">
         <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.15));"></div>
@@ -107,17 +107,17 @@ export default function Cartao() {
             ${linha3 ? `<div>${linha3}</div>` : ''}
           </div>
           <div style="margin-top:8px; text-align:center; white-space:nowrap; font-size:0;">
-            <span style="display:inline-block; font-size:${isPdfHorizontal ? '22px' : (isHorizontal ? '30px' : '20px')}; font-weight:800; margin-right:12px; vertical-align:middle; font-family:'Bebas Neue','Oswald','Anton',sans-serif; letter-spacing:2px; color:#ffffff; text-shadow:0 2px 4px rgba(0,0,0,0.9), 0 6px 12px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.6);">CARTÃO DE MEMBRO</span>
-            <span style="display:inline-block; font-size:${isPdfHorizontal ? '26px' : (isHorizontal ? '34px' : '24px')}; font-weight:900; vertical-align:middle; letter-spacing:2px; font-family:'Poppins','Montserrat','Segoe UI',sans-serif; color:#ffffff; text-shadow:0 2px 4px rgba(0,0,0,0.95), 0 8px 18px rgba(0,0,0,0.9), 0 0 25px rgba(0,0,0,0.7);">Nº ${m.numero_membro || '----'}</span>
+            <span style="display:inline-block; font-size:${isPdfHorizontal ? '22px' : (isHorizontal ? '30px' : '20px')}; font-weight:800; margin-right:12px; vertical-align:middle; letter-spacing:1px; color:#ffffff; text-shadow:0 2px 4px rgba(0,0,0,0.4);">CARTÃO DE MEMBRO</span>
+            <span style="display:inline-block; font-size:${isPdfHorizontal ? '26px' : (isHorizontal ? '34px' : '24px')}; font-weight:900; vertical-align:middle; letter-spacing:1px; color:#ffffff; text-shadow:0 2px 4px rgba(0,0,0,0.4);">Nº ${m.numero_membro || '----'}</span>
           </div>
         </div>
-        ${m.foto ? `<img src="${m.foto}" style="position:absolute; ${isHorizontal ? 'top:15px; right:15px;' : `left:50%; transform:translateX(-50%); top:${offsetTopo}px;`} width:${isHorizontal ? '150px' : '200px'}; height:${isHorizontal ? '150px' : '200px'}; object-fit:cover; border-radius:16px; border:4px solid white; box-shadow:0 12px 30px rgba(0,0,0,0.6);"/>` : ''}
-        <div style="position:absolute; ${isHorizontal ? 'bottom:18px; left:18px; width:65%;' : `left:50%; transform:translateX(-50%); top:${offsetTopo + 220}px; width:85%;`} padding:18px; border-radius:18px; background:rgba(0,0,0,0.50); color:#ffffff; text-align:left; box-shadow:0 12px 30px rgba(0,0,0,0.6); line-height:1.4; word-break:normal; white-space:normal;">
+        ${m.foto ? `<img src="${m.foto}" style="position:absolute; ${isHorizontal ? 'top:15px; right:15px;' : `left:50%; transform:translateX(-50%); top:${offsetTopo}px;`} width:${isHorizontal ? '150px' : '200px'}; height:${isHorizontal ? '150px' : '200px'}; object-fit:cover; border-radius:8px; border:4px solid white; box-shadow:0 4px 12px rgba(0,0,0,0.3);"/>` : ''}
+        <div style="position:absolute; ${isHorizontal ? 'bottom:18px; left:18px; width:65%;' : `left:50%; transform:translateX(-50%); top:${offsetTopo + 220}px; width:85%;`} padding:18px; border-radius:14px; background:rgba(0,0,0,0.50); color:#ffffff; text-align:left; box-shadow:0 4px 12px rgba(0,0,0,0.3); line-height:1.4; word-break:normal; white-space:normal;">
           <div style="font-size:${isPdfHorizontal ? '18px' : '24px'}; font-weight:900; line-height:1.3; letter-spacing:0px;">${m.nome || '---'}</div>
-          <div style="margin-top:10px; font-size:${isPdfHorizontal ? '13px' : '15px'};"><span style="color:#cbd5e1;">Função:</span> <span style="font-weight:700;"> ${m.cargos || '---'}</span></div>
-          <div style="font-size:${isPdfHorizontal ? '13px' : '15px'};"><span style="color:#cbd5e1;">Departamento:</span> <span style="font-weight:700;"> ${m.departamentos || '---'}</span></div>
-          <div style="margin-top:8px; font-size:${isPdfHorizontal ? '13px' : '14px'};"><span style="color:#cbd5e1;">Batismo:</span> <span style="font-weight:600;"> ${m.data_batismo || '---'}</span></div>
-          <div style="font-size:${isPdfHorizontal ? '13px' : '14px'};"><span style="color:#cbd5e1;">Validade:</span> <span style="font-weight:600;"> ${m.data_validade || '---'}</span></div>
+          <div style="margin-top:10px; font-size:${isPdfHorizontal ? '13px' : '15px'};"><span style="color:#e2e8f0;">Função:</span> <span style="font-weight:700;"> ${m.cargos || '---'}</span></div>
+          <div style="font-size:${isPdfHorizontal ? '13px' : '15px'};"><span style="color:#e2e8f0;">Departamento:</span> <span style="font-weight:700;"> ${m.departamentos || '---'}</span></div>
+          <div style="margin-top:8px; font-size:${isPdfHorizontal ? '13px' : '14px'};"><span style="color:#e2e8f0;">Batismo:</span> <span style="font-weight:600;"> ${m.data_batismo || '---'}</span></div>
+          <div style="font-size:${isPdfHorizontal ? '13px' : '14px'};"><span style="color:#e2e8f0;">Validade:</span> <span style="font-weight:600;"> ${m.data_validade || '---'}</span></div>
         </div>
         <div style="position:absolute; ${isHorizontal ? 'top:180px; right:18px; width:150px; text-align:center;' : 'bottom:25px; width:100%; display:flex; flex-direction:column; align-items:center;'} color:white; font-size:13px;">
           <div style="margin-bottom:20px; letter-spacing:1px;">Assinatura do Pastor</div>

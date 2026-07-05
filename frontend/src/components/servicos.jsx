@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Grid } from "@mui/material";
+import { Box, Typography, Grid, Paper } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
   AccountBalance,
@@ -62,114 +62,92 @@ const services = [
 const PageContainer = styled(Box)(() => ({
   position: "relative",
   overflow: "hidden",
-  background: "linear-gradient(120deg, #f8faff, #eef2ff, #ffffff)",
-  padding: "130px 30px 100px",
+  background: "linear-gradient(to bottom, #f8faff, #ffffff)",
+  padding: "100px 30px 80px",
   minHeight: "100vh",
 }));
 
-const AnimatedGlow = styled(Box)(() => ({
+const AnimatedGlow = styled(Box)(({ theme }) => ({
   position: "absolute",
   width: "900px",
   height: "900px",
-  background:
-    "radial-gradient(circle at center, rgba(79,70,229,0.25), transparent 70%)",
+  background: `radial-gradient(circle at center, ${theme.palette.primary.light}33, transparent 70%)`,
   top: "-200px",
   right: "-250px",
   filter: "blur(180px)",
   zIndex: 0,
 }));
 
-const Title = styled(Typography)(() => ({
-  fontWeight: 900,
+const Title = styled(Typography)(({ theme }) => ({
+  fontWeight: 800,
   textAlign: "center",
-  fontFamily: "'Poppins', sans-serif",
-  background: "linear-gradient(90deg, #4338ca, #7c3aed, #2563eb)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  fontSize: "3.2rem",
-  letterSpacing: "1px",
-  marginBottom: "20px",
+  color: theme.palette.primary.main,
+  fontSize: "3rem",
+  letterSpacing: "-0.02em",
+  marginBottom: "16px",
   position: "relative",
   zIndex: 2,
 }));
 
-const SubTitle = styled(Typography)(() => ({
-  color: "#1e3a8a",
+const SubTitle = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
   textAlign: "center",
   maxWidth: "850px",
-  margin: "0 auto 80px",
+  margin: "0 auto 60px",
   lineHeight: 1.8,
-  fontFamily: "'Inter', sans-serif",
   fontSize: "1.1rem",
   zIndex: 2,
   position: "relative",
+  fontWeight: 400,
 }));
 
-const Card = styled(motion.div)(() => ({
+const ServiceCard = styled(Paper)(({ theme }) => ({
   position: "relative",
-  backdropFilter: "blur(20px)",
-  background:
-    "linear-gradient(160deg, rgba(255,255,255,0.8) 0%, rgba(240,244,255,0.6) 100%)",
-  border: "1px solid rgba(255,255,255,0.3)",
-  boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
-  borderRadius: "24px",
-  padding: "50px 35px",
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+  borderRadius: "14px",
+  padding: "40px 30px",
   textAlign: "center",
-  transition: "all 0.5s ease",
+  transition: "all 0.3s ease",
   cursor: "default",
   overflow: "hidden",
   zIndex: 1,
   maxWidth: "370px",
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
   "&:hover": {
-    transform: "translateY(-12px) scale(1.03)",
-    boxShadow: "0 25px 80px rgba(59,130,246,0.35)",
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    top: "-100%",
-    left: "-100%",
-    width: "200%",
-    height: "200%",
-    background:
-      "linear-gradient(120deg, rgba(59,130,246,0.2), rgba(124,58,237,0.15), transparent)",
-    transform: "rotate(25deg)",
-    opacity: 0,
-    transition: "opacity 0.6s ease",
-    zIndex: 0,
-  },
-  "&:hover::after": {
-    opacity: 1,
+    transform: "translateY(-5px)",
+    borderColor: theme.palette.primary.main,
+    boxShadow: `0 10px 30px rgba(37,99,235,0.08)`,
   },
 }));
 
-const IconWrapper = styled(Box)(() => ({
-  fontSize: "75px",
-  marginBottom: "25px",
-  background: "linear-gradient(135deg, #4338ca, #7c3aed, #2563eb)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  transition: "transform 0.5s ease",
+const IconWrapper = styled(Box)(({ theme }) => ({
+  fontSize: "64px",
+  marginBottom: "20px",
+  color: theme.palette.primary.main,
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  transition: "transform 0.3s ease",
   "&:hover": {
-    transform: "rotate(10deg) scale(1.15)",
+    transform: "scale(1.1)",
   },
 }));
 
-const CardTitle = styled(Typography)(() => ({
+const CardTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 700,
-  color: "#111827",
-  fontFamily: "'Poppins', sans-serif",
-  fontSize: "1.5rem",
-  marginBottom: "14px",
+  color: theme.palette.text.primary,
+  fontSize: "1.25rem",
+  marginBottom: "12px",
   zIndex: 1,
 }));
 
-const CardText = styled(Typography)(() => ({
-  color: "#374151",
-  fontFamily: "'Inter', sans-serif",
-  fontSize: "1rem",
-  lineHeight: 1.7,
-  maxWidth: "300px",
+const CardText = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  fontSize: "0.95rem",
+  lineHeight: 1.6,
   zIndex: 1,
 }));
 
@@ -179,15 +157,15 @@ export default function Servicos() {
     <PageContainer>
       <AnimatedGlow
         component={motion.div}
-        animate={{ scale: [1, 1.15, 1] }}
+        animate={{ scale: [1, 1.05, 1] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
 
       <Title
         component={motion.h2}
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
         Nossos Serviços
       </Title>
@@ -196,7 +174,7 @@ export default function Servicos() {
         component={motion.p}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.8 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
       >
         A <strong>Bernet-Eclesia</strong> oferece soluções inteligentes,
         automatizadas e humanizadas para simplificar a gestão da sua igreja.
@@ -205,8 +183,9 @@ export default function Servicos() {
 
       <Grid
         container
-        spacing={6}
+        spacing={4}
         justifyContent="center"
+        alignItems="stretch"
         sx={{ position: "relative", zIndex: 3 }}
       >
         {services.map((service, index) => (
@@ -219,15 +198,15 @@ export default function Servicos() {
             display="flex"
             justifyContent="center"
             component={motion.div}
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: index * 0.15 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
           >
-            <Card whileHover={{ rotate: [0, -1, 1, 0] }}>
+            <ServiceCard>
               <IconWrapper>{service.icon}</IconWrapper>
-              <CardTitle>{service.title}</CardTitle>
-              <CardText>{service.description}</CardText>
-            </Card>
+              <CardTitle variant="h6">{service.title}</CardTitle>
+              <CardText variant="body1">{service.description}</CardText>
+            </ServiceCard>
           </Grid>
         ))}
       </Grid>

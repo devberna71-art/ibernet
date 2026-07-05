@@ -9,12 +9,12 @@ import pastor from "../assets/pastor.jpg";
 import equipa from "../assets/equipa.jpg";
 
 /* ---------- ESTILOS ---------- */
-const HeroSection = styled(Box)(() => ({
+const HeroSection = styled(Box)(({ theme }) => ({
   position: "relative",
   backgroundImage: `url(${heroImage})`,
   backgroundSize: "cover",
   backgroundPosition: "center",
-  height: "60vh",
+  height: "50vh",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -24,7 +24,7 @@ const HeroSection = styled(Box)(() => ({
     content: '""',
     position: "absolute",
     inset: 0,
-    background: "rgba(0,0,70,0.65)",
+    background: `linear-gradient(to bottom, rgba(15,23,42,0.6), ${theme.palette.primary.dark}cc)`,
   },
 }));
 
@@ -41,7 +41,7 @@ const ProfileImage = styled(motion.img)(({ size }) => ({
   borderRadius: "50%",
   objectFit: "cover",
   objectPosition: "top center",
-  boxShadow: "0 0 30px rgba(0,0,0,0.4)",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
   border: "4px solid #fff",
   transition: "transform 0.4s ease",
   "&:hover": {
@@ -69,9 +69,9 @@ export default function SobreEquipa() {
           <Typography
             variant="h2"
             sx={{
-              fontWeight: 900,
-              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 800,
               mb: 2,
+              letterSpacing: "-0.02em",
             }}
           >
             A Nossa Equipa
@@ -79,10 +79,9 @@ export default function SobreEquipa() {
           <Typography
             variant="h6"
             sx={{
-              color: "#e0e0e0",
+              color: "rgba(255,255,255,0.9)",
               fontWeight: 400,
               lineHeight: 1.7,
-              fontFamily: "'Poppins', sans-serif",
             }}
           >
             Pessoas que acreditam no poder da fé e da tecnologia.  
@@ -95,7 +94,7 @@ export default function SobreEquipa() {
       <Box
         sx={{
           position: "relative",
-          py: 16,
+          py: 12,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -105,17 +104,16 @@ export default function SobreEquipa() {
         }}
       >
         {/* Luzes decorativas */}
-        <GlowCircle color="rgba(0, 86, 255, 0.5)" sx={{ top: "10%", left: "15%" }} />
-        <GlowCircle color="rgba(255, 0, 255, 0.4)" sx={{ bottom: "10%", right: "15%" }} />
+        <GlowCircle color="rgba(37, 99, 235, 0.2)" sx={{ top: "10%", left: "15%" }} />
+        <GlowCircle color="rgba(148, 163, 184, 0.15)" sx={{ bottom: "10%", right: "15%" }} />
 
         {/* Título */}
         <Typography
           variant="h4"
           sx={{
             fontWeight: 800,
-            color: "#0056FF",
-            mb: 10,
-            fontFamily: "'Poppins', sans-serif",
+            color: "primary.main",
+            mb: 8,
             position: "relative",
             zIndex: 2,
           }}
@@ -126,14 +124,14 @@ export default function SobreEquipa() {
         {/* Linha de imagens */}
         <Box
           component={motion.div}
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }}
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: { xs: 4, md: 10 },
+            gap: { xs: 4, md: 8 },
             flexWrap: "wrap",
             position: "relative",
           }}
@@ -143,20 +141,19 @@ export default function SobreEquipa() {
             <ProfileImage
               src={berna}
               alt="Bernardo António"
-              size="220px"
-              whileHover={{ scale: 1.1 }}
+              size="200px"
+              whileHover={{ scale: 1.05 }}
             />
             <Typography
               sx={{
                 mt: 2,
                 fontWeight: 700,
-                color: "#0056FF",
-                fontFamily: "'Poppins', sans-serif",
+                color: "primary.main",
               }}
             >
               Bernardo António
             </Typography>
-            <Typography sx={{ color: "#555", fontSize: "0.95rem" }}>
+            <Typography sx={{ color: "text.secondary", fontSize: "0.95rem" }}>
                Desenvolvedor
             </Typography>
           </Box>
@@ -170,7 +167,7 @@ export default function SobreEquipa() {
                 width: "400px",
                 height: "400px",
                 background:
-                  "radial-gradient(circle at center, rgba(0,86,255,0.25) 0%, transparent 70%)",
+                  "radial-gradient(circle at center, rgba(37,99,235,0.15) 0%, transparent 70%)",
                 filter: "blur(80px)",
                 zIndex: 0,
               }}
@@ -178,26 +175,25 @@ export default function SobreEquipa() {
             <ProfileImage
               src={equipa}
               alt="Equipa Bernet"
-              size="300px"
-              whileHover={{ scale: 1.08, rotate: 2 }}
+              size="280px"
+              whileHover={{ scale: 1.03, rotate: 1 }}
               style={{
                 zIndex: 2,
                 border: "6px solid #fff",
                 boxShadow:
-                  "0 0 40px rgba(0,86,255,0.4), 0 0 80px rgba(255,255,255,0.3)",
+                  "0 15px 45px rgba(37,99,235,0.2)",
               }}
             />
             <Typography
               sx={{
                 mt: 3,
                 fontWeight: 800,
-                color: "#111",
-                fontFamily: "'Poppins', sans-serif",
+                color: "text.primary",
               }}
             >
               Equipa Bernet
             </Typography>
-            <Typography sx={{ color: "#666", fontSize: "0.95rem", maxWidth: "360px", mx: "auto" }}>
+            <Typography sx={{ color: "text.secondary", fontSize: "0.95rem", maxWidth: "360px", mx: "auto" }}>
               Unidos pela mesma visão, desenvolvemos soluções que inspiram fé e inovação.
             </Typography>
           </Box>
@@ -207,20 +203,19 @@ export default function SobreEquipa() {
             <ProfileImage
               src={pastor}
               alt="Dr. Neto"
-              size="220px"
-              whileHover={{ scale: 1.1 }}
+              size="200px"
+              whileHover={{ scale: 1.05 }}
             />
             <Typography
               sx={{
                 mt: 2,
                 fontWeight: 700,
-                color: "#0056FF",
-                fontFamily: "'Poppins', sans-serif",
+                color: "primary.main",
               }}
             >
               Dr. Neto
             </Typography>
-            <Typography sx={{ color: "#555", fontSize: "0.95rem" }}>
+            <Typography sx={{ color: "text.secondary", fontSize: "0.95rem" }}>
               Mentor & Estrategista
             </Typography>
           </Box>

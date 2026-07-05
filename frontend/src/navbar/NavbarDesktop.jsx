@@ -134,24 +134,24 @@ useEffect(() => {
   };
 
   const membrosSubmenus = [
-    { path: "/gestao/membros", label: "Relação de Membros", icon: <PeopleAltRounded /> },
+    { path: "/gestao-membros", label: "Relação de Membros", icon: <PeopleAltRounded /> },
     { path: "/cartao/membro", label: "Cartões de Membro", icon: <BadgeRounded /> },
-    { path: "/gestao/cargos", label: "Ministérios & Cargos", icon: <BadgeRounded /> },
-    { path: "/gestao/departamentos", label: "Departamentos Internos", icon: <BadgeRounded /> },
-    { path: "/gestao/relatorioSede", label: "Relatório Estatístico", icon: <AssessmentRounded /> },
+    { path: "/gestao-cargos", label: "Ministérios & Cargos", icon: <BadgeRounded /> },
+    { path: "/gestao-departamentos", label: "Departamentos Internos", icon: <BadgeRounded /> },
+    { path: "/relatorios/sede", label: "Relatório Estatístico", icon: <AssessmentRounded /> },
   ];
 
   const financasSubmenus = [
     { path: "/salarios", label: "Folha de Pagamentos", icon: <PaidRounded /> },
-    { path: "/gestao/contribuicoes", label: "Dízimos & Ofertas", icon: <AccountBalanceWalletRounded /> },
-    { path: "/gestao/despesas", label: "Fluxo de Despesas", icon: <ReceiptLongRounded /> },
+    { path: "/gestao-contribuicoes", label: "Dízimos & Ofertas", icon: <AccountBalanceWalletRounded /> },
+    { path: "/gestao-despesas", label: "Fluxo de Despesas", icon: <ReceiptLongRounded /> },
   ];
 
   const relatoriosFinanceirosSub = [
-    { path: "/gestao/relatorioContribuicoes", label: "Entradas por Período", icon: <AccountBalanceWalletRounded /> },
-    { path: "/tabelaSalarios", label: "Histórico Salarial", icon: <PaidRounded /> },
-    { path: "/gestao/relatorioDespesas", label: "Saídas & Custos", icon: <ReceiptLongRounded /> },
-    { path: "/gestao/relatorioFinanceiroGeral", label: "Balanço Consolidado", icon: <AssessmentRounded /> },
+    { path: "/relatorios/contribuicoes", label: "Entradas por Período", icon: <AccountBalanceWalletRounded /> },
+    { path: "/salarios", label: "Histórico Salarial", icon: <PaidRounded /> },
+    { path: "/relatorios/despesas", label: "Saídas & Custos", icon: <ReceiptLongRounded /> },
+    { path: "/relatorios/financeiro-geral", label: "Balanço Consolidado", icon: <AssessmentRounded /> },
   ];
 
   const isActived = (path) => location.pathname === path;
@@ -465,8 +465,8 @@ useEffect(() => {
             {(userRole === "admin" || userRole === "moderador") && (
               <ListItemButton 
                 component={Link} 
-                to="/listaCultos" 
-                className={`peculiar-btn-culto ${isActived("/listaCultos") ? "active-link" : ""}`}
+                to="/lista-cultos" 
+                className={`peculiar-btn-culto ${isActived("/lista-cultos") ? "active-link" : ""}`}
               >
                 <ListItemIcon><HistoryEduRounded /></ListItemIcon>
                 <ListItemText 
@@ -507,8 +507,8 @@ useEffect(() => {
                   <Box className="premium-submenu-box">
                     <ListItemButton
                       component={Link}
-                      to="/TabelaCulto"
-                      className={`premium-sub-btn ${isActived("/TabelaCulto") ? "active-link" : ""}`}
+                      to="/lista-cultos"
+                      className={`premium-sub-btn ${isActived("/lista-cultos") ? "active-link" : ""}`}
                     >
                       <ListItemText primary="Agenda de Cultos" />
                     </ListItemButton>
@@ -517,8 +517,8 @@ useEffect(() => {
                     {userRole === "admin" && (
                       <ListItemButton
                         component={Link}
-                        to="/gestao/RelatorioPresencas"
-                        className={`premium-sub-btn ${isActived("/gestao/RelatorioPresencas") ? "active-link" : ""}`}
+                        to="/relatorios/presencas"
+                        className={`premium-sub-btn ${isActived("/relatorios/presencas") ? "active-link" : ""}`}
                       >
                         <ListItemText primary="Relatório de Frequência" />
                       </ListItemButton>
