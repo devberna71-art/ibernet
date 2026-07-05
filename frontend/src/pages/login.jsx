@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Lock, LogIn, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../api/axiosConfig";
-import { useAuth } from "../context/AuthContext";
 import Button from "../components/ui/Button";
 import logoBernet from "../assets/Logo-Bernet.png";
 
 export default function LoginPage() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({ nome: "", senha: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,8 +29,9 @@ export default function LoginPage() {
     try {
       const res = await api.post("/login", formData);
       setSuccess(res.data.message || "Login realizado com sucesso!");
-      await login(res.data.token, res.data.usuario);
-      navigate("/", { replace: true });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
+      window.location.href = "/";
     } catch (err) {
       setError(err.response?.data?.message || "Credenciais inválidas.");
     } finally {
