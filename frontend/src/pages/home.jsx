@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import heroImage from "../assets/homeimg.jpg";
 import logoBernet from "../assets/Logo-Bernet.png";
+import NavbarVisitor from "../navbar/NavbarVisitor";
 
 /* ── Utilitários inline ── */
 function Pill({ children }) {
@@ -163,6 +164,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white font-sans overflow-x-hidden">
+      <NavbarVisitor />
 
       {/* ══════════════════════════════ HERO ══════════════════════════════ */}
       <section

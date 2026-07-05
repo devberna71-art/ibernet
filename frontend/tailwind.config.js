@@ -55,6 +55,9 @@ export default {
         "5xl":     ["36px", { lineHeight: "1.15" }],
         "6xl":     ["48px", { lineHeight: "1.1" }],
         "hero":    ["60px", { lineHeight: "1.05", letterSpacing: "-0.02em" }],
+        "pageTitle": ["20px", { lineHeight: "1.3" }],
+        "cardTitle": ["15px", { lineHeight: "1.5" }],
+        "muted":     ["13px", { lineHeight: "1.5" }],
       },
       keyframes: {
         fadeUp: {

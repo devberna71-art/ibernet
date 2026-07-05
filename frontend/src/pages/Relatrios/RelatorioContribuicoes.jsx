@@ -1,477 +1,134 @@
-// RELATÓRIO DE CONTRIBUIÇÕES - ESTILO SURREAL PREMIUM (ALINHADO COM A TUA PÁGINA)
-// ATUALIZADO: FOTO + CHIPS + MESES FIXOS (SEM REMOVER NADA)
-
-import React, { useEffect, useState, useMemo } from 'react';
-import {
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Card,
-  CardContent,
-  Divider,
-  TextField,
-  Autocomplete,
-  Stack,
-  Chip,
-  Avatar,
-} from '@mui/material';
-import { FilterAlt, Summarize, PictureAsPdf } from '@mui/icons-material';
-import { motion } from 'framer-motion';
-import dayjs from 'dayjs';
-import api from '../../api/axiosConfig';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-
-const MONTHS_PT = [
-  'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'
-];
-
-function formatCurrency(val) {
-  const num = Number(val) || 0;
-  const parts = num.toFixed(2).split('.');
-  const intPart = parts[0];
-  const decPart = parts[1];
-  const withThousand = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `Kz ${withThousand},${decPart}`;
-}
-
-function monthKey(d) {
-  return dayjs(d).format('YYYY-MM');
-}
-
-function monthLabelFromKey(k) {
-  if (!k) return '';
-  const parts = k.split('-');
-  const m = parseInt(parts[1], 10);
-  return MONTHS_PT[m - 1] || '';
-}
-
-function buildMonthsArray(start, end) {
-  const arr = [];
-  let cur = dayjs(start).startOf('month');
-  const last = dayjs(end).endOf('month');
-  while (cur.isBefore(last) || cur.isSame(last, 'month')) {
-    arr.push(cur.format('YYYY-MM'));
-    cur = cur.add(1, 'month');
-  }
-  return arr;
-}
+import React, { useEffect, useState } from "react";
+import { HandHeart, Filter, Download, Loader2, X, Search } from "lucide-react";
+import api from "../../api/axiosConfig";
+import AppPage from "../../components/ui/AppPage";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
 export default function RelatorioContribuicoes() {
-  const [tipos, setTipos] = useState([]);
-  const [membros, setMembros] = useState([]);
-  const [tipoId, setTipoId] = useState('');
-  const [membroId, setMembroId] = useState('');
-
-  const [startDate, setStartDate] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
-  const [endDate, setEndDate] = useState(dayjs().format('YYYY-MM-DD'));
-  const [loading, setLoading] = useState(false);
   const [contribuicoes, setContribuicoes] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
-    (async () => {
-      try {
-        const [resTipos, resMembros] = await Promise.all([
-          api.get('/lista/tipos-contribuicao'),
-          api.get('/membros'),
-        ]);
-        setTipos(resTipos.data || []);
-        setMembros(resMembros.data || []);
-      } catch (err) {
-        console.error('Erro ao carregar filtros', err);
-      }
-    })();
+    fetchContribuicoes();
   }, []);
 
-  const buscarRelatorio = async () => {
-    if (!startDate || !endDate) return alert('Selecione as datas');
-    if (dayjs(startDate).isAfter(dayjs(endDate))) return alert('Data inicial maior que a final');
-
+  const fetchContribuicoes = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/lista/contribuicoes', {
-        params: {
-          startDate,
-          endDate,
-          tipoId: tipoId || undefined,
-          membroId: membroId || undefined,
-        },
-      });
-
-      const data = res.data || [];
-      setContribuicoes(data);
-      setTotal(data.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0));
+      const res = await api.get("/contribuicoes");
+      setContribuicoes(res.data || []);
     } catch (err) {
-      console.error('Erro ao buscar relatório', err);
+      console.error(err);
+      showToast("Erro ao carregar contribuições.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const dadosPizza = useMemo(() => {
-    const mapa = {};
-    contribuicoes.forEach((c) => {
-      const tipo = c.TipoContribuicao?.nome || 'Outros';
-      mapa[tipo] = (mapa[tipo] || 0) + (parseFloat(c.valor) || 0);
-    });
-    return Object.entries(mapa).map(([name, value]) => ({ name, value }));
-  }, [contribuicoes]);
+  const filteredContribuicoes = contribuicoes.filter(c =>
+    c.membroNome?.toLowerCase().includes(search.toLowerCase()) ||
+    c.tipo?.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const cores = ['#020617', '#334155', '#64748b', '#94a3b8', '#cbd5f5', '#e2e8f0'];
-
-  const { months, tableRows } = useMemo(() => {
-    if (!startDate || !endDate) return { months: [], tableRows: [] };
-
-    const monthsArr = buildMonthsArray(startDate, endDate);
-    const mapa = {};
-
-    function ensureMemberEntry(memberKey, memberName, foto) {
-      if (!mapa[memberKey]) {
-        mapa[memberKey] = {
-          memberId: memberKey === 'SEM' ? null : memberKey,
-          nome: memberName || (memberKey === 'SEM' ? 'Sem Membro' : 'Desconhecido'),
-          foto: foto || null,
-          months: {},
-          total: 0,
-        };
-        monthsArr.forEach((m) => (mapa[memberKey].months[m] = 0));
-      }
-    }
-
-    contribuicoes.forEach((c) => {
-      const mKey = monthKey(
-        c.data || c.createdAt || c.created_at || c.data_contribuicao || new Date()
-      );
-      if (!monthsArr.includes(mKey)) return;
-
-      const membro = c.Membro && c.Membro.id ? c.Membro : null;
-      const memberKey = membro ? String(membro.id) : 'SEM';
-      const memberName = membro ? membro.nome : null;
-      const foto = membro ? membro.foto || membro.fotoUrl || null : null;
-
-      ensureMemberEntry(memberKey, memberName, foto);
-
-      const valor = parseFloat(c.valor) || 0;
-      mapa[memberKey].months[mKey] += valor;
-      mapa[memberKey].total += valor;
-    });
-
-    return {
-      months: monthsArr,
-      tableRows: Object.values(mapa).sort((a, b) =>
-        a.nome.localeCompare(b.nome)
-      ),
-    };
-  }, [contribuicoes, startDate, endDate]);
-
-  const exportarPDF = () => {
-    const doc = new jsPDF('l', 'pt', 'a4');
-    doc.setFontSize(14);
-    doc.text('Relatório de Contribuições por Membro / Mês', 40, 40);
-    doc.text(
-      `Período: ${dayjs(startDate).format('DD/MM/YYYY')} - ${dayjs(endDate).format('DD/MM/YYYY')}`,
-      40,
-      60
-    );
-    doc.text(`Total Geral: ${formatCurrency(total)}`, 40, 80);
-
-    const head = [['Membro', ...months.map((m) => monthLabelFromKey(m)), 'Total (Kz)']];
-    const body = tableRows.map((r) => [
-      r.nome,
-      ...months.map((m) => (r.months[m] || 0).toFixed(2)),
-      r.total.toFixed(2),
-    ]);
-
-    autoTable(doc, {
-      head,
-      body,
-      startY: 100,
-      styles: { fontSize: 9 },
-      theme: 'grid',
-      margin: { left: 20, right: 20 },
-    });
-
-    doc.save('relatorio.pdf');
+  const formatKz = (valor) => {
+    return `${Number(valor || 0).toLocaleString("pt-AO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Kz`;
   };
 
   return (
-    <Box sx={pageWrapper}>
-      <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}>
-        <Paper sx={headerCard}>
-          <Typography variant="h4" sx={titleSurreal}>
-            Relatório de Contribuições
-          </Typography>
-          <Typography sx={subtitleSurreal}>
-            Análise detalhada por membro e por mês
-          </Typography>
-        </Paper>
+    <AppPage subtitle="Detalhamento de todas as contribuições recebidas.">
+      {toast && (
+        <div className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+          toast.type === "error" ? "bg-danger/5 border-danger/20 text-danger" : "bg-successSoft border-success/20 text-success"
+        }`}>
+          {toast.message}
+        </div>
+      )}
 
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mt: 3, mb: 4 }}>
-          <Paper sx={kpiCard}>
-            <Typography sx={kpiLabel}>TOTAL ARRECADADO</Typography>
-            <Typography sx={kpiValueNeon}>{formatCurrency(total)}</Typography>
-          </Paper>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-primarySoft flex items-center justify-center text-primary">
+            <HandHeart size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Relatório de Contribuições</h2>
+            <p className="text-muted text-textMuted mt-0.5">Detalhamento de entradas</p>
+          </div>
+        </div>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => showToast("Funcionalidade de exportação em desenvolvimento", "info")}
+        >
+          <Download size={15} className="w-4 h-4 shrink-0 mr-2" />
+          Exportar
+        </Button>
+      </div>
 
-          <Paper sx={kpiCard}>
-            <Typography sx={kpiLabel}>REGISTROS</Typography>
-            <Typography sx={kpiValue}>{contribuicoes.length}</Typography>
-          </Paper>
-        </Stack>
+      <Card padding="p-4" className="mb-6">
+        <div className="relative max-w-md">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar por membro ou tipo..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-8 pr-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
+        </div>
+      </Card>
 
-        <Paper sx={cardSurreal}>
-          <Stack direction="row" flexWrap="wrap" gap={2} justifyContent="center">
-            <TextField
-              label="Data Inicial"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ minWidth: 170 }}
-            />
-
-            <TextField
-              label="Data Final"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ minWidth: 170 }}
-            />
-
-            <FormControl sx={{ minWidth: 220 }}>
-              <InputLabel>Tipo de Contribuição</InputLabel>
-              <Select
-                value={tipoId}
-                label="Tipo de Contribuição"
-                onChange={(e) => setTipoId(e.target.value)}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                {tipos.map((t) => (
-                  <MenuItem key={t.id} value={t.id}>
-                    {t.nome}
-                  </MenuItem>
+      {loading ? (
+        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
+          <span className="text-body">Carregando relatório...</span>
+        </div>
+      ) : filteredContribuicoes.length === 0 ? (
+        <Card className="text-center py-12">
+          <p className="text-body text-textMuted">Nenhuma contribuição encontrada.</p>
+        </Card>
+      ) : (
+        <Card padding="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-border bg-bgSection text-[10px] font-bold text-textMuted uppercase tracking-wide">
+                  <th className="px-5 py-3">Membro</th>
+                  <th className="px-5 py-3">Tipo</th>
+                  <th className="px-5 py-3">Data</th>
+                  <th className="px-5 py-3">Valor</th>
+                  <th className="px-5 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-body">
+                {filteredContribuicoes.map((contrib) => (
+                  <tr key={contrib.id} className="hover:bg-bgSection/30 transition-colors">
+                    <td className="px-5 py-3 font-medium text-text">{contrib.membroNome || "-"}</td>
+                    <td className="px-5 py-3">
+                      <Badge variant="secondary">{contrib.tipo || "Não informado"}</Badge>
+                    </td>
+                    <td className="px-5 py-3 text-textMuted">{contrib.data || "-"}</td>
+                    <td className="px-5 py-3 font-bold text-success">{formatKz(contrib.valor)}</td>
+                    <td className="px-5 py-3">
+                      <Badge variant={contrib.status === "confirmado" ? "success" : "warning"}>
+                        {contrib.status || "Pendente"}
+                      </Badge>
+                    </td>
+                  </tr>
                 ))}
-              </Select>
-            </FormControl>
-
-            <Autocomplete
-              options={membros}
-              getOptionLabel={(m) => m?.nome || ''}
-              value={membros.find((m) => m.id === membroId) || null}
-              onChange={(e, value) => setMembroId(value ? value.id : '')}
-              sx={{ minWidth: 260 }}
-              renderInput={(params) => (
-                <TextField {...params} label="Membro" placeholder="Pesquisar membro..." />
-              )}
-            />
-
-            <Button startIcon={<FilterAlt />} onClick={buscarRelatorio} sx={btnPrimary}>
-              Gerar Relatório
-            </Button>
-
-            <Button
-              startIcon={<PictureAsPdf />}
-              onClick={exportarPDF}
-              disabled={!tableRows.length}
-              sx={btnGlass}
-            >
-              Exportar PDF
-            </Button>
-          </Stack>
-        </Paper>
-
-        <Paper sx={cardSurreal}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-              <CircularProgress size={45} />
-            </Box>
-          ) : (
-            <TableContainer sx={{ maxHeight: 500 }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ ...tableHead, position: 'sticky', left: 0, zIndex: 3 }}>
-                      Membro
-                    </TableCell>
-
-                    {months.map((m) => (
-                      <TableCell key={m} align="center" sx={tableHead}>
-                        {monthLabelFromKey(m)}
-                      </TableCell>
-                    ))}
-
-                    <TableCell align="right" sx={tableHead}>
-                      Total
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {tableRows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={2 + months.length} align="center">
-                        Nenhum registro encontrado
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    tableRows.map((r) => (
-                      <TableRow key={r.memberId || r.nome} hover>
-                        <TableCell sx={{ position: 'sticky', left: 0, background: '#fff' }}>
-                          <Stack direction="row" spacing={2} alignItems="center">
-                            <Avatar
-                              src={r.foto || '/avatar.png'}
-                              alt={r.nome}
-                              sx={{ width: 48, height: 48 }}
-                            />
-                            <Box>
-                              <Typography fontWeight={800}>{r.nome}</Typography>
-                              <Chip
-                                label={formatCurrency(r.total)}
-                                sx={{
-                                  mt: 1,
-                                  fontWeight: 900,
-                                  borderRadius: '999px',
-                                  background: r.total > 0 ? '#16a34a' : '#dc2626',
-                                  color: '#fff',
-                                }}
-                              />
-                            </Box>
-                          </Stack>
-                        </TableCell>
-
-                        {months.map((m) => (
-                          <TableCell key={m} align="right">
-                            <Chip
-                              label={formatCurrency(r.months[m] || 0)}
-                              sx={{
-                                fontWeight: 800,
-                                background: '#020617',
-                                color: '#ffffff',
-                                borderRadius: '999px',
-                              }}
-                            />
-                          </TableCell>
-                        ))}
-
-                        <TableCell align="right">
-                          <Typography fontWeight={900}>
-                            {formatCurrency(r.total)}
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Paper>
-      </motion.div>
-    </Box>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+    </AppPage>
   );
 }
-
-/* ESTILOS ORIGINAIS MANTIDOS */
-const pageWrapper = {
-  minHeight: '100vh',
-  background: 'radial-gradient(circle at 20% 20%, #f0f9ff, #ffffff, #f8fafc)',
-  px: { xs: 2, md: 6 },
-  py: 6,
-};
-
-const headerCard = {
-  p: 4,
-  borderRadius: 5,
-  background: '#ffffff',
-  border: '1px solid #e5e7eb',
-  boxShadow: '0 25px 70px rgba(0,0,0,0.05)',
-};
-
-const titleSurreal = {
-  fontWeight: 900,
-  color: '#020617',
-};
-
-const subtitleSurreal = {
-  color: '#64748b',
-  fontWeight: 500,
-  mt: 1,
-};
-
-const kpiCard = {
-  p: 3,
-  borderRadius: 4,
-  background: '#ffffff',
-  border: '1px solid #eef2f7',
-};
-
-const kpiLabel = {
-  fontSize: 12,
-  color: '#94a3b8',
-  fontWeight: 800,
-};
-
-const kpiValue = {
-  fontSize: 26,
-  fontWeight: 900,
-  color: '#020617',
-};
-
-const kpiValueNeon = {
-  fontSize: 28,
-  fontWeight: 900,
-  color: '#020617',
-};
-
-const cardSurreal = {
-  p: 4,
-  borderRadius: 5,
-  background: '#ffffff',
-  border: '1px solid #eef2f7',
-  mb: 4,
-};
-
-const btnPrimary = {
-  borderRadius: '999px',
-  px: 4,
-  fontWeight: 900,
-  background: '#020617',
-  color: '#fff',
-};
-
-const btnGlass = {
-  borderRadius: '999px',
-  px: 3,
-  fontWeight: 700,
-  background: '#ffffff',
-  border: '1px solid #e2e8f0',
-  color: '#020617',
-};
-
-const tableHead = {
-  fontWeight: 900,
-  color: '#020617',
-  background: '#f8fafc',
-};

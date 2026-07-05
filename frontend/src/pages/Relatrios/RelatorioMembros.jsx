@@ -1,339 +1,125 @@
-// src/pages/Relatorios/RelatorioPorMembro.jsx
-import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Card,
-  CardContent,
-  Divider,
-} from '@mui/material';
-import { Summarize, FilterAlt, PictureAsPdf } from '@mui/icons-material';
-import { motion } from 'framer-motion';
-import dayjs from 'dayjs';
-import api from '../../api/axiosConfig';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import React, { useEffect, useState } from "react";
+import { Users, Filter, Download, Loader2, X, Search } from "lucide-react";
+import api from "../../api/axiosConfig";
+import AppPage from "../../components/ui/AppPage";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
-export default function RelatorioPorMembro() {
+export default function RelatorioMembros() {
   const [membros, setMembros] = useState([]);
-  const [membroId, setMembroId] = useState('');
-  const [periodo, setPeriodo] = useState('mes');
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState(null);
 
-  const [total, setTotal] = useState(0);
-  const [quantidade, setQuantidade] = useState(0);
-  const [resumoTipo, setResumoTipo] = useState([]);
-  const [contribuicoes, setContribuicoes] = useState([]);
-
-  // Carregar lista de membros
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.get('/membros');
-        setMembros(res.data);
-      } catch (err) {
-        console.error('Erro ao carregar membros', err);
-      }
-    })();
-  }, []);
-
-  const calcularPeriodo = (p) => {
-    const agora = dayjs();
-    let inicio;
-    switch (p) {
-      case 'hoje': inicio = agora.startOf('day'); break;
-      case 'semana': inicio = agora.startOf('week'); break;
-      case 'mes': inicio = agora.startOf('month'); break;
-      case 'trimestre': inicio = agora.subtract(3, 'month').startOf('day'); break;
-      case 'semestre': inicio = agora.subtract(6, 'month').startOf('day'); break;
-      case 'ano': inicio = agora.startOf('year'); break;
-      default: inicio = agora.startOf('month');
-    }
-    return { start: inicio.format('YYYY-MM-DD'), end: agora.format('YYYY-MM-DD') };
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  const buscarRelatorio = async () => {
-    if (!membroId) return;
+  useEffect(() => {
+    fetchMembros();
+  }, []);
+
+  const fetchMembros = async () => {
     setLoading(true);
     try {
-      const { start, end } = calcularPeriodo(periodo);
-      const res = await api.get('/relatorios/membro', {
-        params: { membroId, startDate: start, endDate: end },
-      });
-      setTotal(res.data.totalContribuido || 0);
-      setQuantidade(res.data.quantidade || 0);
-      setResumoTipo(res.data.resumoPorTipo || []);
-      setContribuicoes(res.data.contribuicoes || []);
+      const res = await api.get("/membros");
+      setMembros(res.data || []);
     } catch (err) {
-      console.error('Erro ao buscar relatório', err);
+      console.error(err);
+      showToast("Erro ao carregar membros.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Exportar PDF
-  const exportarPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('Relatório por Membro', 14, 18);
-    doc.setFontSize(12);
-    doc.text(`Total Contribuído: Kz ${total.toFixed(2)}`, 14, 28);
-    doc.text(`Quantidade de Contribuições: ${quantidade}`, 14, 36);
-
-    // Tabela por tipo
-    if (resumoTipo.length) {
-      autoTable(doc, {
-        head: [['Tipo de Contribuição', 'Total (Kz)', 'Qtd']],
-        body: resumoTipo.map(r => [
-          r.TipoContribuicao?.nome || '-',
-          parseFloat(r.totalTipo).toFixed(2),
-          r.quantidadeTipo
-        ]),
-        startY: 46,
-        styles: { fontSize: 10 },
-      });
-    }
-
-    // Detalhes individuais
-    if (contribuicoes.length) {
-      autoTable(doc, {
-        head: [['Data', 'Tipo', 'Valor (Kz)', 'Descrição']],
-        body: contribuicoes.map(c => [
-          dayjs(c.data).format('DD/MM/YYYY'),
-          c.TipoContribuicao?.nome || '-',
-          parseFloat(c.valor).toFixed(2),
-          c.descricao || '-'
-        ]),
-        startY: doc.lastAutoTable.finalY + 10,
-        styles: { fontSize: 10 },
-      });
-    }
-
-    doc.save('relatorio-membro.pdf');
-  };
+  const filteredMembros = membros.filter(m =>
+    m.nome?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        p: { xs: 2, md: 6 },
-        background: 'linear-gradient(135deg,#6b78ff 0%, #9c27b0 100%)',
-        display: 'flex',
-        justifyContent: 'center',
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        style={{ width: '100%', maxWidth: 1100 }}
-      >
-        <Card elevation={8} sx={{ borderRadius: 4, overflow: 'hidden' }}>
-          <Box
-            sx={{
-              p: 4,
-              background: 'linear-gradient(90deg, rgba(33,150,243,1) 0%, rgba(156,39,176,1) 100%)',
-            }}
-          >
-            <Typography
-              variant="h4"
-              fontWeight="bold"
-              color="white"
-              textAlign="center"
-            >
-              <Summarize sx={{ fontSize: 40, mr: 1, verticalAlign: 'middle' }} />
-              Relatório por Membro
-            </Typography>
-          </Box>
+    <AppPage subtitle="Relatório cadastral de membros da igreja.">
+      {toast && (
+        <div className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
+          toast.type === "error" ? "bg-danger/5 border-danger/20 text-danger" : "bg-successSoft border-success/20 text-success"
+        }`}>
+          {toast.message}
+        </div>
+      )}
 
-          <CardContent>
-            {/* Filtros */}
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 2,
-                mb: 4,
-                justifyContent: 'center',
-              }}
-            >
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>Membro</InputLabel>
-                <Select
-                  value={membroId}
-                  onChange={(e) => setMembroId(e.target.value)}
-                >
-                  {membros.map((m) => (
-                    <MenuItem key={m.id} value={m.id}>
-                      {m.nome}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-9 h-9 rounded-sm bg-primarySoft flex items-center justify-center text-primary">
+            <Users size={18} />
+          </div>
+          <div>
+            <h2 className="text-[18px] font-semibold text-text">Relatório de Membros</h2>
+            <p className="text-muted text-textMuted mt-0.5">Cadastro completo</p>
+          </div>
+        </div>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => showToast("Funcionalidade de exportação em desenvolvimento", "info")}
+        >
+          <Download size={15} className="w-4 h-4 shrink-0 mr-2" />
+          Exportar
+        </Button>
+      </div>
 
-              <FormControl sx={{ minWidth: 160 }}>
-                <InputLabel>Período</InputLabel>
-                <Select
-                  value={periodo}
-                  onChange={(e) => setPeriodo(e.target.value)}
-                >
-                  <MenuItem value="hoje">Hoje</MenuItem>
-                  <MenuItem value="semana">Semana</MenuItem>
-                  <MenuItem value="mes">Mês</MenuItem>
-                  <MenuItem value="trimestre">Trimestre</MenuItem>
-                  <MenuItem value="semestre">Semestre</MenuItem>
-                  <MenuItem value="ano">Ano</MenuItem>
-                </Select>
-              </FormControl>
+      <Card padding="p-4" className="mb-6">
+        <div className="relative max-w-md">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Buscar por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-8 pr-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
+        </div>
+      </Card>
 
-              <Button
-                variant="contained"
-                startIcon={<FilterAlt />}
-                onClick={buscarRelatorio}
-                sx={{
-                  background: 'linear-gradient(90deg,#6b78ff,#9c27b0)',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  px: 3,
-                  py: 1.2,
-                  borderRadius: 3,
-                  '&:hover': {
-                    background: 'linear-gradient(90deg,#5a68e5,#8e24aa)',
-                  },
-                }}
-              >
-                Gerar Relatório
-              </Button>
-
-              <Button
-                variant="outlined"
-                startIcon={<PictureAsPdf />}
-                onClick={exportarPDF}
-                disabled={!contribuicoes.length}
-                sx={{
-                  borderColor: '#6b78ff',
-                  color: '#6b78ff',
-                  fontWeight: 'bold',
-                  px: 3,
-                  py: 1.2,
-                  borderRadius: 3,
-                  '&:hover': {
-                    background: 'rgba(107,120,255,0.1)',
-                    borderColor: '#5a68e5',
-                  },
-                }}
-              >
-                Exportar PDF
-              </Button>
-            </Box>
-
-            <Divider sx={{ mb: 3 }} />
-
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : membroId && (
-              <>
-                <Typography
-                  variant="h6"
-                  mb={2}
-                  textAlign="center"
-                  fontWeight="bold"
-                >
-                  Total Contribuído:{' '}
-                  <Box component="span" sx={{ color: '#6b78ff' }}>
-                    Kz {total.toFixed(2)}
-                  </Box>
-                </Typography>
-                <Typography
-                  variant="h6"
-                  mb={4}
-                  textAlign="center"
-                  fontWeight="bold"
-                >
-                  Quantidade de Contribuições:{' '}
-                  <Box component="span" sx={{ color: '#9c27b0' }}>
-                    {quantidade}
-                  </Box>
-                </Typography>
-
-                {/* Resumo por tipo */}
-                {resumoTipo.length > 0 && (
-                  <TableContainer
-                    component={Paper}
-                    sx={{ borderRadius: 3, mb: 4 }}
-                  >
-                    <Table>
-                      <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                        <TableRow>
-                          <TableCell>Tipo de Contribuição</TableCell>
-                          <TableCell align="right">Total (Kz)</TableCell>
-                          <TableCell align="right">Quantidade</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {resumoTipo.map((r, i) => (
-                          <TableRow key={i} hover>
-                            <TableCell>{r.TipoContribuicao?.nome || '-'}</TableCell>
-                            <TableCell align="right">
-                              {parseFloat(r.totalTipo).toFixed(2)}
-                            </TableCell>
-                            <TableCell align="right">
-                              {r.quantidadeTipo}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-
-                {/* Tabela de contribuições detalhada */}
-                {contribuicoes.length > 0 && (
-                  <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-                    <Table>
-                      <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                        <TableRow>
-                          <TableCell>Data</TableCell>
-                          <TableCell>Tipo</TableCell>
-                          <TableCell align="right">Valor (Kz)</TableCell>
-                          <TableCell>Descrição</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {contribuicoes.map((c) => (
-                          <TableRow key={c.id} hover>
-                            <TableCell>{dayjs(c.data).format('DD/MM/YYYY')}</TableCell>
-                            <TableCell>{c.TipoContribuicao?.nome || '-'}</TableCell>
-                            <TableCell align="right">
-                              {parseFloat(c.valor).toFixed(2)}
-                            </TableCell>
-                            <TableCell>{c.descricao || '-'}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </>
-            )}
-          </CardContent>
+      {loading ? (
+        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
+          <span className="text-body">Carregando relatório...</span>
+        </div>
+      ) : filteredMembros.length === 0 ? (
+        <Card className="text-center py-12">
+          <p className="text-body text-textMuted">Nenhum membro encontrado.</p>
         </Card>
-      </motion.div>
-    </Box>
+      ) : (
+        <Card padding="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-border bg-bgSection text-[10px] font-bold text-textMuted uppercase tracking-wide">
+                  <th className="px-5 py-3">Nome</th>
+                  <th className="px-5 py-3">Email</th>
+                  <th className="px-5 py-3">Telefone</th>
+                  <th className="px-5 py-3">Estado Civil</th>
+                  <th className="px-5 py-3">Profissão</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-body">
+                {filteredMembros.map((membro) => (
+                  <tr key={membro.id} className="hover:bg-bgSection/30 transition-colors">
+                    <td className="px-5 py-3 font-medium text-text">{membro.nome}</td>
+                    <td className="px-5 py-3 text-textMuted">{membro.email || "-"}</td>
+                    <td className="px-5 py-3 text-textMuted">{membro.telefone || "-"}</td>
+                    <td className="px-5 py-3">
+                      <Badge variant="secondary">{membro.estado_civil || "Não informado"}</Badge>
+                    </td>
+                    <td className="px-5 py-3 text-textMuted">{membro.profissao || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+    </AppPage>
   );
 }
