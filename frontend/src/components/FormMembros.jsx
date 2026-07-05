@@ -1,17 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  TextField,
-  Button,
-  MenuItem,
-  FormControlLabel,
-  Checkbox,
-  Alert,
-  CircularProgress,
-  Typography,
-  Divider,
-  ListItemText
-} from '@mui/material';
+import { Loader2 } from 'lucide-react';
 import api from '../api/axiosConfig';
 
 export default function FormMembros({ onSuccess, membroData }) {
@@ -44,6 +32,7 @@ export default function FormMembros({ onSuccess, membroData }) {
     trabalha: false,
     conta_outrem: false,
     conta_propria: false,
+    MembroIdUsuario: '',
   });
 
   const [previewFoto, setPreviewFoto] = useState(null);
@@ -51,28 +40,21 @@ export default function FormMembros({ onSuccess, membroData }) {
   const [departamentos, setDepartamentos] = useState([]);
   const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
   const [loading, setLoading] = useState(false);
-  const [cargosOpen, setCargosOpen] = useState(false);
-  const [departamentosOpen, setDepartamentosOpen] = useState(false);
+  const [usuarios, setUsuarios] = useState([]);
 
-
-  // Dentro do componente FormMembros
-const [usuarios, setUsuarios] = useState([]);
-
-// Carregar usuários para o dropdown
-useEffect(() => {
-  const fetchUsuarios = async () => {
-    try {
-      const res = await api.get('/usuarios'); // rota GET que criamos
-      setUsuarios(res.data.usuarios || []);
-    } catch (err) {
-      console.error(err);
-      setMensagem({ tipo: 'error', texto: 'Erro ao carregar usuários.' });
-    }
-  };
-
-  fetchUsuarios();
-}, []);
-
+  // Carregar usuários para o dropdown
+  useEffect(() => {
+    const fetchUsuarios = async () => {
+      try {
+        const res = await api.get('/usuarios');
+        setUsuarios(res.data.usuarios || []);
+      } catch (err) {
+        console.error(err);
+        setMensagem({ tipo: 'error', texto: 'Erro ao carregar usuários.' });
+      }
+    };
+    fetchUsuarios();
+  }, []);
 
   const habilitacoesOptions = [
     'Ensino Primário',
@@ -95,11 +77,6 @@ useEffect(() => {
     'Ancião',
     'Outro',
   ];
-
-  const selectStyles = {
-    MenuProps: { PaperProps: { sx: { bgcolor: '#263238', color: 'white' } } },
-    sx: { color: 'white' },
-  };
 
   // Carregar dados do membro (edição)
   useEffect(() => {
@@ -181,7 +158,7 @@ useEffect(() => {
       finalValue = files[0] || null;
       if (files[0]) setPreviewFoto(URL.createObjectURL(files[0]));
     } else if (name === 'CargosIds' || name === 'DepartamentosIds') {
-      finalValue = typeof value === 'string' ? value.split(',').map(Number) : value.map(Number);
+      finalValue = Array.from(e.target.selectedOptions).map((opt) => Number(opt.value));
     } else {
       finalValue = value;
     }
@@ -190,270 +167,396 @@ useEffect(() => {
     setMensagem({ tipo: '', texto: '' });
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!formData.nome || !formData.genero) {
-    setMensagem({ tipo: 'error', texto: 'Preencha os campos obrigatórios: nome e gênero.' });
-    return;
-  }
+    if (!formData.nome || !formData.genero) {
+      setMensagem({ tipo: 'error', texto: 'Preencha os campos obrigatórios: nome e gênero.' });
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const data = new FormData();
+    try {
+      const data = new FormData();
 
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== null && formData[key] !== undefined) {
-        if (key === 'foto' && formData.foto) data.append('foto', formData.foto);
-        else if (key === 'DepartamentosIds' || key === 'CargosIds')
-          formData[key].forEach((id) => data.append(`${key}[]`, id));
-        else data.append(key, formData[key]);
+      Object.keys(formData).forEach((key) => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          if (key === 'foto' && formData.foto) data.append('foto', formData.foto);
+          else if (key === 'DepartamentosIds' || key === 'CargosIds')
+            formData[key].forEach((id) => data.append(`${key}[]`, id));
+          else data.append(key, formData[key]);
+        }
+      });
+
+      let res;
+
+      if (membroData?.id) {
+        console.log(`📝 [FRONT] Enviando requisição PUT para atualizar membro ID: ${membroData.id}`);
+        res = await api.put(`/membros/${membroData.id}`, data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        console.log("🆕 [FRONT] Enviando requisição POST para cadastrar novo membro");
+        res = await api.post('/membros', data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       }
-    });
 
-    let res;
-    
-    // ✨ ESTRUTURA CORRIGIDA: Agora ou ele atualiza, ou ele cadastra!
-    if (membroData?.id) {
-      console.log(`📝 [FRONT] Enviando requisição PUT para atualizar membro ID: ${membroData.id}`);
-      res = await api.put(`/membros/${membroData.id}`, data, { 
-        headers: { 'Content-Type': 'multipart/form-data' } 
+      setMensagem({
+        tipo: 'success',
+        texto: res.data.message || (
+          membroData
+            ? 'Membro atualizado com sucesso!'
+            : 'Membro cadastrado com sucesso!'
+        ),
       });
-    } else {
-      console.log("🆕 [FRONT] Enviando requisição POST para cadastrar novo membro");
-      res = await api.post('/membros', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+
+      if (onSuccess) {
+        onSuccess(res.data?.credenciais);
+      }
+
+      if (!membroData) {
+        setFormData({
+          nome: '',
+          foto: null,
+          genero: '',
+          data_nascimento: '',
+          estado_civil: '',
+          bi: '',
+          telefone: '',
+          email: '',
+          endereco_rua: '',
+          endereco_bairro: '',
+          endereco_cidade: '',
+          endereco_provincia: '',
+          batizado: false,
+          data_batismo: '',
+          ativo: true,
+          CargosIds: [],
+          DepartamentosIds: [],
+          habilitacoes: '',
+          especialidades: '',
+          estudo_teologico: '',
+          local_formacao: '',
+          profissao: '',
+          consagrado: false,
+          data_consagracao: '',
+          categoria_ministerial: '',
+          trabalha: false,
+          conta_outrem: false,
+          conta_propria: false,
+          MembroIdUsuario: '',
+        });
+        setPreviewFoto(null);
+      }
+
+    } catch (err) {
+      console.error("❌ Erro ao salvar dados do membro:", err);
+      setMensagem({ tipo: 'error', texto: err.response?.data?.message || 'Erro ao salvar membro.' });
+    } finally {
+      setLoading(false);
     }
-
-    setMensagem({
-      tipo: 'success',
-      texto: res.data.message || (
-        membroData
-          ? 'Membro atualizado com sucesso!'
-          : 'Membro cadastrado com sucesso!'
-      ),
-    });
-
-    if (onSuccess) {
-      // Passa as credenciais se a rota de criação retornar, ou apenas fecha a modal
-      onSuccess(res.data?.credenciais);
-    }
-
-    // Só limpa o formulário se for um cadastro NOVO
-    if (!membroData) {
-      setFormData({
-        nome: '',
-        foto: null,
-        genero: '',
-        data_nascimento: '',
-        estado_civil: '',
-        bi: '',
-        telefone: '',
-        email: '',
-        endereco_rua: '',
-        endereco_bairro: '',
-        endereco_cidade: '',
-        endereco_provincia: '',
-        batizado: false,
-        data_batismo: '',
-        ativo: true,
-        CargosIds: [],
-        DepartamentosIds: [],
-        habilitacoes: '',
-        especialidades: '',
-        estudo_teologico: '',
-        local_formacao: '',
-        profissao: '',
-        consagrado: false,
-        data_consagracao: '',
-        categoria_ministerial: '',
-        trabalha: false,
-        conta_outrem: false,
-        conta_propria: false,
-      });
-      setPreviewFoto(null);
-    }
-
-  } catch (err) {
-    console.error("❌ Erro ao salvar dados do membro:", err);
-    setMensagem({ tipo: 'error', texto: err.response?.data?.message || 'Erro ao salvar membro.' });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} encType="multipart/form-data" sx={{ maxWidth: 800, mx: 'auto', color: 'white' }}>
-      {mensagem.texto && <Alert severity={mensagem.tipo} sx={{ mb: 2 }}>{mensagem.texto}</Alert>}
+    <form onSubmit={handleSubmit} encType="multipart/form-data" className="mx-auto max-w-2xl text-white">
+      {mensagem.texto && (
+        <div
+          className={`mb-2 rounded-lg px-4 py-3 font-bold ${
+            mensagem.tipo === 'success'
+              ? 'bg-green-50 text-green-800'
+              : 'bg-red-50 text-red-800'
+          }`}
+        >
+          {mensagem.texto}
+        </div>
+      )}
 
       {/* Dados Pessoais */}
-      <Typography variant="h6" sx={{ mt: 2, mb: 1, color: '#b3e5fc' }}>Dados Pessoais</Typography>
-      <Divider sx={{ mb: 2, borderColor: '#b3e5fc' }} />
+      <h3 className="mt-2 mb-1 text-lg font-semibold text-[#b3e5fc]">Dados Pessoais</h3>
+      <hr className="mb-2 border-[#b3e5fc]" />
 
-      <TextField fullWidth label="Nome *" name="nome" value={formData.nome} onChange={handleChange} margin="normal" required
-        InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }}
-      />
-<TextField
-  select
-  fullWidth
-  label="Usuário Vinculado"
-  name="MembroIdUsuario"   // <--- deve bater com a rota
-  value={formData.MembroIdUsuario || ''} // <--- opcional: você pode criar essa propriedade no formData
-  onChange={handleChange}
-  margin="normal"
-  InputLabelProps={{ style: { color: '#b3e5fc' } }}
-  inputProps={{ style: { color: 'white' } }}
-  SelectProps={selectStyles}
->
-  <MenuItem value="">Nenhum</MenuItem>
-  {usuarios.map((usuario) => (
-    <MenuItem key={usuario.id} value={usuario.id}>
-      {usuario.nome} ({usuario.funcao})
-    </MenuItem>
-  ))}
-</TextField>
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Nome *</label>
+        <input
+          type="text"
+          name="nome"
+          value={formData.nome}
+          onChange={handleChange}
+          required
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        />
+      </div>
 
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Usuário Vinculado</label>
+        <select
+          name="MembroIdUsuario"
+          value={formData.MembroIdUsuario || ''}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        >
+          <option value="">Nenhum</option>
+          {usuarios.map((usuario) => (
+            <option key={usuario.id} value={usuario.id}>
+              {usuario.nome} ({usuario.funcao})
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Button variant="contained" component="label" sx={{ mr: 2, color: 'white', backgroundColor: '#1976d2', '&:hover': { backgroundColor: '#1565c0' } }}>
+      <div className="mb-4 flex items-center">
+        <label className="mr-2 cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700">
           {formData.foto || previewFoto ? 'Alterar Foto' : 'Selecionar Foto'}
           <input type="file" name="foto" accept="image/*" hidden onChange={handleChange} />
-        </Button>
+        </label>
         {previewFoto && (
-          <Box component="img" src={previewFoto} alt="Preview da foto" sx={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '2px solid #b3e5fc' }} />
+          <img
+            src={previewFoto}
+            alt="Preview da foto"
+            className="h-20 w-20 rounded-full border-2 border-[#b3e5fc] object-cover"
+          />
         )}
-      </Box>
+      </div>
 
-      <TextField select fullWidth label="Gênero *" name="genero" value={formData.genero} onChange={handleChange} margin="normal" required
-        InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }} SelectProps={selectStyles}
-      >
-        <MenuItem value="Masculino">Masculino</MenuItem>
-        <MenuItem value="Feminino">Feminino</MenuItem>
-        <MenuItem value="Outro">Outro</MenuItem>
-      </TextField>
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Gênero *</label>
+        <select
+          name="genero"
+          value={formData.genero}
+          onChange={handleChange}
+          required
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        >
+          <option value="">Selecione</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Feminino">Feminino</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
 
-      <TextField fullWidth label="Data de Nascimento" name="data_nascimento" type="date" value={formData.data_nascimento} onChange={handleChange}
-        InputLabelProps={{ shrink: true, style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }} margin="normal" sx={{ '& .MuiSvgIcon-root': { color: 'white' } }}
-      />
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Data de Nascimento</label>
+        <input
+          type="date"
+          name="data_nascimento"
+          value={formData.data_nascimento}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        />
+      </div>
 
-      <TextField select fullWidth label="Estado Civil" name="estado_civil" value={formData.estado_civil} onChange={handleChange} margin="normal"
-        InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }} SelectProps={selectStyles}
-      >
-        <MenuItem value="Solteiro">Solteiro</MenuItem>
-        <MenuItem value="Casado">Casado</MenuItem>
-        <MenuItem value="Divorciado">Divorciado</MenuItem>
-        <MenuItem value="Viúvo">Viúvo</MenuItem>
-        <MenuItem onClick={(e) => e.target.blur()} sx={{ color: '#ffcc80', textAlign: 'center' }}>FECHAR</MenuItem>
-      </TextField>
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Estado Civil</label>
+        <select
+          name="estado_civil"
+          value={formData.estado_civil}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        >
+          <option value="">Selecione</option>
+          <option value="Solteiro">Solteiro</option>
+          <option value="Casado">Casado</option>
+          <option value="Divorciado">Divorciado</option>
+          <option value="Viúvo">Viúvo</option>
+        </select>
+      </div>
 
       {['bi', 'telefone', 'email', 'endereco_rua', 'endereco_bairro', 'endereco_cidade', 'endereco_provincia'].map((campo) => (
-        <TextField key={campo} fullWidth label={campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')} name={campo} value={formData[campo]} onChange={handleChange} margin="normal"
-          InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }}
-        />
+        <div key={campo} className="mb-4">
+          <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">
+            {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')}
+          </label>
+          <input
+            type={campo === 'email' ? 'email' : 'text'}
+            name={campo}
+            value={formData[campo]}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+          />
+        </div>
       ))}
 
-      <FormControlLabel control={<Checkbox name="ativo" checked={formData.ativo} onChange={handleChange} sx={{ color: 'white' }} />}
-        label={<Typography sx={{ color: '#b3e5fc' }}>Ativo</Typography>} />
+      <div className="mb-4 flex items-center">
+        <input
+          type="checkbox"
+          name="ativo"
+          checked={formData.ativo}
+          onChange={handleChange}
+          className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-[#b3e5fc] focus:ring-[#b3e5fc]"
+        />
+        <label className="text-[#b3e5fc]">Ativo</label>
+      </div>
 
       {/* Cargos */}
-      <TextField select fullWidth label="Cargos" name="CargosIds" value={formData.CargosIds} onChange={handleChange} margin="normal"
-        SelectProps={{
-          multiple: true,
-          ...selectStyles,
-          open: cargosOpen,
-          onOpen: () => setCargosOpen(true),
-          onClose: () => setCargosOpen(false),
-          renderValue: (selected) => cargos.filter(c => selected.includes(c.id)).map(c => c.nome).join(', ') || 'Selecione cargos',
-        }}
-        InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }}
-      >
-        {cargos.map(cargo => (
-          <MenuItem key={cargo.id} value={cargo.id}>
-            <Checkbox checked={formData.CargosIds.includes(cargo.id)} />
-            <ListItemText primary={cargo.nome} />
-          </MenuItem>
-        ))}
-        <MenuItem onClick={() => setCargosOpen(false)} sx={{ justifyContent: 'center', color: '#2196f3', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)' }}>FECHAR</MenuItem>
-      </TextField>
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Cargos</label>
+        <select
+          name="CargosIds"
+          value={formData.CargosIds}
+          onChange={handleChange}
+          multiple
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        >
+          {cargos.map(cargo => (
+            <option key={cargo.id} value={cargo.id}>
+              {cargo.nome}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-400">Segure Ctrl/Cmd para selecionar múltiplos</p>
+      </div>
 
       {/* Departamentos */}
-      <TextField select fullWidth label="Departamentos" name="DepartamentosIds" value={formData.DepartamentosIds} onChange={handleChange} margin="normal"
-        SelectProps={{
-          multiple: true,
-          ...selectStyles,
-          open: departamentosOpen,
-          onOpen: () => setDepartamentosOpen(true),
-          onClose: () => setDepartamentosOpen(false),
-          renderValue: (selected) => departamentos.filter(d => selected.includes(d.id)).map(d => d.nome).join(', ') || 'Selecione departamentos',
-        }}
-        InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }}
-      >
-        {departamentos.map(dep => (
-          <MenuItem key={dep.id} value={dep.id}>
-            <Checkbox checked={formData.DepartamentosIds.includes(dep.id)} />
-            <ListItemText primary={dep.nome} />
-          </MenuItem>
-        ))}
-        <MenuItem onClick={() => setDepartamentosOpen(false)} sx={{ justifyContent: 'center', color: '#2196f3', fontWeight: 'bold', borderTop: '1px solid rgba(255,255,255,0.2)' }}>FECHAR</MenuItem>
-      </TextField>
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Departamentos</label>
+        <select
+          name="DepartamentosIds"
+          value={formData.DepartamentosIds}
+          onChange={handleChange}
+          multiple
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        >
+          {departamentos.map(dep => (
+            <option key={dep.id} value={dep.id}>
+              {dep.nome}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-400">Segure Ctrl/Cmd para selecionar múltiplos</p>
+      </div>
 
       {/* Dados Cristãos */}
-      <Typography variant="h6" sx={{ mt: 4, mb: 1, color: '#b3e5fc' }}>Dados Cristãos</Typography>
-      <Divider sx={{ mb: 2, borderColor: '#b3e5fc' }} />
+      <h3 className="mt-4 mb-1 text-lg font-semibold text-[#b3e5fc]">Dados Cristãos</h3>
+      <hr className="mb-2 border-[#b3e5fc]" />
 
-      <FormControlLabel control={<Checkbox name="batizado" checked={formData.batizado} onChange={handleChange} sx={{ color: 'white' }} />}
-        label={<Typography sx={{ color: '#b3e5fc' }}>Batizado</Typography>} />
+      <div className="mb-4 flex items-center">
+        <input
+          type="checkbox"
+          name="batizado"
+          checked={formData.batizado}
+          onChange={handleChange}
+          className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-[#b3e5fc] focus:ring-[#b3e5fc]"
+        />
+        <label className="text-[#b3e5fc]">Batizado</label>
+      </div>
 
-      <TextField fullWidth label="Data do Batismo" name="data_batismo" type="date" value={formData.data_batismo} onChange={handleChange} InputLabelProps={{ shrink: true, style: { color: '#b3e5fc' } }}
-        inputProps={{ style: { color: 'white' } }} margin="normal" sx={{ '& .MuiSvgIcon-root': { color: 'white' } }}
-      />
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Data do Batismo</label>
+        <input
+          type="date"
+          name="data_batismo"
+          value={formData.data_batismo}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        />
+      </div>
 
-      <FormControlLabel control={<Checkbox name="consagrado" checked={formData.consagrado} onChange={handleChange} sx={{ color: 'white' }} />}
-        label={<Typography sx={{ color: '#b3e5fc' }}>Consagrado</Typography>} />
+      <div className="mb-4 flex items-center">
+        <input
+          type="checkbox"
+          name="consagrado"
+          checked={formData.consagrado}
+          onChange={handleChange}
+          className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-[#b3e5fc] focus:ring-[#b3e5fc]"
+        />
+        <label className="text-[#b3e5fc]">Consagrado</label>
+      </div>
 
-      <TextField fullWidth label="Data de Consagração" name="data_consagracao" type="date" value={formData.data_consagracao} onChange={handleChange} InputLabelProps={{ shrink: true, style: { color: '#b3e5fc' } }}
-        inputProps={{ style: { color: 'white' } }} margin="normal" sx={{ '& .MuiSvgIcon-root': { color: 'white' } }}
-      />
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Data de Consagração</label>
+        <input
+          type="date"
+          name="data_consagracao"
+          value={formData.data_consagracao}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        />
+      </div>
 
-      <TextField select fullWidth label="Categoria Ministerial" name="categoria_ministerial" value={formData.categoria_ministerial} onChange={handleChange} margin="normal"
-        InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }} SelectProps={selectStyles}
-      >
-        {categoriaMinisterialOptions.map((opt, idx) => (<MenuItem key={idx} value={opt}>{opt}</MenuItem>))}
-        <Divider sx={{ my: 1 }} />
-        <MenuItem onClick={(e) => e.target.blur()} sx={{ color: '#ffcc80', textAlign: 'center' }}>FECHAR</MenuItem>
-      </TextField>
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Categoria Ministerial</label>
+        <select
+          name="categoria_ministerial"
+          value={formData.categoria_ministerial}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        >
+          <option value="">Selecione</option>
+          {categoriaMinisterialOptions.map((opt, idx) => (
+            <option key={idx} value={opt}>{opt}</option>
+          ))}
+        </select>
+      </div>
 
       {/* Dados Acadêmicos */}
-      <Typography variant="h6" sx={{ mt: 4, mb: 1, color: '#b3e5fc' }}>Dados Acadêmicos</Typography>
-      <Divider sx={{ mb: 2, borderColor: '#b3e5fc' }} />
+      <h3 className="mt-4 mb-1 text-lg font-semibold text-[#b3e5fc]">Dados Acadêmicos</h3>
+      <hr className="mb-2 border-[#b3e5fc]" />
 
-      <TextField select fullWidth label="Habilitação" name="habilitacoes" value={formData.habilitacoes} onChange={handleChange} margin="normal"
-        InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }} SelectProps={selectStyles}
-      >
-        {habilitacoesOptions.map((opt, idx) => (<MenuItem key={idx} value={opt}>{opt}</MenuItem>))}
-      </TextField>
+      <div className="mb-4">
+        <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">Habilitação</label>
+        <select
+          name="habilitacoes"
+          value={formData.habilitacoes}
+          onChange={handleChange}
+          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+        >
+          <option value="">Selecione</option>
+          {habilitacoesOptions.map((opt, idx) => (
+            <option key={idx} value={opt}>{opt}</option>
+          ))}
+        </select>
+      </div>
 
       {['especialidades', 'estudo_teologico', 'local_formacao', 'profissao'].map(campo => (
-        <TextField key={campo} fullWidth label={campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')} name={campo} value={formData[campo]} onChange={handleChange} margin="normal"
-          InputLabelProps={{ style: { color: '#b3e5fc' } }} inputProps={{ style: { color: 'white' } }}
-        />
+        <div key={campo} className="mb-4">
+          <label className="mb-1 block text-sm font-medium text-[#b3e5fc]">
+            {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')}
+          </label>
+          <input
+            type="text"
+            name={campo}
+            value={formData[campo]}
+            onChange={handleChange}
+            className="w-full rounded-lg border border-gray-600 bg-[#263238] px-4 py-2.5 text-white focus:border-[#b3e5fc] focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
+          />
+        </div>
       ))}
 
       {/* Diversos */}
-      <Typography variant="h6" sx={{ mt: 4, mb: 1, color: '#b3e5fc' }}>Diversos</Typography>
-      <Divider sx={{ mb: 2, borderColor: '#b3e5fc' }} />
+      <h3 className="mt-4 mb-1 text-lg font-semibold text-[#b3e5fc]">Diversos</h3>
+      <hr className="mb-2 border-[#b3e5fc]" />
 
       {['trabalha', 'conta_outrem', 'conta_propria'].map(campo => (
-        <FormControlLabel key={campo} control={<Checkbox name={campo} checked={formData[campo]} onChange={handleChange} sx={{ color: 'white' }} />}
-          label={<Typography sx={{ color: '#b3e5fc' }}>{campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')}</Typography>}
-        />
+        <div key={campo} className="mb-4 flex items-center">
+          <input
+            type="checkbox"
+            name={campo}
+            checked={formData[campo]}
+            onChange={handleChange}
+            className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-[#b3e5fc] focus:ring-[#b3e5fc]"
+          />
+          <label className="text-[#b3e5fc]">
+            {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')}
+          </label>
+        </div>
       ))}
 
-      <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3 }} disabled={loading} startIcon={loading ? <CircularProgress size={20} /> : null}>
-        {loading ? 'Salvando...' : membroData ? 'Atualizar Membro' : 'Cadastrar Membro'}
-      </Button>
-    </Box>
+      <button
+        type="submit"
+        disabled={loading}
+        className="mt-3 w-full rounded-lg bg-blue-600 px-4 py-2.5 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Salvando...
+          </span>
+        ) : (
+          membroData ? 'Atualizar Membro' : 'Cadastrar Membro'
+        )}
+      </button>
+    </form>
   );
 }

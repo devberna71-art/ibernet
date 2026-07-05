@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  IconButton,
-  Drawer,
-  useMediaQuery,
-  CircularProgress,
-  GlobalStyles,
-  Toolbar,
-} from "@mui/material";
-import { Menu } from "lucide-react";
-import { useTheme } from "@mui/material/styles";
+import { Menu, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import api from "../api/axiosConfig";
@@ -24,11 +14,20 @@ export default function Navbar() {
   const [userRole, setUserRole] = useState(undefined);
   const [membro, setMembro] = useState(null);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const showDesktopSidebar = !isMobile && userRole;
 
@@ -92,26 +91,8 @@ export default function Navbar() {
 
   if (userRole === undefined) {
     return (
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 9999,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#FFFFFF",
-        }}
-      >
-        <svg
-          className="animate-spin"
-          style={{ width: 24, height: 24, color: "#4F5EF7" }}
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.2" />
-          <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-        </svg>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#4F5EF7] border-t-transparent" />
       </div>
     );
   }
@@ -129,16 +110,6 @@ export default function Navbar() {
 
   return (
     <>
-      <GlobalStyles
-        styles={{
-          body: {
-            paddingLeft: showDesktopSidebar ? `${SIDEBAR_WIDTH}px` : 0,
-            transition: "padding-left .25s ease",
-            overflowX: "hidden",
-          },
-        }}
-      />
-
       {/* Desktop sidebar */}
       {showDesktopSidebar && <Sidebar {...sidebarProps} />}
 
@@ -147,34 +118,54 @@ export default function Navbar() {
 
       {/* Mobile header */}
       {isMobile && (
-        <header className="fixed top-0 left-0 right-0 z-[1200] bg-surface border-b border-border">
-          <Toolbar sx={{ minHeight: { xs: 64, sm: 64 }, px: 2, justifyContent: "space-between" }}>
-            <IconButton edge="start" onClick={() => setDrawerOpen(true)} aria-label="Abrir menu">
-              <Menu size={22} strokeWidth={1.75} className="text-text" />
-            </IconButton>
+        <header className="fixed top-0 left-0 right-0 z-[1200] bg-white border-b border-gray-200">
+          <div className="flex h-16 items-center justify-between px-2">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Abrir menu"
+              className="rounded-md p-2 hover:bg-gray-100"
+            >
+              <Menu size={22} strokeWidth={1.75} className="text-gray-700" />
+            </button>
             <img src={logoBernet} alt="Logo" className="h-10 object-contain" />
             {userRole && membro ? <UserBadge membro={membro} /> : <div className="w-10" />}
-          </Toolbar>
+          </div>
         </header>
       )}
 
       {/* Mobile drawer */}
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{
-          sx: { width: SIDEBAR_WIDTH, background: "#FFFFFF", border: "none" },
-        }}
-      >
-        {userRole ? (
-          <Sidebar {...sidebarProps} className="relative !w-full" />
-        ) : (
-          <NavbarVisitor toggleDrawer={() => setDrawerOpen(false)} />
-        )}
-      </Drawer>
+      {drawerOpen && (
+        <div className="fixed inset-0 z-[1300] flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50"
+            onClick={() => setDrawerOpen(false)}
+          />
+          {/* Drawer content */}
+          <div className="relative z-10 w-[280px] bg-white shadow-xl">
+            <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
+              <img src={logoBernet} alt="Logo" className="h-8 object-contain" />
+              <button
+                onClick={() => setDrawerOpen(false)}
+                aria-label="Fechar menu"
+                className="rounded-md p-2 hover:bg-gray-100"
+              >
+                <X size={20} className="text-gray-700" />
+              </button>
+            </div>
+            <div className="h-[calc(100vh-4rem)] overflow-y-auto">
+              {userRole ? (
+                <Sidebar {...sidebarProps} className="!w-full" />
+              ) : (
+                <NavbarVisitor toggleDrawer={() => setDrawerOpen(false)} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-      {isMobile && userRole && <Toolbar sx={{ minHeight: { xs: 64, sm: 64 } }} />}
+      {/* Spacer for mobile header */}
+      {isMobile && userRole && <div className="h-16" />}
     </>
   );
 }

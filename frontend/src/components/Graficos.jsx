@@ -1,16 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
-import {
-  Box,
-  Typography,
-  Grid,
-  CircularProgress,
-  Select,
-  MenuItem,
-  Stack,
-} from "@mui/material";
 
-// Importações do Recharts para substituir o ApexCharts
+// Importações do Recharts
 import {
   AreaChart,
   Area,
@@ -27,43 +18,8 @@ import {
   Bar,
 } from "recharts";
 
-import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
-import DonutLargeRoundedIcon from "@mui/icons-material/DonutLargeRounded";
-import Groups2RoundedIcon from "@mui/icons-material/Groups2Rounded";
-import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
-
-const cardStyle = {
-  position: "relative",
-  overflow: "hidden",
-  background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
-  borderRadius: "16px",
-  border: "1px solid #e2e8f0",
-  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)",
-  padding: {
-    xs: "20px",
-    sm: "24px",
-    md: "32px",
-  },
-  display: "flex",
-  flexDirection: "column",
-  transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-  "&:hover": {
-    transform: "translateY(-2px)",
-    borderColor: "#cbd5e1",
-    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 10px 10px -5px rgba(0, 0, 0, 0.01)",
-  }
-};
-
-const emptyStateStyle = {
-  height: 350,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "#94a3b8",
-  gap: 1.5,
-  fontFamily: '"Inter", sans-serif'
-};
+// Importações do Lucide icons
+import { TrendingUp, CircleDollarSign, Users, BarChart3 } from "lucide-react";
 
 const CoresDonut = ["#D97A4D", "#5C8A5C", "#8B8378", "#B5332C", "#C4A882", "#A66B47"];
 
@@ -97,9 +53,11 @@ export default function Graficos() {
 
   if (loading) {
     return (
-      <Box sx={{ height: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <CircularProgress size={45} thickness={4} sx={{ color: "#D97A4D" }} />
-      </Box>
+      <div className="h-[400px] flex items-center justify-center">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-full border-4 border-[#D97A4D] border-t-transparent animate-spin"></div>
+        </div>
+      </div>
     );
   }
 
@@ -123,49 +81,39 @@ export default function Graficos() {
   }));
 
   return (
-    <Grid container spacing={4}>
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
       
       {/* CARD 1: GRÁFICO DE ÁREA (RESUMO FINANCEIRO) */}
-      <Grid item xs={12} xl={8}>
-        <Box sx={cardStyle}>
-          <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" spacing={2} sx={{ mb: 4 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #D97A4D, #A66B47)", boxShadow: "0 8px 16px -4px rgba(79, 70, 229, 0.4)" }}>
-                <TrendingUpRoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#211D19", fontFamily: '"Inter", sans-serif' }}>
+      <div className="col-span-1 xl:col-span-8">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white to-[#f8fafc] rounded-2xl border border-[#e2e8f0] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.02),0_2px_4px_-1px_rgba(0,0,0,0.01)] p-5 sm:p-6 md:p-8 flex flex-col transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-[#cbd5e1] hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.04),0_10px_10px_-5px_rgba(0,0,0,0.01)]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div className="flex flex-row gap-2 items-center">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#D97A4D] to-[#A66B47] shadow-[0_8px_16px_-4px_rgba(79,70,229,0.4)]">
+                <TrendingUp className="text-white w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-[1.15rem] font-extrabold text-[#211D19] font-['Inter']">
                   Resumo Financeiro
-                </Typography>
-                <Typography sx={{ color: "#8B8378", fontSize: "0.82rem", fontWeight: 500 }}>
+                </h3>
+                <p className="text-[#8B8378] text-[0.82rem] font-medium">
                   Evolução das contribuições ao longo do tempo
-                </Typography>
-              </Box>
-            </Stack>
+                </p>
+              </div>
+            </div>
 
-            <Select
+            <select
               value={periodo}
               onChange={handlePeriodo}
-              size="small"
-              sx={{
-                width: { xs: "100%", sm: 160 },
-                height: 40,
-                borderRadius: "10px",
-                background: "#f8fafc",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                color: "#334155",
-                "& fieldset": { border: "1px solid #e2e8f0" },
-              }}
+              className="w-full sm:w-40 h-10 rounded-xl bg-[#f8fafc] font-semibold text-[0.85rem] text-[#334155] border border-[#e2e8f0] focus:outline-none focus:ring-2 focus:ring-[#D97A4D] focus:border-transparent cursor-pointer"
             >
-              <MenuItem value="30d">Últimos 30 dias</MenuItem>
-              <MenuItem value="3m">Últimos 3 meses</MenuItem>
-              <MenuItem value="6m">Últimos 6 meses</MenuItem>
-              <MenuItem value="1a">Último 1 ano</MenuItem>
-            </Select>
-          </Stack>
+              <option value="30d">Últimos 30 dias</option>
+              <option value="3m">Últimos 3 meses</option>
+              <option value="6m">Últimos 6 meses</option>
+              <option value="1a">Último 1 ano</option>
+            </select>
+          </div>
 
-          <Box sx={{ height: 350, width: "100%" }}>
+          <div className="h-[350px] w-full">
             {temDadosLinha ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={ultimosMeses} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
@@ -186,33 +134,33 @@ export default function Graficos() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <Box sx={emptyStateStyle}>
-                <TrendingUpRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
-                <Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Nenhum fluxo financeiro registrado.</Typography>
-              </Box>
+              <div className="h-[350px] flex flex-col items-center justify-center text-[#94a3b8] gap-6 font-['Inter']">
+                <TrendingUp className="w-10 h-10 opacity-40" />
+                <p className="text-[0.85rem] font-medium">Nenhum fluxo financeiro registrado.</p>
+              </div>
             )}
-          </Box>
-        </Box>
-      </Grid>
+          </div>
+        </div>
+      </div>
 
       {/* CARD 2: GRÁFICO DONUT (CATEGORIAS) */}
-      <Grid item xs={12} xl={4}>
-        <Box sx={cardStyle}>
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #5C8A5C, #D97A4D)", boxShadow: "0 8px 16px -4px rgba(6, 182, 212, 0.4)" }}>
-              <DonutLargeRoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#211D19", fontFamily: '"Inter", sans-serif' }}>
+      <div className="col-span-1 xl:col-span-4">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white to-[#f8fafc] rounded-2xl border border-[#e2e8f0] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.02),0_2px_4px_-1px_rgba(0,0,0,0.01)] p-5 sm:p-6 md:p-8 flex flex-col transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-[#cbd5e1] hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.04),0_10px_10px_-5px_rgba(0,0,0,0.01)]">
+          <div className="flex flex-row gap-2 items-center mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#5C8A5C] to-[#D97A4D] shadow-[0_8px_16px_-4px_rgba(6,182,212,0.4)]">
+              <CircleDollarSign className="text-white w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-[1.15rem] font-extrabold text-[#211D19] font-['Inter']">
                 Contribuições
-              </Typography>
-              <Typography sx={{ color: "#8B8378", fontSize: "0.82rem", fontWeight: 500 }}>
+              </h3>
+              <p className="text-[#8B8378] text-[0.82rem] font-medium">
                 Divisão proporcional por categoria
-              </Typography>
-            </Box>
-          </Stack>
+              </p>
+            </div>
+          </div>
 
-          <Box sx={{ height: 350, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="h-[350px] w-full flex items-center justify-center">
             {temDadosDonut ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -235,33 +183,33 @@ export default function Graficos() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <Box sx={emptyStateStyle}>
-                <DonutLargeRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
-                <Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Sem dados disponíveis.</Typography>
-              </Box>
+              <div className="h-[350px] flex flex-col items-center justify-center text-[#94a3b8] gap-6 font-['Inter']">
+                <CircleDollarSign className="w-10 h-10 opacity-40" />
+                <p className="text-[0.85rem] font-medium">Sem dados disponíveis.</p>
+              </div>
             )}
-          </Box>
-        </Box>
-      </Grid>
+          </div>
+        </div>
+      </div>
 
       {/* CARD 3: GRÁFICO DE BARRAS (FAIXA ETÁRIA) */}
-      <Grid item xs={12}>
-        <Box sx={cardStyle}>
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #C4A882, #D97A4D)", boxShadow: "0 8px 16px -4px rgba(139, 92, 246, 0.4)" }}>
-              <Groups2RoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontSize: "1.15rem", fontWeight: 800, color: "#211D19", fontFamily: '"Inter", sans-serif' }}>
+      <div className="col-span-1 xl:col-span-12">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white to-[#f8fafc] rounded-2xl border border-[#e2e8f0] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.02),0_2px_4px_-1px_rgba(0,0,0,0.01)] p-5 sm:p-6 md:p-8 flex flex-col transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-[#cbd5e1] hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.04),0_10px_10px_-5px_rgba(0,0,0,0.01)]">
+          <div className="flex flex-row gap-2 items-center mb-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#C4A882] to-[#D97A4D] shadow-[0_8px_16px_-4px_rgba(139,92,246,0.4)]">
+              <Users className="text-white w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-[1.15rem] font-extrabold text-[#211D19] font-['Inter']">
                 Demografia de Membros
-              </Typography>
-              <Typography sx={{ color: "#8B8378", fontSize: "0.82rem", fontWeight: 500 }}>
+              </h3>
+              <p className="text-[#8B8378] text-[0.82rem] font-medium">
                 Distribuição volumétrica por faixas etárias
-              </Typography>
-            </Box>
-          </Stack>
+              </p>
+            </div>
+          </div>
 
-          <Box sx={{ height: 300, width: "100%" }}>
+          <div className="h-[300px] w-full">
             {temDadosBarra ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dadosBarraFormatados} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -273,15 +221,15 @@ export default function Graficos() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <Box sx={emptyStateStyle}>
-                <BarChartRoundedIcon sx={{ fontSize: 40, opacity: 0.4 }} />
-                <Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Nenhum dado demográfico indexado.</Typography>
-              </Box>
+              <div className="h-[350px] flex flex-col items-center justify-center text-[#94a3b8] gap-6 font-['Inter']">
+                <BarChart3 className="w-10 h-10 opacity-40" />
+                <p className="text-[0.85rem] font-medium">Nenhum dado demográfico indexado.</p>
+              </div>
             )}
-          </Box>
-        </Box>
-      </Grid>
+          </div>
+        </div>
+      </div>
 
-    </Grid>
+    </div>
   );
 }

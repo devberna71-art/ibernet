@@ -1,138 +1,112 @@
 import React from "react";
-import { Box, Typography, Grid } from "@mui/material";
-
-import ChildCareIcon from "@mui/icons-material/ChildCare";
-import EscalatorWarningIcon from "@mui/icons-material/EscalatorWarning";
-import SchoolIcon from "@mui/icons-material/School";
-import NaturePeopleIcon from "@mui/icons-material/NaturePeople";
-import ElderlyIcon from "@mui/icons-material/Elderly";
-import ManIcon from "@mui/icons-material/Man";
-import WomanIcon from "@mui/icons-material/Woman";
-
-// --- Arquitetura de Design High-End ---
-
-const cardContainerStyle = (glowColor) => ({
-  p: 4,
-  borderRadius: "28px",
-  background: "rgba(255, 255, 255, 0.8)",
-  backdropFilter: "blur(12px)",
-  position: "relative",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "space-between",
-  minHeight: "220px",
-  border: "1px solid rgba(255, 255, 255, 0.5)",
-  boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.05)",
-  transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
-  cursor: "pointer",
-  overflow: "hidden",
-  "&:hover": {
-    transform: "translateY(-12px)",
-    border: `1px solid ${glowColor}44`,
-    boxShadow: `0 24px 48px -12px ${glowColor}33`,
-    background: "rgba(255, 255, 255, 0.95)",
-    "& .premium-icon-badge": {
-      transform: "scale(1.1) rotate(5deg)",
-      background: glowColor,
-      color: "#ffffff",
-    },
-    "& .premium-number": {
-      color: glowColor
-    }
-  }
-});
-
-const iconBadgeStyle = {
-  width: "56px",
-  height: "56px",
-  borderRadius: "18px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "#f1f5f9",
-  color: "#475569",
-  transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
-  mb: 3
-};
-
-const numberStyle = {
-  fontFamily: '"Inter", sans-serif',
-  fontSize: "3rem",
-  fontWeight: 800,
-  color: "#211D19",
-  lineHeight: 1,
-  transition: "all 0.4s ease"
-};
-
-const labelStyle = {
-  fontFamily: '"Inter", sans-serif',
-  fontSize: "0.7rem",
-  fontWeight: 800,
-  color: "#64748b",
-  textTransform: "uppercase",
-  letterSpacing: "0.15em",
-  mb: 0.5
-};
+import { Baby, Users, GraduationCap, User, UserRound, UserCheck, UserRoundCheck } from "lucide-react";
 
 export default function Distribuicoes({ dados }) {
   const grupos = dados?.membros?.classificacaoGrupos || { criancas: 0, adolescentes: 0, jovens: 0, adultos: 0, idosos: 0 };
   const genero = dados?.membros?.distribuicaoGenero || { homens: 0, mulheres: 0 };
 
   const sections = [
-    { label: "Crianças", val: grupos.criancas, color: "#3b82f6", icon: <ChildCareIcon /> },
-    { label: "Adolescentes", val: grupos.adolescentes, color: "#8b5cf6", icon: <EscalatorWarningIcon /> },
-    { label: "Jovens", val: grupos.jovens, color: "#10b981", icon: <SchoolIcon /> },
-    { label: "Adultos", val: grupos.adultos, color: "#f97316", icon: <NaturePeopleIcon /> },
-    { label: "Idosos", val: grupos.idosos, color: "#f43f5e", icon: <ElderlyIcon /> },
+    { label: "Crianças", val: grupos.criancas, color: "#3b82f6", icon: <Baby size={26} /> },
+    { label: "Adolescentes", val: grupos.adolescentes, color: "#8b5cf6", icon: <Users size={26} /> },
+    { label: "Jovens", val: grupos.jovens, color: "#10b981", icon: <GraduationCap size={26} /> },
+    { label: "Adultos", val: grupos.adultos, color: "#f97316", icon: <User size={26} /> },
+    { label: "Idosos", val: grupos.idosos, color: "#f43f5e", icon: <UserRound size={26} /> },
   ];
 
   return (
-    <Box sx={{ p: { xs: 4, md: 10 }, background: "#f8fafc", minHeight: "100vh" }}>
-      
+    <div className="bg-[#f8fafc] p-4 md:p-10 min-h-screen">
       {/* Header com design de Dashboard Moderno */}
-      <Box sx={{ mb: 8, maxWidth: "600px" }}>
-        <Typography sx={{ fontSize: "0.7rem", fontWeight: 900, color: "#64748b", mb: 1, letterSpacing: "0.25em" }}>ESTATÍSTICAS EM TEMPO REAL</Typography>
-        <Typography sx={{ fontSize: { xs: "2rem", md: "2.5rem" }, fontWeight: 800, color: "#211D19", letterSpacing: "-0.03em", lineHeight: 1.2 }}>
+      <div className="mb-8 max-w-[600px]">
+        <p className="mb-1 text-[0.7rem] font-black tracking-[0.25em] text-[#64748b]">
+          ESTATÍSTICAS EM TEMPO REAL
+        </p>
+        <h2 className="text-2xl font-extrabold leading-tight tracking-tight text-[#211D19] md:text-[2.5rem]">
           Segmentação Demográfica
-        </Typography>
-      </Box>
+        </h2>
+      </div>
 
       {/* Grid Grupos */}
-      <Grid container spacing={3} sx={{ mb: 8 }}>
+      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-5">
         {sections.map((item, idx) => (
-          <Grid item xs={12} sm={6} md={2.4} key={idx}>
-            <Box sx={cardContainerStyle(item.color)}>
-              <Box className="premium-icon-badge" sx={iconBadgeStyle}>
-                {React.cloneElement(item.icon, { sx: { fontSize: 26 } })}
-              </Box>
-              <Box>
-                <Typography sx={labelStyle}>{item.label}</Typography>
-                <Typography className="premium-number" sx={numberStyle}>{item.val}</Typography>
-              </Box>
-            </Box>
-          </Grid>
+          <div
+            key={idx}
+            className="relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[28px] border border-white/50 bg-white/80 p-4 shadow-[0_8px_32px_rgba(31,38,135,0.05)] backdrop-blur-[12px] transition-all duration-600 ease-in-out hover:-translate-y-3 hover:border-opacity-30 hover:bg-white/95 hover:shadow-xl"
+            style={{
+              borderColor: `${item.color}44`,
+              boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.05)`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = `${item.color}44`;
+              e.currentTarget.style.boxShadow = `0 24px 48px -12px ${item.color}33`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+              e.currentTarget.style.boxShadow = '0 8px 32px 0 rgba(31, 38, 135, 0.05)';
+            }}
+          >
+            <div
+              className="mb-3 flex h-14 w-14 items-center justify-center rounded-[18px] bg-[#f1f5f9] text-[#475569] transition-all duration-500 ease-in-out"
+              style={{ transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            >
+              {item.icon}
+            </div>
+            <div>
+              <p className="mb-0.5 text-[0.7rem] font-extrabold uppercase tracking-[0.15em] text-[#64748b]">
+                {item.label}
+              </p>
+              <p
+                className="font-sans text-3xl font-extrabold leading-none text-[#211D19] transition-all duration-400 ease-in-out"
+                style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1 }}
+              >
+                {item.val}
+              </p>
+            </div>
+          </div>
         ))}
-      </Grid>
+      </div>
 
       {/* Gênero (Destaque) */}
-      <Grid container spacing={4}>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {[
-          { label: "Homens Registrados", val: genero.homens, color: "#0d9488", icon: <ManIcon /> },
-          { label: "Mulheres Registradas", val: genero.mulheres, color: "#db2777", icon: <WomanIcon /> }
+          { label: "Homens Registrados", val: genero.homens, color: "#0d9488", icon: <UserCheck size={40} /> },
+          { label: "Mulheres Registradas", val: genero.mulheres, color: "#db2777", icon: <UserRoundCheck size={40} /> }
         ].map((g, i) => (
-          <Grid item xs={12} md={6} key={i}>
-            <Box sx={{ ...cardContainerStyle(g.color), p: 5, flexDirection: "row", alignItems: "center", gap: 3 }}>
-              <Box className="premium-icon-badge" sx={{ ...iconBadgeStyle, width: 72, height: 72, borderRadius: "20px", mb: 0 }}>
-                {React.cloneElement(g.icon, { sx: { fontSize: 40 } })}
-              </Box>
-              <Box>
-                <Typography sx={{ ...labelStyle, fontSize: "0.85rem" }}>{g.label}</Typography>
-                <Typography className="premium-number" sx={{ ...numberStyle, fontSize: "4.5rem" }}>{g.val}</Typography>
-              </Box>
-            </Box>
-          </Grid>
+          <div
+            key={i}
+            className="relative flex min-h-[220px] flex-row items-center justify-between gap-3 overflow-hidden rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-[0_8px_32px_rgba(31,38,135,0.05)] backdrop-blur-[12px] transition-all duration-600 ease-in-out hover:-translate-y-3 hover:border-opacity-30 hover:bg-white/95 hover:shadow-xl"
+            style={{
+              borderColor: `${g.color}44`,
+              boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.05)`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = `${g.color}44`;
+              e.currentTarget.style.boxShadow = `0 24px 48px -12px ${g.color}33`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+              e.currentTarget.style.boxShadow = '0 8px 32px 0 rgba(31, 38, 135, 0.05)';
+            }}
+          >
+            <div
+              className="flex h-18 w-18 items-center justify-center rounded-[20px] bg-[#f1f5f9] text-[#475569] transition-all duration-500 ease-in-out"
+              style={{ width: '72px', height: '72px', transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            >
+              {g.icon}
+            </div>
+            <div>
+              <p className="mb-0.5 text-[0.85rem] font-extrabold uppercase tracking-[0.15em] text-[#64748b]">
+                {g.label}
+              </p>
+              <p
+                className="font-sans text-[4.5rem] font-extrabold leading-none text-[#211D19] transition-all duration-400 ease-in-out"
+                style={{ fontSize: '4.5rem', fontWeight: 800, lineHeight: 1 }}
+              >
+                {g.val}
+              </p>
+            </div>
+          </div>
         ))}
-      </Grid>
-    </Box>
+      </div>
+    </div>
   );
 }

@@ -1,41 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  TextField,
-  Button,
-  MenuItem,
-  Grid,
-  Typography,
-  Paper,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Autocomplete,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Card,
-  CardContent,
-  IconButton,
-  useTheme,
-  useMediaQuery,
-  // ❌ Removi o Alpha daqui de dentro
-} from "@mui/material";
-
-// ✅ Importação correta do alpha (minúsculo) vinda do styles do MUI
-import { alpha } from "@mui/material/styles";
-
-import {
-  Event as EventIcon,
-  MonetizationOn as MoneyIcon,
-  People as PeopleIcon,
-  DeleteOutline as DeleteIcon,
-  AddCircleOutline as AddIcon,
-} from "@mui/icons-material";
+import { Calendar, DollarSign, Users, Trash, PlusCircle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 
 import api from "../api/axiosConfig";
@@ -44,8 +8,7 @@ import api from "../api/axiosConfig";
 import Resumo from "./Resumo";
 
 export default function FormCultos({ culto, onSuccess, onCancel }) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [isMobile, setIsMobile] = useState(false);
 
   const [tiposCulto, setTiposCulto] = useState([]);
   const [tiposContribuicao, setTiposContribuicao] = useState([]);
@@ -69,19 +32,13 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
 
   const isEdit = Boolean(culto?.id);
 
-  // Estilos compartilhados Premium para Inputs
-  const premiumInputStyles = {
-    "& .MuiOutlinedInput-root": {
-      backgroundColor: "#f9fbfd",
-      borderRadius: "10px",
-      transition: "all 0.2s ease-in-out",
-      "& fieldset": { borderColor: "#e2e8f0" },
-      "&:hover fieldset": { borderColor: "#cbd5e1" },
-      "&.Mui-focused fieldset": { borderColor: "#1a1a1a", borderWidth: "1.5px" },
-    },
-    "& .MuiInputLabel-root": { color: "#64748b" },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#1a1a1a" },
-  };
+  // Check for mobile screen size
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Buscar dados iniciais
   useEffect(() => {
@@ -273,443 +230,326 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
   };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: isMobile ? 3 : 5,
-        borderRadius: "24px",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
-        backgroundColor: "#ffffff",
-        maxWidth: "1250px",
-        margin: "0 auto",
-        border: "1px solid #f1f5f9",
-      }}
-    >
+    <div className="bg-white border border-slate-100 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.03)] max-w-[1250px] mx-auto p-5 sm:p-5">
       {/* Cabeçalho Premium */}
-      <Box sx={{ mb: 5, borderBottom: "1px solid #f1f5f9", pb: 3 }}>
-        <Typography
-          variant={isMobile ? "h5" : "h4"}
-          fontWeight="800"
-          sx={{ color: "#0f172a", letterSpacing: "-0.8px", mb: 1 }}
-        >
+      <div className="mb-5 border-b border-slate-100 pb-3">
+        <h2 className={`font-extrabold text-slate-900 tracking-tight mb-1 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
           {isEdit ? "Editar Detalhes do Culto" : "Novo Registro de Culto"}
-        </Typography>
-        <Typography variant="body1" sx={{ color: "#64748b", fontWeight: "400" }}>
+        </h2>
+        <p className="text-slate-500 font-normal">
           Gerencie e documente a frequência corporativa e os fluxos financeiros deste culto.
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={4}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           
           {/* LADO ESQUERDO: Formulários de Preenchimento */}
-          <Grid item xs={12} md={8}>
-            <Grid container spacing={4}>
+          <div className="lg:col-span-8">
+            <div className="grid grid-cols-1 gap-4">
               
               {/* Sessão 1: Informações Gerais */}
-              <Grid item xs={12}>
-                <Card 
-                  elevation={0} 
-                  sx={{ 
-                    borderRadius: "16px", 
-                    backgroundColor: "#ffffff", 
-                    border: "1px solid #f1f5f9",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.01)" 
-                  }}
-                >
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight="700"
-                      display="flex"
-                      alignItems="center"
-                      gap={1.5}
-                      sx={{ color: "#1e293b", mb: 3, letterSpacing: "-0.2px" }}
-                    >
-                      <Box sx={{ p: 1, bgcolor: "#f1f5f9", borderRadius: "8px", display: "flex" }}>
-                        <EventIcon fontSize="small" sx={{ color: "#475569" }} />
-                      </Box>
+              <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                <div className="p-4">
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <div className="p-1 bg-slate-100 rounded-lg flex">
+                      <Calendar size={16} className="text-slate-600" />
+                    </div>
+                    <h3 className="font-bold text-slate-800 tracking-tight">
                       Dados Gerais Básicos
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          label="Data e Hora"
-                          type="datetime-local"
-                          fullWidth
-                          InputLabelProps={{ shrink: true }}
-                          value={formData.dataHora}
-                          onChange={(e) => handleChange("dataHora", e.target.value)}
-                          sx={premiumInputStyles}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          select
-                          label="Tipo de Culto"
-                          fullWidth
-                          value={formData.tipoCultoId}
-                          onChange={(e) => handleChange("tipoCultoId", e.target.value)}
-                          sx={premiumInputStyles}
-                        >
-                          {(tiposCulto || []).map((tipo) => (
-                            <MenuItem key={tipo.id} value={tipo.id} sx={{ py: 1.5, borderRadius: "8px", mx: 1, my: 0.5 }}>
-                              {tipo.nome}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
+                    </h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Data e Hora</label>
+                      <input
+                        type="datetime-local"
+                        className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                        value={formData.dataHora}
+                        onChange={(e) => handleChange("dataHora", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Tipo de Culto</label>
+                      <select
+                        className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                        value={formData.tipoCultoId}
+                        onChange={(e) => handleChange("tipoCultoId", e.target.value)}
+                      >
+                        <option value="">Selecione...</option>
+                        {(tiposCulto || []).map((tipo) => (
+                          <option key={tipo.id} value={tipo.id} className="py-1.5">
+                            {tipo.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* Sessão 2: Frequência/Participantes */}
-              <Grid item xs={12}>
-                <Card 
-                  elevation={0} 
-                  sx={{ 
-                    borderRadius: "16px", 
-                    backgroundColor: "#ffffff", 
-                    border: "1px solid #f1f5f9",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.01)" 
-                  }}
-                >
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight="700"
-                      display="flex"
-                      alignItems="center"
-                      gap={1.5}
-                      sx={{ color: "#1e293b", mb: 3, letterSpacing: "-0.2px" }}
-                    >
-                      <Box sx={{ p: 1, bgcolor: "#f1f5f9", borderRadius: "8px", display: "flex" }}>
-                        <PeopleIcon fontSize="small" sx={{ color: "#475569" }} />
-                      </Box>
+              <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                <div className="p-4">
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <div className="p-1 bg-slate-100 rounded-lg flex">
+                      <Users size={16} className="text-slate-600" />
+                    </div>
+                    <h3 className="font-bold text-slate-800 tracking-tight">
                       Frequência & Presença
-                    </Typography>
+                    </h3>
+                  </div>
 
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} sm={4}>
-                        <TextField
-                          type="number"
-                          label="Homens"
-                          fullWidth
-                          value={formData.homens}
-                          onChange={(e) => handleChange("homens", e.target.value)}
-                          sx={premiumInputStyles}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <TextField
-                          type="number"
-                          label="Mulheres"
-                          fullWidth
-                          value={formData.mulheres}
-                          onChange={(e) => handleChange("mulheres", e.target.value)}
-                          sx={premiumInputStyles}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <TextField
-                          type="number"
-                          label="Crianças"
-                          fullWidth
-                          value={formData.criancas}
-                          onChange={(e) => handleChange("criancas", e.target.value)}
-                          sx={premiumInputStyles}
-                        />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Homens</label>
+                      <input
+                        type="number"
+                        className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                        value={formData.homens}
+                        onChange={(e) => handleChange("homens", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Mulheres</label>
+                      <input
+                        type="number"
+                        className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                        value={formData.mulheres}
+                        onChange={(e) => handleChange("mulheres", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-500 mb-1">Crianças</label>
+                      <input
+                        type="number"
+                        className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                        value={formData.criancas}
+                        onChange={(e) => handleChange("criancas", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* Sessão 3: Finanças/Contribuições */}
-              <Grid item xs={12}>
-                <Card 
-                  elevation={0} 
-                  sx={{ 
-                    borderRadius: "16px", 
-                    backgroundColor: "#ffffff", 
-                    border: "1px solid #f1f5f9",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.01)" 
-                  }}
-                >
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight="700"
-                      display="flex"
-                      alignItems="center"
-                      gap={1.5}
-                      sx={{ color: "#1e293b", mb: 3, letterSpacing: "-0.2px" }}
-                    >
-                      <Box sx={{ p: 1, bgcolor: "#f1f5f9", borderRadius: "8px", display: "flex" }}>
-                        <MoneyIcon fontSize="small" sx={{ color: "#475569" }} />
-                      </Box>
+              <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                <div className="p-4">
+                  <div className="flex items-center gap-1.5 mb-3">
+                    <div className="p-1 bg-slate-100 rounded-lg flex">
+                      <DollarSign size={16} className="text-slate-600" />
+                    </div>
+                    <h3 className="font-bold text-slate-800 tracking-tight">
                       Gestão Financeira Avançada
-                    </Typography>
+                    </h3>
+                  </div>
 
-                    <Grid container spacing={3}>
-                      {(tiposContribuicao || []).map((tipo) => (
-                        <Grid item xs={12} key={tipo.id}>
-                          <Paper 
-                            elevation={0} 
-                            sx={{ 
-                              p: 3, 
-                              bgcolor: "#f8fbc20", 
-                              borderRadius: "14px", 
-                              border: "1px solid #f1f5f9",
-                              backgroundImage: "linear-gradient(to right, #fafafa, #ffffff)"
+                  <div className="grid grid-cols-1 gap-3">
+                    {(tiposContribuicao || []).map((tipo) => (
+                      <div key={tipo.id} className="p-3 bg-gradient-to-r from-gray-50 to-white border border-slate-100 rounded-xl">
+                        <div className="flex items-center justify-between mb-2.5">
+                          <span className="font-bold text-slate-900">{tipo.nome}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModalTipoId(tipo.id);
+                              setOpenModal(true);
                             }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
                           >
-                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2.5}>
-                              <Typography fontWeight="700" variant="body1" color="#0f172a">
-                                {tipo.nome}
-                              </Typography>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                startIcon={<AddIcon />}
-                                onClick={() => {
-                                  setModalTipoId(tipo.id);
-                                  setOpenModal(true);
-                                }}
-                                sx={{ 
-                                  textTransform: "none", 
-                                  fontWeight: "600",
-                                  borderRadius: "8px",
-                                  borderColor: "#e2e8f0",
-                                  color: "#334155",
-                                  bgcolor: "#fff",
-                                  "&:hover": { borderColor: "#cbd5e1", bgcolor: "#f8fafc" }
-                                }}
-                              >
-                                Vincular Membro
-                              </Button>
-                            </Box>
+                            <PlusCircle size={16} />
+                            Vincular Membro
+                          </button>
+                        </div>
 
-                            <TextField
-                              type="number"
-                              label="Valor Geral / Colecta Anónima"
-                              fullWidth
-                              size="medium"
-                              value={formData.contribuicoes[tipo.id] || ""}
-                              onChange={(e) => handleContribuicaoChange(tipo.id, e.target.value)}
-                              InputProps={{
-                                startAdornment: <Typography variant="body2" sx={{ mr: 1.5, color: "#94a3b8", fontWeight: "600" }}>Kz</Typography>,
-                              }}
-                              sx={premiumInputStyles}
-                            />
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">Kz</span>
+                          <input
+                            type="number"
+                            placeholder="Valor Geral / Colecta Anónima"
+                            className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                            value={formData.contribuicoes[tipo.id] || ""}
+                            onChange={(e) => handleContribuicaoChange(tipo.id, e.target.value)}
+                          />
+                        </div>
 
-                            <Box display="flex" justifyContent="space-between" mt={2} px={1}>
-                              <Typography variant="body2" sx={{ color: "#64748b" }}>Total Combinado:</Typography>
-                              <Typography variant="body2" fontWeight="700" color="#0f172a">
-                                {getVisualTotal(tipo.id).toLocaleString()} Kz
-                              </Typography>
-                            </Box>
+                        <div className="flex justify-between mt-2 px-1">
+                          <span className="text-sm text-slate-500">Total Combinado:</span>
+                          <span className="text-sm font-bold text-slate-900">
+                            {getVisualTotal(tipo.id).toLocaleString()} Kz
+                          </span>
+                        </div>
 
-                            {formData.membrosContribuicoes[tipo.id] &&
-                              Object.keys(formData.membrosContribuicoes[tipo.id]).length > 0 && (
-                                <Box sx={{ mt: 2.5, borderTop: "1px dashed #e2e8f0", pt: 2 }}>
-                                  {isMobile ? (
-                                    Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
+                        {formData.membrosContribuicoes[tipo.id] &&
+                          Object.keys(formData.membrosContribuicoes[tipo.id]).length > 0 && (
+                            <div className="mt-2.5 pt-2 border-t border-dashed border-slate-200">
+                              {isMobile ? (
+                                Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
+                                  const membro = (membros || []).find((m) => m.id === parseInt(membroId));
+                                  return (
+                                    <div 
+                                      key={membroId} 
+                                      className="flex justify-between items-center bg-white p-1.5 my-1 rounded-xl border border-slate-200"
+                                    >
+                                      <div>
+                                        <p className="text-sm font-semibold text-slate-600 capitalize">
+                                          {membro?.nome || "Membro"}
+                                        </p>
+                                        <p className="text-xs text-slate-500 font-medium">{valor} Kz</p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                      >
+                                        <Trash size={16} />
+                                      </button>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="border-b border-slate-100">
+                                      <th className="text-left pb-2 pl-1 text-xs font-bold text-slate-500">MEMBRO IDENTIFICADO</th>
+                                      <th className="text-left pb-2 text-xs font-bold text-slate-500">VALOR DECLARADO</th>
+                                      <th className="text-right pb-2 pr-1"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
                                       const membro = (membros || []).find((m) => m.id === parseInt(membroId));
                                       return (
-                                        <Box 
-                                          key={membroId} 
-                                          display="flex" 
-                                          justifyContent="space-between" 
-                                          alignItems="center"
-                                          sx={{ bgcolor: "#fff", p: 1.5, my: 1, borderRadius: "10px", border: "1px solid #e2e8f0" }}
-                                        >
-                                          <Box>
-                                            <Typography variant="body2" fontWeight="600" color="#334155" sx={{ textTransform: "capitalize" }}>
-                                              {membro?.nome || "Membro"}
-                                            </Typography>
-                                            <Typography variant="caption" sx={{ color: "#64748b", fontWeight: "500" }}>{valor} Kz</Typography>
-                                          </Box>
-                                          <IconButton 
-                                            size="small" 
-                                            onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
-                                            sx={{ color: "#ef4444", "&:hover": { bgcolor: "#fef2f2" } }}
-                                          >
-                                            <DeleteIcon fontSize="small" />
-                                          </IconButton>
-                                        </Box>
+                                        <tr key={membroId} className="border-b border-slate-100 last:border-0">
+                                          <td className="py-1.5 pl-1 capitalize text-slate-600 font-medium">
+                                            {membro?.nome || "Membro"}
+                                          </td>
+                                          <td className="py-1.5 font-bold text-slate-900">
+                                            {valor?.toLocaleString()} Kz
+                                          </td>
+                                          <td className="py-1.5 pr-1 text-right">
+                                            <button
+                                              type="button"
+                                              onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
+                                              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            >
+                                              <Trash size={16} />
+                                            </button>
+                                          </td>
+                                        </tr>
                                       );
-                                    })
-                                  ) : (
-                                    <Table size="small">
-                                      <TableHead>
-                                        <TableRow>
-                                          <TableCell sx={{ pl: 1, borderColor: "#f1f5f9" }}><Typography variant="caption" fontWeight="700" color="#64748b">MEMBRO IDENTIFICADO</Typography></TableCell>
-                                          <TableCell sx={{ borderColor: "#f1f5f9" }}><Typography variant="caption" fontWeight="700" color="#64748b">VALOR DECLARADO</Typography></TableCell>
-                                          <TableCell align="right" sx={{ pr: 1, borderColor: "#f1f5f9" }}></TableCell>
-                                        </TableRow>
-                                      </TableHead>
-                                      <TableBody>
-                                        {Object.entries(formData.membrosContribuicoes[tipo.id]).map(([membroId, valor]) => {
-                                          const membro = (membros || []).find((m) => m.id === parseInt(membroId));
-                                          return (
-                                            <TableRow key={membroId} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                              <TableCell sx={{ pl: 1, py: 1.5, textTransform: "capitalize", fontSize: "0.875rem", color: "#334155", fontWeight: "500", borderColor: "#f1f5f9" }}>
-                                                {membro?.nome || "Membro"}
-                                              </TableCell>
-                                              <TableCell sx={{ py: 1.5, fontSize: "0.875rem", fontWeight: "700", color: "#0f172a", borderColor: "#f1f5f9" }}>
-                                                {valor?.toLocaleString()} Kz
-                                              </TableCell>
-                                              <TableCell align="right" sx={{ pr: 1, py: 1.5, borderColor: "#f1f5f9" }}>
-                                                <IconButton 
-                                                  size="small" 
-                                                  onClick={() => handleRemoveMembroContribuicao(tipo.id, parseInt(membroId))}
-                                                  sx={{ color: "#disabled", "&:hover": { color: "#ef4444", bgcolor: "#fef2f2" } }}
-                                                >
-                                                  <DeleteIcon fontSize="small" />
-                                                </IconButton>
-                                              </TableCell>
-                                            </TableRow>
-                                          );
-                                        })}
-                                      </TableBody>
-                                    </Table>
-                                  )}
-                                </Box>
+                                    })}
+                                  </tbody>
+                                </table>
                               )}
-                          </Paper>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Grid>
+                            </div>
+                          )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* LADO DIREITO: Componente Resumo Acoplado */}
-          <Grid item xs={12} md={4}>
-            <Box sx={{ position: "sticky", top: "24px" }}>
+          <div className="lg:col-span-4">
+            <div className="sticky top-6">
               <Resumo 
                 formData={formData} 
                 tiposCulto={tiposCulto} 
                 tiposContribuicao={tiposContribuicao} 
                 membros={membros} 
               />
-            </Box>
-          </Grid>
+            </div>
+          </div>
 
           {/* Botões de Ação do Formulário */}
-          <Grid item xs={12} display="flex" flexDirection={isMobile ? "column-reverse" : "row"} justifyContent="flex-end" gap={2} sx={{ mt: 3, borderTop: "1px solid #f1f5f9", pt: 4 }}>
-            <Button
-              variant="text"
+          <div className={`lg:col-span-12 flex gap-2 mt-3 pt-4 border-t border-slate-100 ${isMobile ? 'flex-col-reverse' : 'flex-row justify-end'}`}>
+            <button
+              type="button"
               onClick={onCancel}
-              fullWidth={isMobile}
-              sx={{
-                px: 4,
-                py: 1.6,
-                borderRadius: "12px",
-                fontWeight: "700",
-                color: "#64748b",
-                textTransform: "none",
-                fontSize: "0.95rem",
-                "&:hover": { backgroundColor: "#f1f5f9", color: "#334155" }
-              }}
+              className={`px-4 py-1.6 rounded-xl font-bold text-slate-500 text-[0.95rem] hover:bg-slate-100 hover:text-slate-600 transition-colors ${isMobile ? 'w-full' : ''}`}
             >
               Cancelar Operação
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
-              variant="contained"
-              disableElevation
-              fullWidth={isMobile}
               disabled={loading}
-              sx={{
-                px: 5,
-                py: 1.6,
-                borderRadius: "12px",
-                fontWeight: "700",
-                backgroundColor: "#0f172a",
-                textTransform: "none",
-                fontSize: "0.95rem",
-                boxShadow: "0 4px 12px rgba(15,23,42,0.15)",
-                "&:hover": { backgroundColor: "#1e293b", boxShadow: "0 6px 20px rgba(15,23,42,0.2)" },
-              }}
+              className={`px-5 py-1.6 rounded-xl font-bold bg-slate-900 text-white text-[0.95rem] shadow-[0_4px_12px_rgba(15,23,42,0.15)] hover:bg-slate-800 hover:shadow-[0_6px_20px_rgba(15,23,42,0.2)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${isMobile ? 'w-full' : ''}`}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : isEdit ? "Atualizar Registro" : "Finalizar e Lançar"}
-            </Button>
-          </Grid>
-        </Grid>
+              {loading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Processando...
+                </>
+              ) : isEdit ? "Atualizar Registro" : "Finalizar e Lançar"}
+            </button>
+          </div>
+        </div>
       </form>
 
       {/* Modal de Contribuição por Membro */}
-      <Dialog 
-        open={openModal} 
-        onClose={() => setOpenModal(false)}
-        fullWidth
-        maxWidth="xs"
-        PaperProps={{ 
-          sx: { 
-            borderRadius: "20px", 
-            p: 2,
-            boxShadow: "0 20px 50px rgba(0,0,0,0.1)"
-          } 
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: "800", pb: 1, fontSize: "1.25rem", color: "#0f172a", letterSpacing: "-0.4px" }}>
-          Vincular Membro Ativo
-        </DialogTitle>
-        <DialogContent sx={{ py: 1 }}>
-          <Typography variant="body2" color="#64748b" sx={{ mb: 3 }}>
-            Selecione o membro na base de dados para atribuir um valor nominal específico.
-          </Typography>
-          <Autocomplete
-            options={membros || []}
-            getOptionLabel={(option) => option.nome || ""}
-            value={selectedMembro}
-            onChange={(e, newValue) => setSelectedMembro(newValue)}
-            renderInput={(params) => <TextField {...params} label="Procurar membro pelo nome..." variant="outlined" />}
-            sx={{ mb: 3, ...premiumInputStyles }}
-          />
-          <TextField
-            type="number"
-            label="Quantia do Contributo"
-            fullWidth
-            value={valorMembro}
-            onChange={(e) => setValorMembro(e.target.value)}
-            InputProps={{
-              startAdornment: <Typography variant="body2" sx={{ mr: 1.5, color: "#94a3b8", fontWeight: "600" }}>Kz</Typography>,
-            }}
-            sx={premiumInputStyles}
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1, mt: 2 }}>
-          <Button 
-            onClick={() => setOpenModal(false)} 
-            color="inherit" 
-            sx={{ textTransform: "none", fontWeight: "700", borderRadius: "10px", color: "#64748b" }}
-          >
-            Voltar
-          </Button>
-          <Button
-            variant="contained"
-            disableElevation
-            onClick={handleAddMembroContribuicao}
-            sx={{
-              textTransform: "none",
-              fontWeight: "700",
-              borderRadius: "10px",
-              backgroundColor: "#0f172a",
-              px: 3,
-              "&:hover": { backgroundColor: "#1e293b" },
-            }}
-          >
-            Confirmar Vínculo
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Paper>
+      {openModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] w-full max-w-xs p-4">
+            <h3 className="font-extrabold text-xl text-slate-900 tracking-tight pb-1">
+              Vincular Membro Ativo
+            </h3>
+            <p className="text-sm text-slate-500 mb-3">
+              Selecione o membro na base de dados para atribuir um valor nominal específico.
+            </p>
+            
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-slate-500 mb-1">Procurar membro pelo nome...</label>
+              <select
+                className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                value={selectedMembro?.id || ""}
+                onChange={(e) => {
+                  const membro = (membros || []).find(m => m.id === parseInt(e.target.value));
+                  setSelectedMembro(membro || null);
+                }}
+              >
+                <option value="">Selecione um membro...</option>
+                {(membros || []).map((membro) => (
+                  <option key={membro.id} value={membro.id}>
+                    {membro.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="relative mb-3">
+              <label className="block text-sm font-medium text-slate-500 mb-1">Quantia do Contributo</label>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">Kz</span>
+              <input
+                type="number"
+                className="w-full bg-[#f9fbfd] border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-slate-900 focus:border-[1.5px] transition-all duration-200 hover:border-slate-300"
+                value={valorMembro}
+                onChange={(e) => setValorMembro(e.target.value)}
+              />
+            </div>
+
+            <div className="flex gap-1 mt-2 p-2">
+              <button
+                type="button"
+                onClick={() => setOpenModal(false)}
+                className="px-3 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                onClick={handleAddMembroContribuicao}
+                className="px-3 py-2 rounded-xl font-bold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+              >
+                Confirmar Vínculo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
