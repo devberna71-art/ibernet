@@ -1,1 +1,0 @@
-import{nt as e,rt as t}from"./Grow-DjhITPSs.js";function n(e){return t(`MuiListItemText`,e)}var r=e(`MuiListItemText`,[`root`,`multiline`,`dense`,`inset`,`primary`,`secondary`]);export{r as n,n as t};

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 60" fill="none">
+  <!-- Symbol: geometric E mark -->
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <!-- Top chevron -->
+  <path d="M8 10 L28 10 L38 22 L28 34 L8 34 L18 22 Z" fill="url(#grad)"/>
+  <!-- Bottom chevron -->
+  <path d="M8 28 L28 28 L38 40 L28 52 L8 52 L18 40 Z" fill="#2563EB" opacity="0.85"/>
+  <!-- Inner cut top -->
+  <path d="M14 18 L24 18 L30 24 L24 30 L14 30 L20 24 Z" fill="white"/>
+  <!-- Inner cut bottom -->
+  <path d="M14 34 L24 34 L30 40 L24 46 L14 46 L20 40 Z" fill="white"/>
+
+  <!-- Wordmark: Eclesia -->
+  <text x="50" y="36" font-family="'Inter', 'Segoe UI', sans-serif" font-weight="700" font-size="28" fill="#0F172A" letter-spacing="-0.5">Eclesia</text>
+</svg>

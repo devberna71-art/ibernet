@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import api from "../api/axiosConfig";
 import socket from "../api/socketConfig";
-import logoBernet from "../assets/Logo-Bernet.png";
+import logoEclesia from "../assets/Logo-Eclesia.svg";
 import Sidebar, { SIDEBAR_WIDTH } from "../components/ui/Sidebar";
 import UserBadge from "../components/UserMiniProfile";
 import NavbarVisitor from "./NavbarVisitor";
@@ -127,7 +127,7 @@ export default function Navbar() {
             >
               <Menu size={22} strokeWidth={1.75} className="text-gray-700" />
             </button>
-            <img src={logoBernet} alt="Logo" className="h-10 object-contain" />
+            <img src={logoEclesia} alt="Logo" className="h-10 object-contain" />
             {userRole && membro ? <UserBadge membro={membro} /> : <div className="w-10" />}
           </div>
         </header>
@@ -144,7 +144,7 @@ export default function Navbar() {
           {/* Drawer content */}
           <div className="relative z-10 w-[280px] bg-white shadow-xl">
             <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
-              <img src={logoBernet} alt="Logo" className="h-8 object-contain" />
+              <img src={logoEclesia} alt="Logo" className="h-8 object-contain" />
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Fechar menu"

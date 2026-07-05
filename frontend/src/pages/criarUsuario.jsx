@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import api from "../api/axiosConfig";
 import Button from "../components/ui/Button";
-import logoBernet from "../assets/Logo-Bernet.png";
+import logoEclesia from "../assets/Logo-Eclesia.svg";
 
 export default function CriarUsuarios() {
   const navigate = useNavigate();
@@ -118,7 +118,7 @@ export default function CriarUsuarios() {
         {/* Logo and header */}
         <div className="flex flex-col items-center text-center mb-8">
           <Link to="/">
-            <img src={logoBernet} alt="Logo Bernet" className="h-9 object-contain mb-4" />
+            <img src={logoEclesia} alt="Eclesia Logo" className="h-9 object-contain mb-4" />
           </Link>
           <div className="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-primarySoft mb-3">
             <UserPlus size={20} strokeWidth={1.75} className="text-primary" />

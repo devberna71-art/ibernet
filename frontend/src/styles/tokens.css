@@ -1,34 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
 
+/* ═══════════════════════════════════════════════════════
+   ECLESIA Design System — CSS Tokens
+   Paleta: #0F172A navy · #2563EB blue · #F8FAFC bg
+═══════════════════════════════════════════════════════ */
 :root {
-  --bg: #FFFFFF;
-  --bg-section: #F8F9FB;
-  --surface: #FFFFFF;
-  --border: #E8E8ED;
-  --primary: #4F5EF7;
-  --primary-hover: #3B4AE8;
-  --primary-soft: #EEF0FE;
-  --text: #0D0D12;
-  --text-secondary: #4A4A5A;
-  --text-muted: #8C8CA1;
-  --success: #16A34A;
+  /* Backgrounds */
+  --bg:         #FFFFFF;
+  --bg-section: #F8FAFC;
+  --surface:    #FFFFFF;
+
+  /* Borders */
+  --border: #E2E8F0;
+
+  /* Primary — Eclesia Blue */
+  --primary:       #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-soft:  #EFF6FF;
+  --primary-dark:  #0F172A;
+
+  /* Text */
+  --text:           #0F172A;
+  --text-secondary: #475569;
+  --text-muted:     #94A3B8;
+
+  /* Semantic */
+  --success:      #16A34A;
   --success-soft: #DCFCE7;
-  --danger: #EF4444;
-  --danger-soft: #FEE2E2;
-  --warning: #D97706;
+  --danger:       #EF4444;
+  --danger-soft:  #FEE2E2;
+  --warning:      #D97706;
   --warning-soft: #FEF3C7;
 
+  /* Radius */
   --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+  /* Shadows */
+  --shadow-xs:   0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-float:0 4px 16px rgba(37,99,235,0.08), 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.10);
 
-  --sidebar-width: 220px;
-  --topbar-height: 60px;
+  /* Layout */
+  --sidebar-width:  220px;
+  --topbar-height:  60px;
 }

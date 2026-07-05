@@ -18,7 +18,7 @@ import {
   ShieldCheck,
   Cross,
 } from "lucide-react";
-import logoBernet from "../../assets/Logo-Bernet.png";
+import logoEclesia from "../../assets/Logo-Eclesia.svg";
 import {
   secretariaSubmenus,
   financasSubmenus,
@@ -162,9 +162,8 @@ export default function Sidebar({
       ].join(" ")}
       style={{ width: SIDEBAR_WIDTH }}
     >
-      {/* ── Logo + Role badge ── */}
       <div className="flex flex-col items-center px-5 pt-5 pb-4 shrink-0 gap-2.5">
-        <img src={logoBernet} alt="Logo Bernet" className="h-8 object-contain" />
+        <img src={logoEclesia} alt="Eclesia Logo" className="h-8 object-contain" />
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${roleMeta.color}`}>
           {isSuperAdmin && <ShieldCheck size={10} strokeWidth={2} />}
           {roleMeta.label}

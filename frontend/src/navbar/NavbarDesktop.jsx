@@ -35,7 +35,7 @@ import NotificationBell from "../components/Contador";
 import UserBadge from "../components/UserMiniProfile";
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import logoBernet from "../assets/Logo-Bernet.png";
+import logoEclesia from "../assets/Logo-Eclesia.svg";
 import api from "../api/axiosConfig";
 import socket from "../api/socketConfig";
 
@@ -414,7 +414,7 @@ useEffect(() => {
 
         <Box>
           <Box className="logo-area">
-            <img src={logoBernet} className="logo-img" alt="Logo Bernet" />
+            <img src={logoEclesia} className="logo-img" alt="Eclesia Logo" />
             <Typography className="system-tag">Gestão Eclesiástica</Typography>
           </Box>
 

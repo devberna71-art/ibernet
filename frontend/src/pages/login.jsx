@@ -3,7 +3,7 @@ import { Eye, EyeOff, Lock, LogIn, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axiosConfig";
 import Button from "../components/ui/Button";
-import logoBernet from "../assets/Logo-Bernet.png";
+import logoEclesia from "../assets/Logo-Eclesia.svg";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
@@ -58,7 +58,7 @@ export default function LoginPage() {
       {/* Painel esquerdo — branding */}
       <div className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 bg-bgSection border-r border-border p-10">
         <div>
-          <img src={logoBernet} alt="Logo Bernet" className="h-9 object-contain mb-8" />
+          <img src={logoEclesia} alt="Eclesia Logo" className="h-9 object-contain mb-8" />
           <h2 className="text-[28px] font-bold text-text leading-tight mb-3">
             Gestão eclesiástica<br />inteligente e confiável.
           </h2>
@@ -95,7 +95,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex justify-center mb-8 lg:hidden">
-            <img src={logoBernet} alt="Logo Bernet" className="h-10 object-contain" />
+            <img src={logoEclesia} alt="Eclesia Logo" className="h-10 object-contain" />
           </div>
 
           <div className="mb-8">

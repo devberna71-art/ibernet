@@ -30,7 +30,7 @@ import {
 
 import { Link, useLocation } from "react-router-dom";
 import NotificationBell from "../components/Contador";
-import logoBernet from "../assets/Logo-Bernet.png";
+import logoEclesia from "../assets/Logo-Eclesia.svg";
 
 export default function NavbarMobile({ userRole, toggleDrawer }) {
   const location = useLocation();
@@ -263,7 +263,7 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
       <Box>
         {/* ================= LOGO AREA ================= */}
         <Box className="logo-area-mobile">
-          <img src={logoBernet} className="logo-img-mobile" alt="Logo Bernet" />
+          <img src={logoEclesia} className="logo-img-mobile" alt="Eclesia Logo" />
           <Typography className="system-tag-mobile">Gestão Eclesiástica</Typography>
         </Box>
 

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { UserPlus, Building, User, Lock, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import axios from "../api/axiosConfig";
 import Button from "../components/ui/Button";
-import logoBernet from "../assets/Logo-Bernet.png";
+import logoEclesia from "../assets/Logo-Eclesia.svg";
 
 const CadastroMembroUser = () => {
   const [sedes, setSedes] = useState([]);
@@ -57,7 +57,7 @@ const CadastroMembroUser = () => {
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <Link to="/">
-            <img src={logoBernet} alt="Logo Bernet" className="h-9 object-contain mb-4" />
+            <img src={logoEclesia} alt="Eclesia Logo" className="h-9 object-contain mb-4" />
           </Link>
           <div className="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-primarySoft mb-3">
             <UserPlus size={20} strokeWidth={1.75} className="text-primary" />
