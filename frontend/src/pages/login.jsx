@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Lock, LogIn, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axiosConfig";
 import Button from "../components/ui/Button";
 import logoBernet from "../assets/Logo-Bernet.png";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ nome: "", senha: "" });
@@ -11,6 +12,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,16 +32,19 @@ export default function LoginPage() {
     try {
       const res = await api.post("/login", formData);
       setSuccess(res.data.message || "Login realizado com sucesso!");
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
+      
+      // Usar o AuthContext para atualizar o estado de autenticação
+      await login(res.data.token, res.data.usuario);
+      
+      // Redirecionar usando React Router
       const role = res.data.usuario?.funcao;
       if (role === "usuario") {
-        window.location.href = "/perfil";
+        navigate("/perfil");
       } else if (role === "moderador") {
-        window.location.href = "/lista-cultos";
+        navigate("/lista-cultos");
       } else {
         // admin, superadmin
-        window.location.href = "/dashboard";
+        navigate("/dashboard");
       }
     } catch (err) {
       setError(err.response?.data?.message || "Credenciais inválidas.");
