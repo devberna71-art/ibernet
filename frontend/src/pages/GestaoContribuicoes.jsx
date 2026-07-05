@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  Add,
+  Plus as Add,
   History,
   Pencil,
   Trash2,
