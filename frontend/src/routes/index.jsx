@@ -47,6 +47,7 @@ function LoadingFallback() {
 /** Redireciona utilizadores não autenticados para /login */
 function RequireAuth({ children }) {
   const { isAuthenticated, loading } = useAuth();
+  console.log(`[RouteGuard] RequireAuth: isAuthenticated=${isAuthenticated}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return children;
@@ -55,6 +56,7 @@ function RequireAuth({ children }) {
 /** Apenas para Admin e Super Admin — redireciona membros/moderadores */
 function RequireAdmin({ children }) {
   const { isAuthenticated, role, loading } = useAuth();
+  console.log(`[RouteGuard] RequireAdmin: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (role !== 'admin' && role !== 'superadmin') return <Navigate to="/perfil" replace />;
@@ -64,6 +66,7 @@ function RequireAdmin({ children }) {
 /** Apenas para Admin — redireciona os demais */
 function RequireAdminOnly({ children }) {
   const { isAuthenticated, role, loading } = useAuth();
+  console.log(`[RouteGuard] RequireAdminOnly: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (role !== 'admin') return <Navigate to="/dashboard" replace />;
@@ -73,6 +76,7 @@ function RequireAdminOnly({ children }) {
 /** Exclusivo para Super Admin */
 function RequireSuperAdmin({ children }) {
   const { isAuthenticated, role, loading } = useAuth();
+  console.log(`[RouteGuard] RequireSuperAdmin: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (role !== 'superadmin') return <Navigate to="/dashboard" replace />;
@@ -82,6 +86,7 @@ function RequireSuperAdmin({ children }) {
 /** Admin OU Moderador */
 function RequireAdminOrModerador({ children }) {
   const { isAuthenticated, role, loading } = useAuth();
+  console.log(`[RouteGuard] RequireAdminOrModerador: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (role !== 'admin' && role !== 'moderador') return <Navigate to="/perfil" replace />;
@@ -91,6 +96,7 @@ function RequireAdminOrModerador({ children }) {
 /** Rotas públicas — redireciona autenticados para o destino correto do seu perfil */
 function PublicOnlyRoute({ children }) {
   const { isAuthenticated, role, loading } = useAuth();
+  console.log(`[RouteGuard] PublicOnlyRoute: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (isAuthenticated) {
     if (role === 'usuario')   return <Navigate to="/perfil"      replace />;
@@ -103,6 +109,7 @@ function PublicOnlyRoute({ children }) {
 
 /* ─── Rotas ────────────────────────────────────────────────────────── */
 function AppRoutes() {
+  console.log('[AppRoutes] Rendering...');
   return (
     <Router>
       <AuthProvider>
@@ -122,7 +129,8 @@ function AppRoutes() {
               <Route path="/dashboard" element={<RequireAdmin><Dashboard /></RequireAdmin>} />
 
               {/* Chat — todos os autenticados */}
-              <Route path="/chat/list"            element={<ChatPage />} />
+              <Route path="/chat"                 element={<Navigate to="/chat/list" replace />} />
+              <Route path="/chat/list"            element={<MembersChat />} />
               <Route path="/chat/members/:chatId" element={<MembersChat />} />
 
               {/* Notificações e Perfil — todos os autenticados */}

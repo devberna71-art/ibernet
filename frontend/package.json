@@ -1,6 +1,7 @@
 {
   "name": "projetoigreja",
   "version": "0.1.0",
+  "module": "module",
   "private": true,
   "dependencies": {
     "@date-io/date-fns": "^3.2.1",
