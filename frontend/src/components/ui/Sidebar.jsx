@@ -215,22 +215,22 @@ export default function Sidebar({
             <SectionLabel>Igreja</SectionLabel>
             <CollapsibleSection label="Cultos & Eventos" icon={CalendarDays} open={cultosOpen} onToggle={() => setCultosOpen(!cultosOpen)}>
               {cultosSubmenus.map((s) => (
-                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+                <SubNavItem key={s.path} to={s.path} label={s.label} active={isActive(s.path)} onClick={handleNav} />
               ))}
             </CollapsibleSection>
             <CollapsibleSection label="Secretaria" icon={Users} open={secretariaOpen} onToggle={() => setSecretariaOpen(!secretariaOpen)}>
               {secretariaSubmenus.map((s) => (
-                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+                <SubNavItem key={s.path} to={s.path} label={s.label} active={isActive(s.path)} onClick={handleNav} />
               ))}
             </CollapsibleSection>
             <CollapsibleSection label="Finanças" icon={Wallet} open={financeiroOpen} onToggle={() => setFinanceiroOpen(!financeiroOpen)}>
               {financasSubmenus.map((s) => (
-                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+                <SubNavItem key={s.path} to={s.path} label={s.label} active={isActive(s.path)} onClick={handleNav} />
               ))}
             </CollapsibleSection>
             <CollapsibleSection label="Relatórios" icon={BarChart3} open={relatoriosOpen} onToggle={() => setRelatoriosOpen(!relatoriosOpen)}>
               {relatoriosSubmenus.map((s) => (
-                <SubNavItem key={s.path} {...s} active={isActive(s.path)} onClick={handleNav} />
+                <SubNavItem key={s.path} to={s.path} label={s.label} active={isActive(s.path)} onClick={handleNav} />
               ))}
             </CollapsibleSection>
 

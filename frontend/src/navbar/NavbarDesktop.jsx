@@ -10,7 +10,7 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Badge 
+  Badge
 } from "@mui/material";
 
 import {
@@ -25,10 +25,10 @@ import {
   SpaceDashboardRounded,
   ExpandLess,
   ExpandMore,
-  ForumRounded, 
+  ForumRounded,
   LogoutRounded,
   SettingsRounded,
-  HistoryEduRounded 
+  HistoryEduRounded
 } from "@mui/icons-material";
 
 import NotificationBell from "../components/Contador";
@@ -39,7 +39,7 @@ import logoEclesia from "../assets/Logo-Eclesia.svg";
 import api from "../api/axiosConfig";
 import socket from "../api/socketConfig";
 
-import { io } from "socket.io-client"; 
+import { io } from "socket.io-client";
 
 export default function NavbarDesktop() {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ export default function NavbarDesktop() {
 
   const [userRole, setUserRole] = useState(null);
   const [membro, setMembro] = useState(null);
-  
+
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const [eventosOpen, setEventosOpen] = useState(false);
@@ -98,32 +98,32 @@ export default function NavbarDesktop() {
     fetchPerfil();
   }, []);
 
- 
 
 
-useEffect(() => {
-  // Se o seu socketConfig não conecta automaticamente, você pode forçar a abertura/autenticação aqui:
-  if (!socket.connected) {
-    socket.auth = { token: localStorage.getItem("token") };
-    socket.connect();
-  }
 
-  // Ouvir o evento global usando a instância importada padrão
-  socket.on("global_new_message", (data) => {
-    if (
-      location.pathname !== "/chat/list" &&
-      membro &&
-      Number(data.MembroId) !== Number(membro.id)
-    ) {
-      setUnreadMessagesCount((prev) => prev + 1);
+  useEffect(() => {
+    // Se o seu socketConfig não conecta automaticamente, você pode forçar a abertura/autenticação aqui:
+    if (!socket.connected) {
+      socket.auth = { token: localStorage.getItem("token") };
+      socket.connect();
     }
-  });
 
-  // Limpeza do listener ao desmontar o componente
-  return () => {
-    socket.off("global_new_message");
-  };
-}, [location.pathname, membro]);
+    // Ouvir o evento global usando a instância importada padrão
+    socket.on("global_new_message", (data) => {
+      if (
+        location.pathname !== "/chat/list" &&
+        membro &&
+        Number(data.MembroId) !== Number(membro.id)
+      ) {
+        setUnreadMessagesCount((prev) => prev + 1);
+      }
+    });
+
+    // Limpeza do listener ao desmontar o componente
+    return () => {
+      socket.off("global_new_message");
+    };
+  }, [location.pathname, membro]);
 
 
 
@@ -133,6 +133,13 @@ useEffect(() => {
     navigate("/login");
   };
 
+  const relatoriosFinanceirosSub = [
+    { path: "/relatorios/contribuicoes", label: "Entradas por Período", icon: <AccountBalanceWalletRounded /> },
+    { path: "/salarios", label: "Histórico Salarial", icon: <PaidRounded /> },
+    { path: "/relatorios/despesas", label: "Saídas & Custos", icon: <ReceiptLongRounded /> },
+    { path: "/relatorios/financeiro-geral", label: "Balanço Consolidado", icon: <AssessmentRounded /> },
+  ];
+  // Substitua os arrays atuais no NavbarDesktop.jsx por estes:
   const membrosSubmenus = [
     { path: "/gestao-membros", label: "Relação de Membros", icon: <PeopleAltRounded /> },
     { path: "/cartao/membro", label: "Cartões de Membro", icon: <BadgeRounded /> },
@@ -146,14 +153,6 @@ useEffect(() => {
     { path: "/gestao-contribuicoes", label: "Dízimos & Ofertas", icon: <AccountBalanceWalletRounded /> },
     { path: "/gestao-despesas", label: "Fluxo de Despesas", icon: <ReceiptLongRounded /> },
   ];
-
-  const relatoriosFinanceirosSub = [
-    { path: "/relatorios/contribuicoes", label: "Entradas por Período", icon: <AccountBalanceWalletRounded /> },
-    { path: "/salarios", label: "Histórico Salarial", icon: <PaidRounded /> },
-    { path: "/relatorios/despesas", label: "Saídas & Custos", icon: <ReceiptLongRounded /> },
-    { path: "/relatorios/financeiro-geral", label: "Balanço Consolidado", icon: <AssessmentRounded /> },
-  ];
-
   const isActived = (path) => location.pathname === path;
 
   return (
@@ -423,9 +422,9 @@ useEffect(() => {
           <List sx={{ px: 0 }}>
             <Typography className="menu-section-label">Navegação Principal</Typography>
 
-            <ListItemButton 
-              component={Link} 
-              to="/" 
+            <ListItemButton
+              component={Link}
+              to="/"
               className={`premium-btn ${isActived("/") ? "active-link" : ""}`}
             >
               <Typography sx={{ display: 'none' }}>{userRole}</Typography>
@@ -435,14 +434,14 @@ useEffect(() => {
 
             {/* 💬 COMUNICAÇÃO (USUARIO, ADMIN E MODERADOR) */}
             {(userRole === "admin" || userRole === "usuario" || userRole === "moderador") && (
-              <ListItemButton 
-                component={Link} 
-                to="/chat/list" 
+              <ListItemButton
+                component={Link}
+                to="/chat/list"
                 className={`premium-btn ${isActived("/chat/list") ? "active-link" : ""}`}
               >
                 <ListItemIcon>
-                  <Badge 
-                    badgeContent={unreadMessagesCount} 
+                  <Badge
+                    badgeContent={unreadMessagesCount}
                     color="error"
                     max={99}
                     sx={{
@@ -463,14 +462,14 @@ useEffect(() => {
 
             {/* 📜 ATA DO CULTO apontando para /listaCultos (ADMIN E MODERADOR) */}
             {(userRole === "admin" || userRole === "moderador") && (
-              <ListItemButton 
-                component={Link} 
-                to="/lista-cultos" 
+              <ListItemButton
+                component={Link}
+                to="/lista-cultos"
                 className={`peculiar-btn-culto ${isActived("/lista-cultos") ? "active-link" : ""}`}
               >
                 <ListItemIcon><HistoryEduRounded /></ListItemIcon>
-                <ListItemText 
-                  primary="Ata do Culto" 
+                <ListItemText
+                  primary="Ata do Culto"
                   primaryTypographyProps={{ sx: { fontWeight: '600 !important' } }}
                 />
               </ListItemButton>
@@ -478,9 +477,9 @@ useEffect(() => {
 
             {/* 🛡️ PAINEL ESTATÍSTICO (EXCLUSIVO ADMIN) */}
             {userRole === "admin" && (
-              <ListItemButton 
-                component={Link} 
-                to="/dashboard" 
+              <ListItemButton
+                component={Link}
+                to="/dashboard"
                 className={`premium-btn ${isActived("/dashboard") ? "active-link" : ""}`}
               >
                 <ListItemIcon><SpaceDashboardRounded /></ListItemIcon>
@@ -494,8 +493,8 @@ useEffect(() => {
                 <Typography className="menu-section-label">Módulos Administrativos</Typography>
 
                 {/* EVENTOS (Condicional para Moderador não ver Relatório de Frequência) */}
-                <ListItemButton 
-                  onClick={() => setEventosOpen(!eventosOpen)} 
+                <ListItemButton
+                  onClick={() => setEventosOpen((prev) => !prev)}
                   className={`premium-btn ${eventosOpen ? "menu-open" : ""}`}
                 >
                   <ListItemIcon><EventNoteRounded /></ListItemIcon>
@@ -527,8 +526,8 @@ useEffect(() => {
                 </Collapse>
 
                 {/* SECRETARIA (Acesso Completo para Admin e Moderador) */}
-                <ListItemButton 
-                  onClick={() => setMembrosOpen(!membrosOpen)} 
+                <ListItemButton
+                  onClick={() => setMembrosOpen((prev) => !prev)}
                   className={`premium-btn ${membrosOpen ? "menu-open" : ""}`}
                 >
                   <ListItemIcon><PeopleAltRounded /></ListItemIcon>
@@ -556,8 +555,8 @@ useEffect(() => {
             {/* 💰 FINANÇAS (EXCLUSIVO ADMIN) */}
             {userRole === "admin" && (
               <>
-                <ListItemButton 
-                  onClick={() => setFinanceiroOpen(!financeiroOpen)} 
+                <ListItemButton
+                  onClick={() => setFinanceiroOpen((prev) => !prev)}
                   className={`premium-btn ${financeiroOpen ? "menu-open" : ""}`}
                 >
                   <ListItemIcon><AccountBalanceWalletRounded /></ListItemIcon>
@@ -579,7 +578,7 @@ useEffect(() => {
                     ))}
 
                     <ListItemButton
-                      onClick={() => setRelatoriosFinanceirosOpen(!relatoriosFinanceirosOpen)}
+                      onClick={() => setRelatoriosFinanceirosOpen((prev) => !prev)}
                       className="premium-sub-btn"
                       sx={{ color: relatoriosFinanceirosOpen ? "#38BDF8 !important" : "inherit" }}
                     >
@@ -604,9 +603,9 @@ useEffect(() => {
 
                 {/* ⚙️ CONFIGURAÇÕES DO SISTEMA (EXCLUSIVO ADMIN) */}
                 <Typography className="menu-section-label">Sistema</Typography>
-                <ListItemButton 
-                  component={Link} 
-                  to="/configuracoes" 
+                <ListItemButton
+                  component={Link}
+                  to="/configuracoes"
                   className={`premium-btn ${isActived("/configuracoes") ? "active-link" : ""}`}
                 >
                   <ListItemIcon><SettingsRounded /></ListItemIcon>
