@@ -46,7 +46,7 @@ export default function NavbarVisitor({ toggleDrawer }) {
       <div className="flex flex-col h-full bg-surface">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <img src={logoEclesia} alt="Eclesia Logo" className="h-8 object-contain" />
+          <img src={logoEclesia} alt="Eclesia Logo" className="h-20 object-contain" />
           <button
             onClick={() => toggleDrawer()}
             className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
@@ -104,7 +104,7 @@ export default function NavbarVisitor({ toggleDrawer }) {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <img src={logoEclesia} alt="Eclesia Logo" className="h-8 object-contain" />
+            <img src={logoEclesia} alt="Eclesia Logo" className="h-12 object-contain" />
           </Link>
 
           {/* Links centro — desktop */}

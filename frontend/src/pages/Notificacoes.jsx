@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Cake, Loader2, RefreshCw, Calendar, User } from "lucide-react";
+import { Cake, LoaderCircle, RefreshCw, CalendarDays, UserRound, Bell } from "lucide-react";
 import api from "../api/axiosConfig";
 import AppPage from "../components/ui/AppPage";
 import Card from "../components/ui/Card";
@@ -41,9 +41,7 @@ export default function Notificacoes() {
   const isBirthdayToday = (dateStr) => {
     const today = new Date();
     const date = new Date(dateStr);
-    return (
-      date.getDate() === today.getDate() && date.getMonth() === today.getMonth()
-    );
+    return date.getDate() === today.getDate() && date.getMonth() === today.getMonth();
   };
 
   const calculateAge = (dateStr) => {
@@ -51,11 +49,7 @@ export default function Notificacoes() {
     const birthDate = new Date(dateStr);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
-    if (
-      today.getMonth() < birthDate.getMonth() ||
-      (today.getMonth() === birthDate.getMonth() &&
-        today.getDate() < birthDate.getDate())
-    ) {
+    if (today.getMonth() < birthDate.getMonth() || (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
       age--;
     }
     return age;
@@ -63,49 +57,51 @@ export default function Notificacoes() {
 
   return (
     <AppPage subtitle="Comemore conosco cada momento especial.">
+      {/* Toast Refatorado */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-md border shadow-float text-body font-medium transition-all ${
-          toast.type === "error" ? "bg-danger/5 border-danger/20 text-danger" : "bg-successSoft border-success/20 text-success"
-        }`}>
+        <div className={`fixed top-4 right-4 z-[3000] px-4 py-3 rounded-lg border shadow-sm font-medium transition-all ${toast.type === "error" ? "bg-red-50 border-red-200 text-red-700" :
+            toast.type === "info" ? "bg-blue-50 border-blue-200 text-blue-700" :
+              "bg-green-50 border-green-200 text-green-700"
+          }`}>
           {toast.message}
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-sm bg-gradient-to-br from-pink-500 to-orange-400 flex items-center justify-center text-white">
-            <Cake size={18} />
+      {/* Header Refatorado */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <Cake size={24} />
           </div>
           <div>
-            <h2 className="text-[18px] font-semibold text-text">Aniversariantes</h2>
-            <p className="text-muted text-textMuted mt-0.5">Celebrações especiais 💙</p>
+            <h2 className="text-lg font-semibold text-slate-900">Aniversariantes</h2>
+            <p className="text-sm text-slate-600">Acompanhe as celebrações da comunidade.</p>
           </div>
         </div>
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => showToast("Lista atualizada automaticamente a cada 60 segundos", "info")}
+          onClick={() => showToast("Lista atualizada", "info")}
           disabled={atualizando}
         >
-          <RefreshCw size={13} className={`w-4 h-4 shrink-0 mr-2 ${atualizando ? "animate-spin" : ""}`} />
+          <RefreshCw size={14} className={`mr-2 ${atualizando ? "animate-spin" : ""}`} />
           {atualizando ? "Atualizando..." : "Atualizar"}
         </Button>
       </div>
 
-      {/* Loading */}
+      {/* Loading State */}
       {loading ? (
-        <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
-          <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
-          <span className="text-body">Carregando aniversariantes...</span>
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
+          <LoaderCircle size={32} className="animate-spin text-blue-600" />
+          <span className="text-sm font-medium">Carregando aniversariantes...</span>
         </div>
       ) : notificacoes.length === 0 ? (
-        <Card className="text-center py-12">
-          <Cake size={32} className="text-textMuted mx-auto mb-3" />
-          <p className="text-body text-textMuted">Nenhum aniversário recente 🎈</p>
+        <Card className="flex flex-col items-center justify-center py-16 border-dashed">
+          <Bell size={40} className="text-slate-300 mb-3" />
+          <p className="text-slate-600 font-medium">Nenhum aniversário por agora</p>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {notificacoes.map((notif, index) => {
             const isToday = isBirthdayToday(notif.Membro?.data_nascimento);
             const idade = calculateAge(notif.Membro?.data_nascimento);
@@ -113,47 +109,38 @@ export default function Notificacoes() {
             return (
               <Card
                 key={notif.id || index}
-                padding="p-4"
-                className={`hover:border-primary/20 transition-all duration-200 ${
-                  isToday ? "border-warning bg-warning/5" : ""
-                }`}
+                className={`p-4 transition-all hover:shadow-sm ${isToday ? "border-amber-200 bg-amber-50/30" : "border-slate-200"
+                  }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${
-                      isToday
-                        ? "bg-gradient-to-br from-yellow-400 to-orange-500 text-white"
-                        : "bg-gradient-to-br from-primary to-purple-500 text-white"
-                    }`}>
-                      <Cake size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-bold text-text">{notif.Membro?.nome || "Membro Desconhecido"}</h3>
-                        {isToday && (
-                          <Badge variant="warning">🎊 Hoje!</Badge>
-                        )}
-                      </div>
-                      <p className={`text-xs font-semibold mb-2 ${isToday ? "text-warning" : "text-primary"}`}>
-                        {idade} anos
-                      </p>
-                      <p className="text-xs text-textMuted line-clamp-2">{notif.mensagem}</p>
-                      <p className="text-[10px] text-textMuted mt-2 flex items-center gap-1">
-                        <Calendar size={10} />
-                        {new Date(notif.createdAt).toLocaleDateString("pt-BR")}
-                      </p>
-                    </div>
+                <div className="flex items-start gap-4">
+                  {/* Avatar */}
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden shrink-0 ${!notif.Membro?.foto ? "bg-blue-50 text-blue-600" : ""}`}>
+                    {notif.Membro?.foto ? (
+                      <img src={notif.Membro.foto} alt={notif.Membro.nome} className="w-full h-full object-cover" />
+                    ) : (
+                      <UserRound size={24} />
+                    )}
                   </div>
 
-                  {notif.Membro?.foto && (
-                    <img
-                      src={notif.Membro.foto}
-                      alt={notif.Membro.nome}
-                      className={`w-20 h-20 rounded-xl object-cover ${
-                        isToday ? "border-2 border-warning" : "border-2 border-border"
-                      }`}
-                    />
-                  )}
+                  {/* Informações */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-slate-900 truncate">{notif.Membro?.nome || "Membro"}</h3>
+                      {isToday && (
+                        <Badge variant="warning" className="border-amber-200 bg-amber-100 text-amber-800">Aniversário hoje</Badge>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-slate-600 mb-1">{idade} anos completos</p>
+                    <p className="text-sm text-slate-600 leading-relaxed truncate">{notif.mensagem}</p>
+
+                    <div className="flex items-center gap-2 mt-3 text-slate-400">
+                      <CalendarDays size={14} />
+                      <span className="text-[11px] font-medium uppercase tracking-wider">
+                        {new Date(notif.createdAt).toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </Card>
             );
@@ -161,7 +148,6 @@ export default function Notificacoes() {
         </div>
       )}
 
-      {/* Aniversariante do Mês */}
       <div className="mt-8">
         <AniversarianteMes />
       </div>

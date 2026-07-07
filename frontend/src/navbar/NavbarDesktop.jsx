@@ -231,7 +231,7 @@ export default function NavbarDesktop() {
           }
 
           .logo-img {
-            height: 80px;
+            height: 160px;
             object-fit: contain;
             filter: drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.15));
           }

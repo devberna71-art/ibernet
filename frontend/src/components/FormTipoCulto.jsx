@@ -1,22 +1,9 @@
 // src/pages/FormTipoCulto.jsx
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  CircularProgress,
-  Alert,
-  Divider,
-  Fade,
-  FormControlLabel,
-  Switch,
-} from "@mui/material";
-import { Church, Edit } from "@mui/icons-material";
-import { motion } from "framer-motion";
+import { Church, Edit, Loader2 } from "lucide-react";
 import api from "../api/axiosConfig";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
 
 export default function FormTipoCulto({ tipoCulto, onSuccess, onCancel }) {
   const [formData, setFormData] = useState({
@@ -74,8 +61,7 @@ export default function FormTipoCulto({ tipoCulto, onSuccess, onCancel }) {
       console.error(err);
       setMensagem({
         tipo: "error",
-        texto:
-          err.response?.data?.message || "Erro ao salvar tipo de culto.",
+        texto: err.response?.data?.message || "Erro ao salvar tipo de culto.",
       });
     } finally {
       setLoading(false);
@@ -83,217 +69,100 @@ export default function FormTipoCulto({ tipoCulto, onSuccess, onCancel }) {
   };
 
   return (
-    <Fade in timeout={800}>
-      <Box
-        sx={{
-          minHeight: "100vh",
-          p: { xs: 2, md: 6 },
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background:
-            "radial-gradient(circle at top left, #eaf0ff 0%, #ffffff 40%, #f2f6ff 100%)",
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 35 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: "easeOut" }}
-          style={{ width: "100%", maxWidth: 680 }}
+    <div className="w-full">
+      {/* Toast Interno ou Mensagem de Alerta */}
+      {mensagem.texto && (
+        <div
+          className={`mb-4 px-4 py-3 rounded-md border text-xs font-medium transition-all ${
+            mensagem.tipo === "error"
+              ? "bg-danger/5 border-danger/20 text-danger"
+              : "bg-successSoft border-success/20 text-success"
+          }`}
         >
-          <Card
-            elevation={14}
-            sx={{
-              borderRadius: "30px",
-              overflow: "hidden",
-              background:
-                "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(235,240,255,0.97))",
-              backdropFilter: "blur(25px)",
-              border: "1px solid rgba(0,70,255,0.25)",
-              boxShadow:
-                "0 20px 60px rgba(0,50,150,0.25), inset 0 0 50px rgba(255,255,255,0.05)",
-            }}
-          >
-            <Box
-              sx={{
-                p: 3,
-                background: "linear-gradient(90deg, #0033cc 0%, #0055ff 100%)",
-                textAlign: "center",
-              }}
+          {mensagem.texto}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Input Nome */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text">
+            Nome do Tipo de Culto <span className="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            name="nome"
+            required
+            placeholder="Ex: Culto de Celebração, Ensino..."
+            value={formData.nome}
+            onChange={handleChange}
+            className="w-full px-3 py-2 text-sm text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
+        </div>
+
+        {/* Input Descrição */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-text">Descrição</label>
+          <textarea
+            name="descricao"
+            rows={3}
+            placeholder="Descreva brevemente o propósito deste tipo de culto..."
+            value={formData.descricao}
+            onChange={handleChange}
+            className="w-full px-3 py-2 text-sm text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none"
+          />
+        </div>
+
+        {/* Toggle/Switch Customizado SaaS */}
+        <div className="flex items-center justify-between p-3 rounded-sm border border-border bg-bgSection/10">
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-text">Status do Tipo</span>
+            <span className="text-[11px] text-textMuted">Define se este tipo estará disponível para novos cultos</span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={formData.ativo}
+              onChange={handleSwitchChange}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-border rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary" />
+          </label>
+        </div>
+
+        {/* Botões de Ação */}
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onCancel}
+              disabled={loading}
             >
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 900,
-                  letterSpacing: "1px",
-                  color: "#fff",
-                  textTransform: "uppercase",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Church sx={{ fontSize: 35, mr: 1, color: "white" }} />
-                {tipoCulto ? "Editar Tipo de Culto" : "Cadastro de Tipo de Culto"}
-              </Typography>
-            </Box>
-
-            <CardContent sx={{ p: 4 }}>
-              <Divider
-                sx={{
-                  mb: 4,
-                  borderColor: "rgba(0,70,255,0.2)",
-                  boxShadow: "0 1px 10px rgba(0,90,255,0.25)",
-                }}
-              />
-
-              {mensagem.texto && (
-                <Alert
-                  severity={mensagem.tipo}
-                  sx={{
-                    mb: 3,
-                    borderRadius: 3,
-                    backgroundColor:
-                      mensagem.tipo === "success"
-                        ? "rgba(0,80,255,0.08)"
-                        : "rgba(255,80,80,0.1)",
-                    color:
-                      mensagem.tipo === "success"
-                        ? "#0033cc"
-                        : "rgb(150,0,0)",
-                    border: `1px solid ${
-                      mensagem.tipo === "success"
-                        ? "rgba(0,80,255,0.25)"
-                        : "rgba(255,0,0,0.2)"
-                    }`,
-                    fontWeight: 600,
-                  }}
-                >
-                  {mensagem.texto}
-                </Alert>
-              )}
-
-              <form onSubmit={handleSubmit}>
-                {/* Nome */}
-                <TextField
-                  label="Nome do Tipo de Culto"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleChange}
-                  required
-                  fullWidth
-                  sx={{
-                    mb: 3,
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      backgroundColor: "rgba(255,255,255,0.97)",
-                      "& fieldset": {
-                        borderColor: "rgba(0,70,255,0.25)",
-                      },
-                      "&:hover fieldset": {
-                        borderColor: "#0044ff",
-                        boxShadow: "0 0 15px rgba(0,80,255,0.3)",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#0044ff",
-                        boxShadow: "0 0 25px rgba(0,80,255,0.4)",
-                      },
-                    },
-                  }}
-                />
-
-                {/* Descrição */}
-                <TextField
-                  label="Descrição"
-                  name="descricao"
-                  value={formData.descricao}
-                  onChange={handleChange}
-                  multiline
-                  rows={3}
-                  fullWidth
-                  sx={{
-                    mb: 3,
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      backgroundColor: "rgba(255,255,255,0.97)",
-                      "& fieldset": {
-                        borderColor: "rgba(0,70,255,0.25)",
-                      },
-                      "&:hover fieldset": {
-                        borderColor: "#0044ff",
-                        boxShadow: "0 0 15px rgba(0,80,255,0.3)",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#0044ff",
-                        boxShadow: "0 0 25px rgba(0,80,255,0.4)",
-                      },
-                    },
-                  }}
-                />
-
-                {/* Switch */}
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.ativo}
-                      onChange={handleSwitchChange}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Typography sx={{ fontWeight: 600, color: "#0033cc" }}>
-                      Ativo
-                    </Typography>
-                  }
-                  sx={{ mb: 3 }}
-                />
-
-                {/* Botões */}
-                <Button
-                  variant="contained"
-                  fullWidth
-                  type="submit"
-                  disabled={loading}
-                  startIcon={
-                    loading ? (
-                      <CircularProgress size={24} color="inherit" />
-                    ) : (
-                      <Edit />
-                    )
-                  }
-                  sx={{
-                    mt: 2,
-                    py: 1.8,
-                    fontWeight: 800,
-                    fontSize: "1.1rem",
-                    borderRadius: "45px",
-                    textTransform: "none",
-                    color: "#fff",
-                    background:
-                      "linear-gradient(90deg, #0033cc 0%, #0055ff 100%)",
-                    boxShadow:
-                      "0 10px 35px rgba(0,60,255,0.45), inset 0 0 10px rgba(255,255,255,0.3)",
-                    transition: "all 0.35s ease",
-                    "&:hover": {
-                      background:
-                        "linear-gradient(90deg, #0044ff 0%, #0070ff 100%)",
-                      transform: "scale(1.045)",
-                      boxShadow:
-                        "0 12px 45px rgba(0,80,255,0.55), inset 0 0 15px rgba(255,255,255,0.4)",
-                    },
-                  }}
-                >
-                  {loading
-                    ? "Salvando..."
-                    : tipoCulto
-                    ? "Atualizar Tipo"
-                    : "Cadastrar Tipo"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </Box>
-    </Fade>
+              Cancelar
+            </Button>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 size={14} className="animate-spin shrink-0" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Edit size={14} className="shrink-0" />
+                {tipoCulto ? "Salvar Alterações" : "Cadastrar Tipo"}
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

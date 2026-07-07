@@ -1,25 +1,7 @@
-// Resumo.jsx
+// src/components/Resumo.jsx
 import React from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Divider,
-  Grid,
-  List,
-  ListItem,
-  ListItemText,
-  Chip,
-  Paper
-} from "@mui/material";
-import {
-  AssignmentTurnedIn as SummaryIcon,
-  People as PeopleIcon,
-  MonetizationOn as MoneyIcon,
-  AccessTime as TimeIcon,
-  Church as ChurchIcon
-} from "@mui/icons-material";
+import { ClipboardCheck, Users, DollarSign, Calendar, Landmark } from "lucide-react";
+import Card from "./ui/Card";
 
 export default function Resumo({ formData, tiposCulto, tiposContribuicao, membros }) {
   // Encontrar o nome do tipo de culto selecionado
@@ -36,254 +18,145 @@ export default function Resumo({ formData, tiposCulto, tiposContribuicao, membro
   // Calcular o total geral financeiro de todas as contribuições combinadas
   let totalFinanceiroGeral = 0;
 
+  // Processar as contribuições para acumular o total geral antes do render
+  (tiposContribuicao || []).forEach((tipo) => {
+    const valorGeral = Number(formData.contribuicoes[tipo.id]) || 0;
+    const membrosObj = formData.membrosContribuicoes[tipo.id] || {};
+    const totalMembros = Object.values(membrosObj).reduce((a, b) => a + Number(b), 0);
+    totalFinanceiroGeral += (valorGeral + totalMembros);
+  });
+
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderRadius: "24px",
-        position: "sticky",
-        top: "24px",
-        border: "1px solid rgba(0, 0, 0, 0.06)",
-        background: "radial-gradient(circle at top right, #ffffff 0%, #fdfbf7 100%)",
-        boxShadow: "0px 20px 40px rgba(0, 0, 0, 0.03)",
-        transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-        overflow: "hidden",
-        "&:hover": {
-          boxShadow: "0px 30px 60px rgba(0, 0, 0, 0.07)",
-          borderColor: "rgba(0, 0, 0, 0.12)",
-          transform: "translateY(-2px)"
-        },
-      }}
-    >
-      {/* Detalhe Decorativo Superior Minimalista */}
-      <Box sx={{ height: "4px", background: "linear-gradient(90deg, #1a1a1a 0%, #718096 100%)" }} />
+    <div className="w-full text-left space-y-4">
 
-      <CardContent sx={{ p: 4 }}>
-        {/* Header Ultra Premium */}
-        <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
-          <Box display="flex" alignItems="center" gap={1.2}>
-            <Box 
-              sx={{ 
-                p: 0.8, 
-                bgcolor: "#1a1a1a", 
-                borderRadius: "8px", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center" 
-              }}
+      {/* Cabeçalho do Resumo */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-slate-900 rounded-md flex items-center justify-center text-white">
+            <ClipboardCheck size={14} />
+          </div>
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            Resumo do Lançamento
+          </h3>
+        </div>
+        <span className="px-2 py-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full uppercase tracking-wider">
+          Sincronizado
+        </span>
+      </div>
+
+      {/* Bloco 1: Metadados da Sessão */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex items-start gap-2.5">
+          <Landmark size={16} className="text-slate-400 mt-0.5 shrink-0" />
+          <div>
+            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Identificação do Culto
+            </span>
+            <span className="text-sm font-bold text-slate-800 capitalize">
+              {cultoSelecionado ? cultoSelecionado.nome : "Pendente..."}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2.5">
+          <Calendar size={16} className="text-slate-400 mt-0.5 shrink-0" />
+          <div>
+            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Cronologia
+            </span>
+            <span className="text-xs font-semibold text-slate-700">
+              {formData.dataHora
+                ? new Date(formData.dataHora).toLocaleString("pt-BR", { dateStyle: "long", timeStyle: "short" })
+                : "Aguardando horário"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <hr className="border-slate-200 my-2" />
+
+      {/* Bloco 2: Frequência Inteligente */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <Users size={12} />
+          Auditoria de Presença
+        </div>
+
+        <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
+          <span className="text-xs font-bold text-slate-700">Quorum Total Presente</span>
+          <span className="text-lg font-black text-slate-900 font-mono">{totalPessoas}</span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: "Homens", value: formData.homens },
+            { label: "Mulheres", value: formData.mulheres },
+            { label: "Crianças", value: formData.criancas }
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              className="p-2 text-center bg-white border border-slate-100 rounded-lg shadow-sm"
             >
-              <SummaryIcon sx={{ color: "#ffffff", fontSize: "1.1rem" }} />
-            </Box>
-            <Typography
-              variant="subtitle2"
-              fontWeight="800"
-              sx={{ color: "#1a1a1a", letterSpacing: "1px", textTransform: "uppercase", fontSize: "0.75rem" }}
-            >
-              RESUMO
-            </Typography>
-          </Box>
-          
-          <Chip 
-            label="Sincronizado" 
-            size="small" 
-            sx={{ 
-              backgroundColor: "rgba(46, 125, 50, 0.08)", 
-              color: "#2e7d32", 
-              fontWeight: "800", 
-              fontSize: "0.65rem",
-              letterSpacing: "0.5px",
-              textTransform: "uppercase",
-              height: "22px",
-              border: "1px solid rgba(46, 125, 50, 0.15)",
-              "& .MuiChip-label": { px: 1 },
-              position: "relative",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                width: "4px",
-                height: "4px",
-                borderRadius: "50%",
-                backgroundColor: "#2e7d32",
-                left: "-8px",
-                display: "none" // mantido limpo
-              }
-            }} 
-          />
-        </Box>
+              <span className="block text-[10px] font-medium text-slate-400">{item.label}</span>
+              <span className="text-sm font-bold text-slate-800">{item.value || 0}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
-        {/* Bloco 1: Metadados da Sessão */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mb: 3.5 }}>
-          <Box display="flex" alignItems="center" gap={2}>
-            <ChurchIcon fontSize="small" sx={{ color: "#a0aec0" }} />
-            <Box>
-              <Typography variant="caption" fontWeight="600" color="textSecondary" sx={{ textTransform: "uppercase", fontSize: "0.65rem", letterSpacing: "0.5px" }}>
-                Identificação do Culto
-              </Typography>
-              <Typography variant="body2" fontWeight="800" color="#1a1a1a" sx={{ mt: 0.2, fontSize: "0.9rem" }}>
-                {cultoSelecionado ? cultoSelecionado.nome : "Pendente..."}
-              </Typography>
-            </Box>
-          </Box>
+      <hr className="border-slate-200 my-2" />
 
-          <Box display="flex" alignItems="center" gap={2}>
-            <TimeIcon fontSize="small" sx={{ color: "#a0aec0" }} />
-            <Box>
-              <Typography variant="caption" fontWeight="600" color="textSecondary" sx={{ textTransform: "uppercase", fontSize: "0.65rem", letterSpacing: "0.5px" }}>
-                Cronologia
-              </Typography>
-              <Typography variant="body2" fontWeight="700" color="#2d3748" sx={{ mt: 0.2, fontSize: "0.85rem" }}>
-                {formData.dataHora
-                  ? new Date(formData.dataHora).toLocaleString("pt-BR", { dateStyle: "long", timeStyle: "short" })
-                  : "Aguardando horário"}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
+      {/* Bloco 3: Finanças de Alta Performance */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <DollarSign size={12} />
+          Lançamentos de Receita
+        </div>
 
-        <Divider sx={{ borderColor: "rgba(0, 0, 0, 0.05)", my: 3 }} />
+        <div className="space-y-2">
+          {(tiposContribuicao || []).map((tipo) => {
+            const valorGeral = Number(formData.contribuicoes[tipo.id]) || 0;
+            const membrosObj = formData.membrosContribuicoes[tipo.id] || {};
+            const totalMembros = Object.values(membrosObj).reduce((a, b) => a + Number(b), 0);
+            const totalCategoria = valorGeral + totalMembros;
 
-        {/* Bloco 2: Frequência Inteligente */}
-        <Box sx={{ mb: 3.5 }}>
-          <Typography
-            variant="caption"
-            fontWeight="800"
-            color="textSecondary"
-            display="flex"
-            alignItems="center"
-            gap={0.8}
-            sx={{ mb: 2, textTransform: "uppercase", letterSpacing: "0.8px", fontSize: "0.65rem" }}
-          >
-            <PeopleIcon fontSize="inherit" /> Auditoria de Presença
-          </Typography>
-          
-          <Box 
-            display="flex" 
-            alignItems="center" 
-            justifyContent="space-between" 
-            sx={{ 
-              p: 2, 
-              bgcolor: "rgba(0, 0, 0, 0.02)", 
-              borderRadius: "14px", 
-              mb: 1.5, 
-              border: "1px solid rgba(0, 0, 0, 0.03)" 
-            }}
-          >
-            <Typography variant="body2" fontWeight="700" color="#4a5568">Quorum Total Presente</Typography>
-            <Typography variant="h6" fontWeight="900" color="#1a1a1a" sx={{ fontFamily: "monospace" }}>{totalPessoas}</Typography>
-          </Box>
+            if (totalCategoria === 0) return null;
 
-          <Grid container spacing={1.5}>
-            {[
-              { label: "Homens", value: formData.homens },
-              { label: "Mulheres", value: formData.mulheres },
-              { label: "Crianças", value: formData.criancas }
-            ].map((item, idx) => (
-              <Grid item xs={4} key={idx}>
-                <Paper 
-                  elevation={0}
-                  variant="outlined" 
-                  sx={{ 
-                    p: 1.5, 
-                    textAlign: "center", 
-                    borderRadius: "12px", 
-                    bgcolor: "#ffffff", 
-                    borderColor: "rgba(0, 0, 0, 0.05)",
-                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.01)"
-                  }}
-                >
-                  <Typography variant="caption" color="textSecondary" display="block" sx={{ fontSize: "0.65rem", fontWeight: "600" }}>{item.label}</Typography>
-                  <Typography variant="body2" fontWeight="800" color="#1a1a1a" sx={{ mt: 0.5 }}>{item.value || 0}</Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+            return (
+              <div
+                key={tipo.id}
+                className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-lg shadow-sm"
+              >
+                <div>
+                  <span className="block text-xs font-bold text-slate-700">{tipo.nome}</span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {valorGeral > 0 ? `Depósito Geral: ${valorGeral.toLocaleString("pt-AO")} Kz` : "Membros identificados"}
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-slate-800 font-mono">
+                  {totalCategoria.toLocaleString("pt-AO")} Kz
+                </span>
+              </div>
+            );
+          })}
+        </div>
 
-        <Divider sx={{ borderColor: "rgba(0, 0, 0, 0.05)", my: 3 }} />
+        {/* Card Matriz de Fechamento Monetário */}
+        <div className="p-3.5 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl text-white flex items-center justify-between shadow-md">
+          <div>
+            <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+              Balanço Consolidado
+            </span>
+            <span className="text-xs font-medium text-slate-300">
+              Total geral arrecadado
+            </span>
+          </div>
+          <span className="text-lg font-black text-white font-mono tracking-tight">
+            {totalFinanceiroGeral.toLocaleString("pt-AO")} Kz
+          </span>
+        </div>
+      </div>
 
-        {/* Bloco 3: Finanças de Alta Performance */}
-        <Box>
-          <Typography
-            variant="caption"
-            fontWeight="800"
-            color="textSecondary"
-            display="flex"
-            alignItems="center"
-            gap={0.8}
-            sx={{ mb: 2, textTransform: "uppercase", letterSpacing: "0.8px", fontSize: "0.65rem" }}
-          >
-            <MoneyIcon fontSize="inherit" /> Lançamentos de Receita
-          </Typography>
-
-          <List disablePadding dense sx={{ display: "flex", flexDirection: "column", gap: 1.2 }}>
-            {(tiposContribuicao || []).map((tipo) => {
-              const valorGeral = Number(formData.contribuicoes[tipo.id]) || 0;
-              const membrosObj = formData.membrosContribuicoes[tipo.id] || {};
-              const totalMembros = Object.values(membrosObj).reduce((a, b) => a + Number(b), 0);
-              const totalCategoria = valorGeral + totalMembros;
-              
-              totalFinanceiroGeral += totalCategoria;
-
-              if (totalCategoria === 0) return null;
-
-              return (
-                <ListItem 
-                  key={tipo.id} 
-                  disableGutters 
-                  sx={{ 
-                    py: 1.2, 
-                    px: 2,
-                    bgcolor: "#ffffff", 
-                    borderRadius: "12px", 
-                    border: "1px solid rgba(0, 0, 0, 0.04)",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.01)"
-                  }}
-                >
-                  <ListItemText
-                    primary={tipo.nome}
-                    secondary={valorGeral > 0 ? `Depósito Geral: ${valorGeral.toLocaleString()} Kz` : "Membros identificados"}
-                    primaryTypographyProps={{ variant: "body2", fontWeight: "800", color: "#2d3748" }}
-                    secondaryTypographyProps={{ variant: "caption", color: "textSecondary", sx: { fontSize: "0.65rem" } }}
-                  />
-                  <Typography variant="body2" fontWeight="800" color="#1a1a1a" sx={{ fontFamily: "monospace" }}>
-                    {totalCategoria.toLocaleString()} Kz
-                  </Typography>
-                </ListItem>
-              );
-            })}
-          </List>
-
-          {/* Card Matriz de Fechamento Monetário */}
-          <Box
-            sx={{
-              mt: 4,
-              p: 2.5,
-              background: "linear-gradient(135deg, #0f0f11 0%, #1a1a24 100%)",
-              borderRadius: "16px",
-              color: "#ffffff",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              boxShadow: "0px 12px 24px rgba(0, 0, 0, 0.12)"
-            }}
-          >
-            <Box>
-              <Typography variant="caption" sx={{ color: "rgba(255, 255, 255, 0.4)", textTransform: "uppercase", fontWeight: "700", letterSpacing: "1px", fontSize: "0.6rem" }}>
-                Balanço Consolidado
-              </Typography>
-              <Typography variant="body2" fontWeight="600" sx={{ color: "#ffffff", opacity: 0.9, mt: 0.2 }}>
-                Total geral
-              </Typography>
-            </Box>
-            <Typography variant="h5" fontWeight="900" sx={{ letterSpacing: "-0.5px", color: "#fff", fontFamily: "monospace" }}>
-              {totalFinanceiroGeral.toLocaleString()} Kz
-            </Typography>
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

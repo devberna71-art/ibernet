@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, Lock, LogIn, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Lock, LogIn, ArrowRight, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axiosConfig";
 import Button from "../components/ui/Button";
@@ -54,11 +54,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-bg">
+    <div className="min-h-screen flex bg-bg relative">
       {/* Painel esquerdo — branding */}
       <div className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 bg-bgSection border-r border-border p-10">
         <div>
-          <img src={logoEclesia} alt="Eclesia Logo" className="h-16 object-contain mb-8" />
+          <Link to="/" className="inline-flex items-center gap-1.5 text-textMuted hover:text-text mb-8">
+            <ArrowLeft size={16} />
+            Voltar ao início
+          </Link>
+          <img src={logoEclesia} alt="Eclesia Logo" className="h-28 object-contain mb-8" />
           <h2 className="text-[28px] font-bold text-text leading-tight mb-3">
             Gestão eclesiástica<br />inteligente e confiável.
           </h2>
@@ -93,9 +97,12 @@ export default function LoginPage() {
       {/* Painel direito — formulário */}
       <div className="flex-1 flex items-center justify-center px-6 py-10">
         <div className="w-full max-w-sm">
-          {/* Mobile logo */}
-          <div className="flex justify-center mb-8 lg:hidden">
-            <img src={logoEclesia} alt="Eclesia Logo" className="h-14 object-contain" />
+          {/* Mobile logo e navegação */}
+          <div className="flex flex-col items-center mb-8 lg:hidden">
+            <Link to="/" className="self-start text-textMuted hover:text-text mb-4">
+              <ArrowLeft size={20} />
+            </Link>
+            <img src={logoEclesia} alt="Eclesia Logo" className="h-28 object-contain" />
           </div>
 
           <div className="mb-8">

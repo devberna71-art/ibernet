@@ -57,7 +57,7 @@ const CadastroMembroUser = () => {
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <Link to="/">
-            <img src={logoEclesia} alt="Eclesia Logo" className="h-9 object-contain mb-4" />
+            <img src={logoEclesia} alt="Eclesia Logo" className="h-12 object-contain mb-4" />
           </Link>
           <div className="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-primarySoft mb-3">
             <UserPlus size={20} strokeWidth={1.75} className="text-primary" />

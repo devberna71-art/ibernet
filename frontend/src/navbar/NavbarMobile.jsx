@@ -97,7 +97,7 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
         }
 
         .logo-img-mobile {
-          height: 70px;
+          height: 150px;
           object-fit: contain;
           filter: drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.15));
         }
