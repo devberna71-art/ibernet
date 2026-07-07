@@ -93,19 +93,7 @@ export default function UserMiniProfile({ membro }) {
               <User size={14} />
               Meu Perfil
             </button>
-
-            <button
-              onClick={() => {
-                setProfileOpen(true);
-                setViewMode("senha");
-                setMenuOpen(false);
-              }}
-              className="flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-left text-xs font-semibold text-text transition hover:bg-bgSection"
-            >
-              <Lock size={14} />
-              Alterar password
-            </button>
-
+            
             <div className="my-0 border-b border-border" />
 
             <button

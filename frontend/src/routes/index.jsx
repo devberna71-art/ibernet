@@ -37,6 +37,14 @@ const ListaCultos          = lazy(() => import('../pages/Cultos/ListaCultos'));
 const FormTipoCulto        = lazy(() => import('../components/FormTipoCulto'));
 const CadastrarIgrejaDono  = lazy(() => import('../components/CadastrarIgrejaDono'));
 
+/* ─── Super Admin lazy imports ─── */
+const LayoutAdmin      = lazy(() => import('../layouts/LayoutAdmin'));
+const DashboardGeral   = lazy(() => import('../pages/super-admin/DashboardGeral'));
+const ListaIgrejas     = lazy(() => import('../pages/super-admin/ListaIgrejas'));
+const DetalhesIgreja   = lazy(() => import('../pages/super-admin/DetalhesIgreja'));
+const LogsSistema      = lazy(() => import('../pages/super-admin/LogsSistema'));
+const ConfigGlobal     = lazy(() => import('../pages/super-admin/ConfigGlobal'));
+
 /* ─── Loading fallback ─────────────────────────────────────────────── */
 function LoadingFallback() {
   return <FullScreenLoader />;
@@ -59,7 +67,7 @@ function RequireAdmin({ children }) {
   console.log(`[RouteGuard] RequireAdmin: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (role !== 'admin' && role !== 'superadmin') return <Navigate to="/perfil" replace />;
+  if (role !== 'admin' && role !== 'superadmin' && role !== 'super_admin') return <Navigate to="/perfil" replace />;
   return children;
 }
 
@@ -79,7 +87,7 @@ function RequireSuperAdmin({ children }) {
   console.log(`[RouteGuard] RequireSuperAdmin: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (role !== 'super_admin') return <Navigate to="/dashboard" replace />;
+  if (role !== 'super_admin' && role !== 'superadmin') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -101,7 +109,8 @@ function PublicOnlyRoute({ children }) {
   if (isAuthenticated) {
     if (role === 'usuario')   return <Navigate to="/perfil"      replace />;
     if (role === 'moderador') return <Navigate to="/lista-cultos" replace />;
-    // admin e superadmin
+    if (role === 'super_admin' || role === 'superadmin') return <Navigate to="/super-admin" replace />;
+    // admin
     return <Navigate to="/dashboard" replace />;
   }
   return children;
@@ -120,6 +129,15 @@ function AppRoutes() {
             <Route path="/"               element={<PublicOnlyRoute><Home /></PublicOnlyRoute>} />
             <Route path="/login"          element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
             <Route path="/criar-usuarios" element={<PublicOnlyRoute><CriarUsuario /></PublicOnlyRoute>} />
+
+            {/* ── Super Admin Portal ── */}
+            <Route path="/super-admin" element={<RequireSuperAdmin><LayoutAdmin /></RequireSuperAdmin>}>
+              <Route index element={<DashboardGeral />} />
+              <Route path="igrejas" element={<ListaIgrejas />} />
+              <Route path="igrejas/:id" element={<DetalhesIgreja />} />
+              <Route path="auditoria" element={<LogsSistema />} />
+              <Route path="configuracoes" element={<ConfigGlobal />} />
+            </Route>
 
             {/* ── Protegidas (dentro do MainLayout) ── */}
             <Route element={<RequireAuth><MainLayout /></RequireAuth>}

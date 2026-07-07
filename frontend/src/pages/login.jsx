@@ -43,6 +43,8 @@ export default function LoginPage() {
         navigate("/perfil");
       } else if (role === "moderador") {
         navigate("/lista-cultos");
+      } else if (role === "super_admin" || role === "superadmin") {
+        navigate("/super-admin");
       } else {
         navigate("/dashboard");
       }

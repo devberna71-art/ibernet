@@ -1,1 +1,0 @@
-import{K as e,q as t}from"./Grow-Bxx2e7jJ.js";function n(e){return t(`MuiListItemText`,e)}var r=e(`MuiListItemText`,[`root`,`multiline`,`dense`,`inset`,`primary`,`secondary`]);export{r as n,n as t};
