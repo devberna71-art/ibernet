@@ -12,58 +12,61 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError("");
-    setSuccess("");
+    if (error) setError("");
+    if (success) setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.nome || !formData.senha) {
+    
+    if (!formData.nome.trim() || !formData.senha.trim()) {
       setError("Por favor, preencha todos os campos.");
       return;
     }
+
     setLoading(true);
     try {
       const res = await api.post("/login", formData);
       setSuccess(res.data.message || "Login realizado com sucesso!");
       
-      // Usar o AuthContext para atualizar o estado de autenticação
       await login(res.data.token, res.data.usuario);
       
-      // Redirecionar usando React Router
       const role = res.data.usuario?.funcao;
       if (role === "usuario") {
         navigate("/perfil");
       } else if (role === "moderador") {
         navigate("/lista-cultos");
       } else {
-        // admin, superadmin
         navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Credenciais inválidas.");
+      setError(err.response?.data?.message || "Credenciais inválidas. Tente novamente.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-bg relative">
+    <div className="min-h-screen flex bg-bg relative font-sans selection:bg-primarySoft selection:text-primary">
       {/* Painel esquerdo — branding */}
-      <div className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 bg-bgSection border-r border-border p-10">
+      <aside className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 bg-bgSection border-r border-border p-10">
         <div>
-          <Link to="/" className="inline-flex items-center gap-1.5 text-textMuted hover:text-text mb-8">
+          <Link 
+            to="/" 
+            className="inline-flex items-center gap-1.5 text-textMuted hover:text-text transition-colors mb-8 focus:outline-none focus:underline"
+          >
             <ArrowLeft size={16} />
             Voltar ao início
           </Link>
           <img src={logoEclesia} alt="Eclesia Logo" className="h-28 object-contain mb-8" />
-          <h2 className="text-[28px] font-bold text-text leading-tight mb-3">
+          <h2 className="text-[28px] font-bold text-text leading-tight mb-3 tracking-tight">
             Gestão eclesiástica<br />inteligente e confiável.
           </h2>
           <p className="text-body text-textMuted leading-relaxed">
@@ -73,33 +76,33 @@ export default function LoginPage() {
         </div>
 
         {/* Feature list */}
-        <div className="space-y-4">
+        <div className="space-y-4" role="list">
           {[
             "Controle de membros e cartões",
             "Gestão financeira completa",
             "Ata e agenda de cultos",
             "Comunicação interna segura",
           ].map((feat) => (
-            <div key={feat} className="flex items-center gap-3">
+            <div key={feat} className="flex items-center gap-3" role="listitem">
               <span className="w-5 h-5 rounded-sm bg-primarySoft flex items-center justify-center shrink-0">
-                <ArrowRight size={12} strokeWidth={2} className="text-primary" />
+                <ArrowRight size={12} strokeWidth={2.5} className="text-primary" />
               </span>
               <span className="text-body text-textMuted">{feat}</span>
             </div>
           ))}
         </div>
 
-        <p className="text-muted text-textMuted">
+        <footer className="text-muted text-textMuted/80">
           © {new Date().getFullYear()} Bernet@-Eclesia
-        </p>
-      </div>
+        </footer>
+      </aside>
 
       {/* Painel direito — formulário */}
-      <div className="flex-1 flex items-center justify-center px-6 py-10">
+      <main className="flex-1 flex items-center justify-center px-6 py-10">
         <div className="w-full max-w-sm">
           {/* Mobile logo e navegação */}
           <div className="flex flex-col items-center mb-8 lg:hidden">
-            <Link to="/" className="self-start text-textMuted hover:text-text mb-4">
+            <Link to="/" className="self-start text-textMuted hover:text-text transition-colors mb-4" aria-label="Voltar à página inicial">
               <ArrowLeft size={20} />
             </Link>
             <img src={logoEclesia} alt="Eclesia Logo" className="h-28 object-contain" />
@@ -109,18 +112,18 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center w-11 h-11 rounded-sm bg-primarySoft mb-4">
               <Lock size={20} strokeWidth={1.75} className="text-primary" />
             </div>
-            <h1 className="text-[22px] font-semibold text-text mb-1">Entrar no sistema</h1>
+            <h1 className="text-[22px] font-semibold text-text mb-1 tracking-tight">Entrar no sistema</h1>
             <p className="text-body text-textMuted">Acesse sua conta para continuar</p>
           </div>
 
-          {/* Alertas */}
+          {/* Feedbacks de Alerta */}
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-sm bg-danger/5 border border-danger/20 text-danger text-body">
+            <div role="alert" className="mb-4 px-4 py-3 rounded-sm bg-danger/5 border border-danger/20 text-danger text-body animate-fade-in">
               {error}
             </div>
           )}
           {success && (
-            <div className="mb-4 px-4 py-3 rounded-sm bg-successSoft border border-success/20 text-success text-body">
+            <div role="alert" className="mb-4 px-4 py-3 rounded-sm bg-successSoft border border-success/20 text-success text-body animate-fade-in">
               {success}
             </div>
           )}
@@ -139,7 +142,8 @@ export default function LoginPage() {
                 value={formData.nome}
                 onChange={handleChange}
                 placeholder="Seu nome de usuário"
-                className="w-full px-3 py-2.5 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                disabled={loading}
+                className="w-full px-3 py-2.5 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-60 transition-colors"
               />
             </div>
 
@@ -157,12 +161,14 @@ export default function LoginPage() {
                   value={formData.senha}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full px-3 py-2.5 pr-10 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  disabled={loading}
+                  className="w-full px-3 py-2.5 pr-10 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-60 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-text transition-colors"
+                  disabled={loading}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-text disabled:opacity-50 transition-colors focus:outline-none"
                   aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 >
                   {showPassword ? <EyeOff size={16} strokeWidth={1.75} /> : <Eye size={16} strokeWidth={1.75} />}
@@ -175,18 +181,18 @@ export default function LoginPage() {
               variant="primary"
               size="md"
               disabled={loading}
-              className="w-full mt-2 justify-center"
+              className="w-full mt-2 justify-center gap-2"
               id="login-submit-btn"
             >
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Entrando...
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
+                  <span>Entrando...</span>
                 </>
               ) : (
                 <>
                   <LogIn size={16} strokeWidth={1.75} />
-                  Entrar
+                  <span>Entrar</span>
                 </>
               )}
             </Button>
@@ -196,7 +202,7 @@ export default function LoginPage() {
             <p className="text-body text-textMuted mb-3">Ainda não tem conta?</p>
             <Link
               to="/criar-usuarios"
-              className="inline-flex items-center gap-1.5 text-body font-semibold text-primary hover:text-primaryHover transition-colors"
+              className="inline-flex items-center gap-1.5 text-body font-semibold text-primary hover:text-primaryHover transition-colors focus:outline-none focus:underline"
               id="login-create-account-link"
             >
               Criar conta
@@ -204,7 +210,7 @@ export default function LoginPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
