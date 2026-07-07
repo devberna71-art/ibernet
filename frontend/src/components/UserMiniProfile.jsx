@@ -20,7 +20,7 @@ export default function UserMiniProfile({ membro }) {
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   const handleUpdatePassword = async () => {
@@ -54,33 +54,33 @@ export default function UserMiniProfile({ membro }) {
           <img
             src={membro.foto || ""}
             alt={membro.nome}
-            className="h-[55px] w-[55px] rounded-md border-2 border-white object-cover shadow-sm"
+            className="h-[40px] w-[40px] rounded-md border-2 border-white object-cover shadow-sm"
           />
         </div>
 
         <div className="hidden sm:block text-left">
-          <p className="text-sm font-semibold text-text">{membro.nome}</p>
-          <p className="mt-0.5 text-xs font-medium text-success">● Online agora</p>
+          <p className="text-xs font-semibold text-text">{membro.nome}</p>
+          <p className="mt-0.5 text-[10px] font-medium text-success">● Online</p>
         </div>
 
-        <ChevronDown className="h-6 w-6 text-textMuted" />
+        <ChevronDown className="h-4 w-4 text-textMuted" />
       </button>
 
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1.5 w-[260px] overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
-            <div className="py-3 text-center">
+          <div className="absolute right-0 top-full z-50 mt-1.5 w-[200px] overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
+            <div className="py-2 text-center">
               <img
                 src={membro.foto || ""}
                 alt={membro.nome}
-                className="mx-auto mb-1 h-[75px] w-[75px] rounded-full border-4 border-white object-cover shadow-sm"
+                className="mx-auto mb-1 h-[50px] w-[50px] rounded-full border-2 border-white object-cover shadow-sm"
               />
-              <p className="font-semibold text-text">{membro.nome}</p>
-              <p className="text-xs text-textMuted">Conta Premium</p>
+              <p className="text-sm font-semibold text-text">{membro.nome}</p>
+              <p className="text-[10px] text-textMuted">Conta Premium</p>
             </div>
 
-            <div className="my-1 border-b border-border" />
+            <div className="my-0 border-b border-border" />
 
             <button
               onClick={() => {
@@ -88,9 +88,9 @@ export default function UserMiniProfile({ membro }) {
                 setViewMode("perfil");
                 setMenuOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-sm px-4 py-2 text-left text-body font-semibold text-text transition hover:bg-bgSection"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-left text-xs font-semibold text-text transition hover:bg-bgSection"
             >
-              <User size={18} />
+              <User size={14} />
               Meu Perfil
             </button>
 
@@ -100,19 +100,19 @@ export default function UserMiniProfile({ membro }) {
                 setViewMode("senha");
                 setMenuOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-sm px-4 py-2 text-left text-body font-semibold text-text transition hover:bg-bgSection"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-left text-xs font-semibold text-text transition hover:bg-bgSection"
             >
-              <Lock size={18} />
+              <Lock size={14} />
               Alterar password
             </button>
 
-            <div className="my-1 border-b border-border" />
+            <div className="my-0 border-b border-border" />
 
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-2 rounded-sm px-4 py-2 text-left text-body font-semibold text-danger transition hover:bg-dangerSoft"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-left text-xs font-semibold text-danger transition hover:bg-dangerSoft"
             >
-              <LogOut size={18} />
+              <LogOut size={14} />
               Terminar Sessão
             </button>
           </div>

@@ -79,7 +79,7 @@ function RequireSuperAdmin({ children }) {
   console.log(`[RouteGuard] RequireSuperAdmin: isAuthenticated=${isAuthenticated}, role=${role}, loading=${loading}`);
   if (loading) return <LoadingFallback />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (role !== 'superadmin') return <Navigate to="/dashboard" replace />;
+  if (role !== 'super_admin') return <Navigate to="/dashboard" replace />;
   return children;
 }
 

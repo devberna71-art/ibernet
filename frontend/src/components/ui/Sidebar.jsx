@@ -157,7 +157,7 @@ export default function Sidebar({
   const logout = () => {
     localStorage.clear();
     sessionStorage.clear();
-    navigate("/login");
+    window.location.href = "/";
   };
 
   const roleMeta = ROLE_META[userRole] ?? { label: userRole, color: "bg-bgSection text-textMuted" };
