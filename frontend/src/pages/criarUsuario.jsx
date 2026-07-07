@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import api from "../api/axiosConfig";
 import Button from "../components/ui/Button";
-import logoEclesia from "../assets/Logo-Eclesia.svg";
+import logoEclesia from "../assets/logo-ofi.png";
 
 export default function CriarUsuarios() {
   const navigate = useNavigate();

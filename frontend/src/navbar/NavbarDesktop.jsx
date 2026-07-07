@@ -35,7 +35,7 @@ import NotificationBell from "../components/Contador";
 import UserBadge from "../components/UserMiniProfile";
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import logoEclesia from "../assets/Logo-Eclesia.svg";
+import logoEclesia from "../assets/logo-ofi.png";
 import api from "../api/axiosConfig";
 import socket from "../api/socketConfig";
 
@@ -231,7 +231,7 @@ export default function NavbarDesktop() {
           }
 
           .logo-img {
-            height: 65px;
+            height: 80px;
             object-fit: contain;
             filter: drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.15));
           }

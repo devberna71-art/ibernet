@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, LogIn, ArrowRight } from "lucide-react";
-import logoEclesia from "../assets/Logo-Eclesia.svg";
+import logoEclesia from "../assets/logo-ofi.png";
 
 const NAV_LINKS = [
   { label: "Início",        href: "/#hero" },

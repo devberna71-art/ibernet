@@ -18,7 +18,7 @@ import {
   ShieldCheck,
   Cross,
 } from "lucide-react";
-import logoEclesia from "../../assets/Logo-Eclesia.svg";
+import logoEclesia from "../../assets/logo-ofi.png";
 import {
   secretariaSubmenus,
   financasSubmenus,
@@ -177,7 +177,7 @@ export default function Sidebar({
       style={{ width: SIDEBAR_WIDTH }}
     >
       <div className="flex flex-col items-center px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 shrink-0 gap-2 sm:gap-2.5">
-        <img src={logoEclesia} alt="Eclesia Logo" className="h-7 sm:h-8 object-contain" />
+        <img src={logoEclesia} alt="Eclesia Logo" className="h-10 sm:h-12 object-contain" />
         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold ${roleMeta.color}`}>
           {isSuperAdmin && <ShieldCheck size={9} strokeWidth={2} className="sm:size-10" />}
           {roleMeta.label}

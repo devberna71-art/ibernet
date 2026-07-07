@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { UserPlus, Building, User, Lock, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import axios from "../api/axiosConfig";
 import Button from "../components/ui/Button";
-import logoEclesia from "../assets/Logo-Eclesia.svg";
+import logoEclesia from "../assets/logo-ofi.png";
 
 const CadastroMembroUser = () => {
   const [sedes, setSedes] = useState([]);

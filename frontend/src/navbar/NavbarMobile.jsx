@@ -30,7 +30,7 @@ import {
 
 import { Link, useLocation } from "react-router-dom";
 import NotificationBell from "../components/Contador";
-import logoEclesia from "../assets/Logo-Eclesia.svg";
+import logoEclesia from "../assets/logo-ofi.png";
 
 export default function NavbarMobile({ userRole, toggleDrawer }) {
   const location = useLocation();
@@ -97,7 +97,7 @@ export default function NavbarMobile({ userRole, toggleDrawer }) {
         }
 
         .logo-img-mobile {
-          height: 55px;
+          height: 70px;
           object-fit: contain;
           filter: drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.15));
         }

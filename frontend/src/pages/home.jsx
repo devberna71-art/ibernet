@@ -16,7 +16,7 @@ import {
   Lock,
 } from "lucide-react";
 import heroImage from "../assets/homeimg.jpg";
-import logoEclesia from "../assets/Logo-Eclesia.svg";
+import logoEclesia from "../assets/logo-ofi.png";
 import NavbarVisitor from "../navbar/NavbarVisitor";
 
 /* ── Utilitários inline ── */
@@ -430,7 +430,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
-              <img src={logoEclesia} alt="Eclesia" className="h-7 object-contain" />
+              <img src={logoEclesia} alt="Eclesia" className="h-10 object-contain" />
               <span className="text-sm text-textMuted">Gestão Eclesiástica</span>
             </div>
             <p className="text-xs text-textMuted">
