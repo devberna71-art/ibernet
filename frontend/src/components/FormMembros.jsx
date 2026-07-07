@@ -1,8 +1,11 @@
+// src/components/FormMembros.jsx
 import React, { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, BookOpen, ShieldCheck, HelpCircle, FileText } from 'lucide-react';
 import api from '../api/axiosConfig';
+import Card from "./ui/Card";
+import Button from "./ui/Button";
 
-export default function FormMembros({ onSuccess, membroData }) {
+export default function FormMembros({ onSuccess, membroData, onCancel }) {
   const [formData, setFormData] = useState({
     nome: '',
     foto: null,
@@ -42,7 +45,6 @@ export default function FormMembros({ onSuccess, membroData }) {
   const [loading, setLoading] = useState(false);
   const [usuarios, setUsuarios] = useState([]);
 
-  // Carregar usuários para o dropdown
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
@@ -78,7 +80,6 @@ export default function FormMembros({ onSuccess, membroData }) {
     'Outro',
   ];
 
-  // Carregar dados do membro (edição)
   useEffect(() => {
     if (membroData) {
       const { dadosAcademicos, dadosCristaos, diversos, cargos, departamentos } = membroData;
@@ -122,7 +123,6 @@ export default function FormMembros({ onSuccess, membroData }) {
     }
   }, [membroData]);
 
-  // Carregar cargos e departamentos
   useEffect(() => {
     const fetchCargos = async () => {
       try {
@@ -192,12 +192,10 @@ export default function FormMembros({ onSuccess, membroData }) {
       let res;
 
       if (membroData?.id) {
-        console.log(`📝 [FRONT] Enviando requisição PUT para atualizar membro ID: ${membroData.id}`);
         res = await api.put(`/membros/${membroData.id}`, data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       } else {
-        console.log("🆕 [FRONT] Enviando requisição POST para cadastrar novo membro");
         res = await api.post('/membros', data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -205,11 +203,7 @@ export default function FormMembros({ onSuccess, membroData }) {
 
       setMensagem({
         tipo: 'success',
-        texto: res.data.message || (
-          membroData
-            ? 'Membro atualizado com sucesso!'
-            : 'Membro cadastrado com sucesso!'
-        ),
+        texto: res.data.message || (membroData ? 'Membro atualizado com sucesso!' : 'Membro cadastrado com sucesso!'),
       });
 
       if (onSuccess) {
@@ -252,7 +246,7 @@ export default function FormMembros({ onSuccess, membroData }) {
       }
 
     } catch (err) {
-      console.error("❌ Erro ao salvar dados do membro:", err);
+      console.error(err);
       setMensagem({ tipo: 'error', texto: err.response?.data?.message || 'Erro ao salvar membro.' });
     } finally {
       setLoading(false);
@@ -260,303 +254,367 @@ export default function FormMembros({ onSuccess, membroData }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} encType="multipart/form-data" className="mx-auto max-w-2xl text-text">
-      {mensagem.texto && (
-        <div
-          className={`mb-3 sm:mb-4 rounded-sm px-3 sm:px-4 py-2 sm:py-3 font-semibold text-sm ${
-            mensagem.tipo === 'success'
-              ? 'bg-successSoft text-success'
-              : 'bg-dangerSoft text-danger'
-          }`}
-        >
-          {mensagem.texto}
-        </div>
-      )}
+    <div className="w-full text-left">
+      <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-5">
 
-      {/* Dados Pessoais */}
-      <h3 className="mt-2 mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-text">Dados Pessoais</h3>
-      <hr className="mb-3 sm:mb-4 border-border" />
-
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Nome *</label>
-        <input
-          type="text"
-          name="nome"
-          value={formData.nome}
-          onChange={handleChange}
-          required
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        />
-      </div>
-
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Usuário Vinculado</label>
-        <select
-          name="MembroIdUsuario"
-          value={formData.MembroIdUsuario || ''}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        >
-          <option value="">Nenhum</option>
-          {usuarios.map((usuario) => (
-            <option key={usuario.id} value={usuario.id}>
-              {usuario.nome} ({usuario.funcao})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
-        <label className="cursor-pointer rounded-sm bg-primary px-3 sm:px-4 py-2 text-white text-sm transition hover:bg-primaryHover text-center sm:text-left shrink-0">
-          {formData.foto || previewFoto ? 'Alterar Foto' : 'Selecionar Foto'}
-          <input type="file" name="foto" accept="image/*" hidden onChange={handleChange} />
-        </label>
-        {previewFoto && (
-          <img
-            src={previewFoto}
-            alt="Preview da foto"
-            className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-border object-cover"
-          />
+        {/* Banner de Mensagem */}
+        {mensagem.texto && (
+          <div
+            className={`rounded-lg px-4 py-2.5 font-semibold text-xs border ${mensagem.tipo === 'success'
+                ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+                : 'bg-rose-50 border-rose-100 text-rose-700'
+              }`}
+          >
+            {mensagem.texto}
+          </div>
         )}
-      </div>
 
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Gênero *</label>
-        <select
-          name="genero"
-          value={formData.genero}
-          onChange={handleChange}
-          required
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        >
-          <option value="">Selecione</option>
-          <option value="Masculino">Masculino</option>
-          <option value="Feminino">Feminino</option>
-          <option value="Outro">Outro</option>
-        </select>
-      </div>
+        {/* Secção 1: Dados Pessoais */}
+        <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <User size={16} className="text-slate-400" />
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Dados Pessoais</h3>
+          </div>
 
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Data de Nascimento</label>
-        <input
-          type="date"
-          name="data_nascimento"
-          value={formData.data_nascimento}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        />
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs font-medium text-slate-400">Nome Completo *</label>
+              <input
+                type="text"
+                name="nome"
+                value={formData.nome}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
 
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Estado Civil</label>
-        <select
-          name="estado_civil"
-          value={formData.estado_civil}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        >
-          <option value="">Selecione</option>
-          <option value="Solteiro">Solteiro</option>
-          <option value="Casado">Casado</option>
-          <option value="Divorciado">Divorciado</option>
-          <option value="Viúvo">Viúvo</option>
-        </select>
-      </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs font-medium text-slate-400">Usuário do Sistema Vinculado</label>
+              <select
+                name="MembroIdUsuario"
+                value={formData.MembroIdUsuario || ''}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              >
+                <option value="">Nenhum usuário correspondente</option>
+                {usuarios.map((usuario) => (
+                  <option key={usuario.id} value={usuario.id}>
+                    {usuario.nome} ({usuario.funcao})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      {['bi', 'telefone', 'email', 'endereco_rua', 'endereco_bairro', 'endereco_cidade', 'endereco_provincia'].map((campo) => (
-        <div key={campo} className="mb-3 sm:mb-4">
-          <label className="mb-1 block text-xs sm:text-sm font-medium text-text">
-            {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')}
-          </label>
-          <input
-            type={campo === 'email' ? 'email' : 'text'}
-            name={campo}
-            value={formData[campo]}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-          />
+            <div className="space-y-1 sm:col-span-2 flex items-center gap-4 py-1">
+              {previewFoto && (
+                <img
+                  src={previewFoto}
+                  alt="Perfil"
+                  className="h-14 w-14 rounded-full border border-slate-200 object-cover shrink-0"
+                />
+              )}
+              <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors">
+                {formData.foto || previewFoto ? 'Substituir Foto' : 'Carregar Imagem'}
+                <input type="file" name="foto" accept="image/*" hidden onChange={handleChange} />
+              </label>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Gênero *</label>
+              <select
+                name="genero"
+                value={formData.genero}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              >
+                <option value="">Selecione...</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Feminino">Feminino</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Data de Nascimento</label>
+              <input
+                type="date"
+                name="data_nascimento"
+                value={formData.data_nascimento}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Estado Civil</label>
+              <select
+                name="estado_civil"
+                value={formData.estado_civil}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              >
+                <option value="">Selecione...</option>
+                <option value="Solteiro">Solteiro</option>
+                <option value="Casado">Casado</option>
+                <option value="Divorciado">Divorciado</option>
+                <option value="Viúvo">Viúvo</option>
+              </select>
+            </div>
+
+            {['bi', 'telefone', 'email', 'endereco_rua', 'endereco_bairro', 'endereco_cidade', 'endereco_provincia'].map((campo) => (
+              <div key={campo} className="space-y-1">
+                <label className="text-xs font-medium text-slate-400 capitalize">
+                  {campo.replace('_', ' ')}
+                </label>
+                <input
+                  type={campo === 'email' ? 'email' : 'text'}
+                  name={campo}
+                  value={formData[campo]}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+            ))}
+
+            <div className="sm:col-span-2 flex items-center pt-2">
+              <input
+                type="checkbox"
+                id="ativo"
+                name="ativo"
+                checked={formData.ativo}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+              />
+              <label htmlFor="ativo" className="ml-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                Membro com Cadastro Ativo
+              </label>
+            </div>
+          </div>
+        </Card>
+
+        {/* Secção 2: Estrutura Eclesiástica */}
+        <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldCheck size={16} className="text-slate-400" />
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Estrutura Eclesiástica</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Cargos Designados</label>
+              <select
+                name="CargosIds"
+                value={formData.CargosIds}
+                onChange={handleChange}
+                multiple
+                className="w-full h-28 px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              >
+                {cargos.map(cargo => (
+                  <option key={cargo.id} value={cargo.id}>{cargo.nome}</option>
+                ))}
+              </select>
+              <p className="text-[10px] text-slate-400 font-medium">Segure Ctrl/Cmd para múltipla escolha</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Departamentos Integrados</label>
+              <select
+                name="DepartamentosIds"
+                value={formData.DepartamentosIds}
+                onChange={handleChange}
+                multiple
+                className="w-full h-28 px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              >
+                {departamentos.map(dep => (
+                  <option key={dep.id} value={dep.id}>{dep.nome}</option>
+                ))}
+              </select>
+              <p className="text-[10px] text-slate-400 font-medium">Segure Ctrl/Cmd para múltipla escolha</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Secção 3: Histórico Litúrgico */}
+        <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText size={16} className="text-slate-400" />
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Histórico Litúrgico</h3>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-3 border border-slate-100 rounded-lg bg-slate-50/50 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex items-center sm:col-span-2">
+                <input
+                  type="checkbox"
+                  id="batizado"
+                  name="batizado"
+                  checked={formData.batizado}
+                  onChange={handleChange}
+                  className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+                />
+                <label htmlFor="batizado" className="ml-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                  É Batizado nas Águas
+                </label>
+              </div>
+              {formData.batizado && (
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-xs font-medium text-slate-400">Data do Batismo</label>
+                  <input
+                    type="date"
+                    name="data_batismo"
+                    value={formData.data_batismo}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="p-3 border border-slate-100 rounded-lg bg-slate-50/50 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex items-center sm:col-span-2">
+                <input
+                  type="checkbox"
+                  id="consagrado"
+                  name="consagrado"
+                  checked={formData.consagrado}
+                  onChange={handleChange}
+                  className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+                />
+                <label htmlFor="consagrado" className="ml-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                  Membro Consagrado
+                </label>
+              </div>
+
+              {formData.consagrado && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-400">Categoria Ministerial</label>
+                    <select
+                      name="categoria_ministerial"
+                      value={formData.categoria_ministerial}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Selecione...</option>
+                      {categoriaMinisterialOptions.map((opt, idx) => (
+                        <option key={idx} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-400">Data de Consagração</label>
+                    <input
+                      type="date"
+                      name="data_consagracao"
+                      value={formData.data_consagracao}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Secção 4: Perfil Académico e Profissional */}
+        <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen size={16} className="text-slate-400" />
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Perfil Académico & Profissional</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Nível de Habilitações</label>
+              <select
+                name="habilitacoes"
+                value={formData.habilitacoes}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              >
+                <option value="">Selecione...</option>
+                {habilitacoesOptions.map((opt, idx) => (
+                  <option key={idx} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+
+            {['especialidades', 'estudo_teologico', 'local_formacao', 'profissao'].map(campo => (
+              <div key={campo} className="space-y-1">
+                <label className="text-xs font-medium text-slate-400 capitalize">
+                  {campo.replace('_', ' ')}
+                </label>
+                <input
+                  type="text"
+                  name={campo}
+                  value={formData[campo]}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Secção 5: Informações Diversas */}
+        <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <HelpCircle size={16} className="text-slate-400" />
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Dados Sociais & Diversos</h3>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            {['trabalha', 'conta_outrem', 'conta_propria'].map(campo => (
+              <div key={campo} className="flex items-center p-2 border border-slate-100 rounded-lg bg-slate-50/40">
+                <input
+                  type="checkbox"
+                  id={campo}
+                  name={campo}
+                  checked={formData[campo]}
+                  onChange={handleChange}
+                  className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+                />
+                <label htmlFor={campo} className="ml-2 text-xs font-semibold text-slate-700 cursor-pointer capitalize">
+                  {campo.replace('_', ' ')}
+                </label>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Ações do Formulário */}
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 mt-2">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={14} className="animate-spin shrink-0" />
+                Processando Lançamento...
+              </span>
+            ) : (
+              membroData ? 'Atualizar Membro' : 'Cadastrar Novo Membro'
+            )}
+          </Button>
         </div>
-      ))}
-
-      <div className="mb-3 sm:mb-4 flex items-center">
-        <input
-          type="checkbox"
-          name="ativo"
-          checked={formData.ativo}
-          onChange={handleChange}
-          className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-text focus:ring-[#b3e5fc]"
-        />
-        <label className="text-text text-sm">Ativo</label>
-      </div>
-
-      {/* Cargos */}
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Cargos</label>
-        <select
-          name="CargosIds"
-          value={formData.CargosIds}
-          onChange={handleChange}
-          multiple
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        >
-          {cargos.map(cargo => (
-            <option key={cargo.id} value={cargo.id}>
-              {cargo.nome}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-gray-400">Segure Ctrl/Cmd para selecionar múltiplos</p>
-      </div>
-
-      {/* Departamentos */}
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Departamentos</label>
-        <select
-          name="DepartamentosIds"
-          value={formData.DepartamentosIds}
-          onChange={handleChange}
-          multiple
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        >
-          {departamentos.map(dep => (
-            <option key={dep.id} value={dep.id}>
-              {dep.nome}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-gray-400">Segure Ctrl/Cmd para selecionar múltiplos</p>
-      </div>
-
-      {/* Dados Cristãos */}
-      <h3 className="mt-4 sm:mt-6 mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-text">Dados Cristãos</h3>
-      <hr className="mb-3 sm:mb-4 border-border" />
-
-      <div className="mb-3 sm:mb-4 flex items-center">
-        <input
-          type="checkbox"
-          name="batizado"
-          checked={formData.batizado}
-          onChange={handleChange}
-          className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-text focus:ring-[#b3e5fc]"
-        />
-        <label className="text-text text-sm">Batizado</label>
-      </div>
-
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Data do Batismo</label>
-        <input
-          type="date"
-          name="data_batismo"
-          value={formData.data_batismo}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        />
-      </div>
-
-      <div className="mb-3 sm:mb-4 flex items-center">
-        <input
-          type="checkbox"
-          name="consagrado"
-          checked={formData.consagrado}
-          onChange={handleChange}
-          className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-text focus:ring-[#b3e5fc]"
-        />
-        <label className="text-text text-sm">Consagrado</label>
-      </div>
-
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Data de Consagração</label>
-        <input
-          type="date"
-          name="data_consagracao"
-          value={formData.data_consagracao}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        />
-      </div>
-
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Categoria Ministerial</label>
-        <select
-          name="categoria_ministerial"
-          value={formData.categoria_ministerial}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        >
-          <option value="">Selecione</option>
-          {categoriaMinisterialOptions.map((opt, idx) => (
-            <option key={idx} value={opt}>{opt}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Dados Acadêmicos */}
-      <h3 className="mt-4 sm:mt-6 mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-text">Dados Acadêmicos</h3>
-      <hr className="mb-3 sm:mb-4 border-border" />
-
-      <div className="mb-3 sm:mb-4">
-        <label className="mb-1 block text-xs sm:text-sm font-medium text-text">Habilitação</label>
-        <select
-          name="habilitacoes"
-          value={formData.habilitacoes}
-          onChange={handleChange}
-          className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-        >
-          <option value="">Selecione</option>
-          {habilitacoesOptions.map((opt, idx) => (
-            <option key={idx} value={opt}>{opt}</option>
-          ))}
-        </select>
-      </div>
-
-      {['especialidades', 'estudo_teologico', 'local_formacao', 'profissao'].map(campo => (
-        <div key={campo} className="mb-3 sm:mb-4">
-          <label className="mb-1 block text-xs sm:text-sm font-medium text-text">
-            {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')}
-          </label>
-          <input
-            type="text"
-            name={campo}
-            value={formData[campo]}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-600 bg-[#263238] px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm focus:border-border focus:outline-none focus:ring-2 focus:ring-[#b3e5fc]/20"
-          />
-        </div>
-      ))}
-
-      {/* Diversos */}
-      <h3 className="mt-4 sm:mt-6 mb-2 sm:mb-3 text-base sm:text-lg font-semibold text-text">Diversos</h3>
-      <hr className="mb-3 sm:mb-4 border-border" />
-
-      {['trabalha', 'conta_outrem', 'conta_propria'].map(campo => (
-        <div key={campo} className="mb-3 sm:mb-4 flex items-center">
-          <input
-            type="checkbox"
-            name={campo}
-            checked={formData[campo]}
-            onChange={handleChange}
-            className="mr-2 h-4 w-4 rounded border-gray-600 bg-[#263238] text-text focus:ring-[#b3e5fc]"
-          />
-          <label className="text-text text-sm">
-            {campo.charAt(0).toUpperCase() + campo.slice(1).replace('_', ' ')}
-          </label>
-        </div>
-      ))}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="mt-3 sm:mt-4 w-full rounded-lg bg-blue-600 px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-white text-sm transition hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Salvando...
-          </span>
-        ) : (
-          membroData ? 'Atualizar Membro' : 'Cadastrar Membro'
-        )}
-      </button>
-    </form>
+      </form>
+    </div>
   );
 }

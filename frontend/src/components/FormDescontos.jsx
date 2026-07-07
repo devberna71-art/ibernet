@@ -1,30 +1,11 @@
+// src/components/FormDescontos.jsx
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Button,
-  CircularProgress,
-  Alert,
-  Fade,
-  Chip,
-} from "@mui/material";
-
-import { Percent, AutoAwesome } from "@mui/icons-material";
-import { motion } from "framer-motion";
+import { Loader2, Percent, FileText, AlertCircle, CheckCircle2 } from "lucide-react";
 import api from "../api/axiosConfig";
+import Card from "./ui/Card";
+import Button from "./ui/Button";
 
-export default function FormDescontos({
-  editData,
-  onFinish,
-  onCancelEdit,
-}) {
+export default function FormDescontos({ editData, onFinish, onCancelEdit }) {
   const [nome, setNome] = useState("");
   const [percentagem, setPercentagem] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -35,7 +16,7 @@ export default function FormDescontos({
 
   const isEditMode = !!editData;
 
-  // ================= FILL EDIT =================
+  // Preencher campos em modo de edição
   useEffect(() => {
     if (editData) {
       setNome(editData.nome || "");
@@ -52,29 +33,6 @@ export default function FormDescontos({
     setAtivo(true);
   };
 
-  // ================= INPUT STYLE PREMIUM =================
-  const inputPremium = {
-    mb: 3,
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "18px",
-      background: "rgba(255,255,255,0.95)",
-      backdropFilter: "blur(10px)",
-      transition: "all 0.3s ease",
-      "& fieldset": {
-        borderColor: "rgba(255,0,0,0.2)",
-      },
-      "&:hover": {
-        transform: "translateY(-2px)",
-        boxShadow: "0 8px 25px rgba(255,0,0,0.12)",
-      },
-      "&.Mui-focused": {
-        boxShadow:
-          "0 0 0 2px rgba(255,0,0,0.25), 0 12px 35px rgba(255,0,0,0.18)",
-      },
-    },
-  };
-
-  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -83,25 +41,25 @@ export default function FormDescontos({
       setMensagem({ tipo: "", texto: "" });
 
       const token = localStorage.getItem("token");
+      const payload = { 
+        nome, 
+        percentagem: Number(percentagem), 
+        descricao, 
+        ativo 
+      };
 
       if (isEditMode) {
-        await api.put(
-          `/descontos/${editData.id}`,
-          { nome, percentagem, descricao, ativo },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
+        await api.put(`/descontos/${editData.id}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setMensagem({
           tipo: "success",
           texto: "Desconto atualizado com sucesso!",
         });
       } else {
-        await api.post(
-          "/descontos",
-          { nome, percentagem, descricao, ativo },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
+        await api.post("/descontos", payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setMensagem({
           tipo: "success",
           texto: "Desconto cadastrado com sucesso!",
@@ -114,7 +72,7 @@ export default function FormDescontos({
     } catch (error) {
       setMensagem({
         tipo: "error",
-        texto: "Erro ao salvar desconto.",
+        texto: error?.response?.data?.message || "Erro operacional ao salvar desconto.",
       });
     } finally {
       setSalvando(false);
@@ -122,180 +80,137 @@ export default function FormDescontos({
   };
 
   return (
-    <Fade in timeout={700}>
-      <Box
-        sx={{
-          minHeight: isEditMode ? "auto" : "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          p: { xs: 2, md: 3 },
-          background: isEditMode
-            ? "transparent"
-            : "linear-gradient(135deg, #fff5f5 0%, #ffffff 40%, #ffecec 100%)",
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          style={{ width: "100%", maxWidth: 720 }}
-        >
-          <Card
-            sx={{
-              borderRadius: "32px",
-              overflow: "hidden",
-              background:
-                "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,245,245,0.95))",
-              backdropFilter: "blur(30px)",
-              border: "1px solid rgba(255,80,80,0.18)",
-              boxShadow:
-                "0 30px 80px rgba(200,0,0,0.15), inset 0 0 60px rgba(255,255,255,0.4)",
-            }}
+    <div className="w-full text-left max-w-xl mx-auto">
+      <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl bg-white">
+        
+        {/* Cabeçalho da Secção */}
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-5">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-slate-900 rounded-md flex items-center justify-center text-white">
+              <Percent size={14} className="stroke-[2.5]" />
+            </div>
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              {isEditMode ? "Modificar Dedução" : "Gestão de Descontos e Retenções"}
+            </h3>
+          </div>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Financeiro
+          </span>
+        </div>
+
+        {/* Retornos de Feedback Operacional */}
+        {mensagem.texto && (
+          <div
+            className={`mb-4 flex items-center gap-2 rounded-lg px-4 py-2.5 font-semibold text-xs border ${
+              mensagem.tipo === "success"
+                ? "bg-emerald-50 border-emerald-100 text-emerald-700"
+                : "bg-rose-50 border-rose-100 text-rose-700"
+            }`}
           >
-            {/* ================= HEADER ================= */}
-            <Box
-              sx={{
-                p: 4,
-                background:
-                  "linear-gradient(120deg, #7f1d1d, #b91c1c, #ef4444)",
-                color: "#fff",
-                textAlign: "center",
-                position: "relative",
-              }}
-            >
-              <AutoAwesome
-                sx={{
-                  position: "absolute",
-                  top: 16,
-                  right: 20,
-                  opacity: 0.4,
-                  fontSize: 28,
-                }}
+            {mensagem.tipo === "success" ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+            {mensagem.texto}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Campo 1: Identificação do Desconto */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-400">Nome do Desconto *</label>
+            <input
+              type="text"
+              placeholder="Ex: IRT, INSS, Faltas..."
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              required
+            />
+          </div>
+
+          {/* Campo 2: Taxa de Percentagem */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-400">Taxa de Desconto (%) *</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <Percent size={14} />
+              </span>
+              <input
+                type="number"
+                placeholder="0"
+                min="0"
+                max="100"
+                step="any"
+                value={percentagem}
+                onChange={(e) => setPercentagem(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                required
               />
+            </div>
+          </div>
 
-              <Percent sx={{ fontSize: 40, mb: 1 }} />
+          {/* Campo 3: Detalhes / Descrição */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-400">Descrição / Motivo Justificativo</label>
+            <div className="relative">
+              <span className="absolute left-3 top-3 text-slate-400">
+                <FileText size={14} />
+              </span>
+              <textarea
+                placeholder="Indique a fundamentação legal ou normativa deste desconto..."
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                rows={3}
+                className="w-full pl-9 pr-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none"
+              />
+            </div>
+          </div>
 
-              <Typography variant="h4" sx={{ fontWeight: 900 }}>
-                {isEditMode ? "Editar Desconto" : "Gestão de Descontos"}
-              </Typography>
+          {/* Campo 4: Estado de Atividade */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-slate-400">Estado de Vigência</label>
+            <select
+              value={ativo ? "1" : "0"}
+              onChange={(e) => setAtivo(e.target.value === "1")}
+              className="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            >
+              <option value="1">Desconto Ativo e Aplicável</option>
+              <option value="0">Desconto Inativo / Suspenso</option>
+            </select>
+          </div>
 
-              <Typography sx={{ opacity: 0.9, mt: 1 }}>
-                {isEditMode
-                  ? "Atualização de desconto existente"
-                  : "Cadastro de descontos percentuais (%)"}
-              </Typography>
-            </Box>
+          {/* Bloco Unificado de Ações Operacionais */}
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 mt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={isEditMode ? onCancelEdit : resetForm}
+              disabled={salvando}
+            >
+              {isEditMode ? "Cancelar Edição" : "Limpar Ficha"}
+            </Button>
+            
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={salvando}
+            >
+              {salvando ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin shrink-0" />
+                  Aplicando retenção...
+                </span>
+              ) : isEditMode ? (
+                "Atualizar Desconto"
+              ) : (
+                "Cadastrar Desconto"
+              )}
+            </Button>
+          </div>
 
-            <CardContent sx={{ p: 5 }}>
-              <form onSubmit={handleSubmit}>
-
-                <TextField
-                  label="Nome do Desconto"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  fullWidth
-                  required
-                  sx={inputPremium}
-                />
-
-                <TextField
-                  label="Percentagem (%)"
-                  type="number"
-                  value={percentagem}
-                  onChange={(e) => setPercentagem(e.target.value)}
-                  fullWidth
-                  required
-                  sx={inputPremium}
-                />
-
-                <TextField
-                  label="Descrição"
-                  value={descricao}
-                  onChange={(e) => setDescricao(e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={3}
-                  sx={inputPremium}
-                />
-
-                <FormControl fullWidth sx={inputPremium}>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={ativo ? 1 : 0}
-                    onChange={(e) => setAtivo(e.target.value === 1)}
-                    label="Status"
-                  >
-                    <MenuItem value={1}>
-                      <Chip label="Ativo" color="success" />
-                    </MenuItem>
-                    <MenuItem value={0}>
-                      <Chip label="Inativo" color="error" />
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-
-                {mensagem.texto && (
-                  <Alert
-                    severity={mensagem.tipo}
-                    sx={{
-                      mb: 3,
-                      borderRadius: "16px",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {mensagem.texto}
-                  </Alert>
-                )}
-
-                <Button
-                  fullWidth
-                  type="submit"
-                  disabled={salvando}
-                  sx={{
-                    py: 2,
-                    fontWeight: 800,
-                    fontSize: "1.1rem",
-                    borderRadius: "18px",
-                    textTransform: "none",
-                    color: "#fff",
-                    background:
-                      "linear-gradient(90deg, #7f1d1d, #b91c1c, #ef4444)",
-                    boxShadow: "0 15px 40px rgba(220,38,38,0.35)",
-                    "&:hover": {
-                      transform: "translateY(-3px) scale(1.02)",
-                      boxShadow: "0 20px 55px rgba(220,38,38,0.5)",
-                    },
-                  }}
-                >
-                  {salvando ? (
-                    <CircularProgress size={26} color="inherit" />
-                  ) : isEditMode ? (
-                    "Atualizar Desconto"
-                  ) : (
-                    "Cadastrar Desconto"
-                  )}
-                </Button>
-
-                {isEditMode && (
-                  <Button
-                    fullWidth
-                    onClick={onCancelEdit}
-                    sx={{
-                      mt: 2,
-                      borderRadius: "18px",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Cancelar Edição
-                  </Button>
-                )}
-
-              </form>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </Box>
-    </Fade>
+        </form>
+      </Card>
+    </div>
   );
 }

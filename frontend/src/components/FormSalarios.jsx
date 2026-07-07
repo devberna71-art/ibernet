@@ -1,44 +1,22 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Dialog, DialogContent } from "@mui/material";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
-  Checkbox,
-  ListItemText,
-  OutlinedInput,
-  Grid,
-  Fade,
-  Chip,
-  Stack,
-  Divider,
-} from "@mui/material";
-
-import {
-  Paid,
-  Person,
-  AccountBalanceWallet,
-  TrendingUp,
-  TrendingDown,
-} from "@mui/icons-material";
-
-
-
+// src/components/FormSalario.jsx
+import React, { useEffect, useState, useMemo } from "react";
+import { 
+  Loader2, 
+  Wallet, 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  User, 
+  Calendar,
+  CheckCircle2, 
+  X,
+  AlertCircle
+} from "lucide-react";
 import api from "../api/axiosConfig";
+import Card from "./ui/Card";
+import Button from "./ui/Button";
 
-export default function FormSalario({
-  salarioEditando = null,
-  onSalvo = () => {},
-}) {
+export default function FormSalario({ salarioEditando = null, onSalvo = () => {} }) {
   const modoEdicao = !!salarioEditando;
 
   const [funcionarios, setFuncionarios] = useState([]);
@@ -55,24 +33,19 @@ export default function FormSalario({
 
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [showSucesso, setShowSucesso] = useState(false);
+  const [erroOperacional, setErroOperacional] = useState("");
 
- const [openSucesso, setOpenSucesso] = useState(false);
-
+  // Carregamento inicial de tabelas base
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     const load = async () => {
       try {
+        setCarregando(true);
         const [f, s, d] = await Promise.all([
-          api.get("/funcionarios", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get("/subsidios", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          api.get("/descontos", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          api.get("/funcionarios", { headers: { Authorization: `Bearer ${token}` } }),
+          api.get("/subsidios", { headers: { Authorization: `Bearer ${token}` } }),
+          api.get("/descontos", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         setFuncionarios(f.data || []);
@@ -80,12 +53,16 @@ export default function FormSalario({
         setDescontos(d.data || []);
       } catch (err) {
         console.error(err);
+        setErroOperacional("Falha ao sincronizar tabelas de remuneração.");
+      } finally {
+        setCarregando(false);
       }
     };
 
     load();
   }, []);
 
+  // Mapas de percentagem otimizados com useMemo
   const subsidioMap = useMemo(() => {
     const map = {};
     subsidios.forEach((s) => (map[s.id] = Number(s.percentagem || 0)));
@@ -98,12 +75,14 @@ export default function FormSalario({
     return map;
   }, [descontos]);
 
-  const handleFuncionarioChange = (id) => {
-    const f = funcionarios.find((x) => x.id === id);
+  const handleFuncionarioChange = (e) => {
+    const id = e.target.value;
+    const f = funcionarios.find((x) => String(x.id) === String(id));
     setFuncionarioId(id);
     setSalarioBase(Number(f?.salario_base || 0));
   };
 
+  // Cálculos dinâmicos em tempo real
   const totalSubs = useMemo(() => {
     return subsidiosSelecionados.reduce((acc, id) => {
       const percent = subsidioMap[id] || 0;
@@ -120,15 +99,35 @@ export default function FormSalario({
 
   const liquido = salarioBase + totalSubs - totalDesc;
 
+  // Lógica multiselect customizada nativa
+  const handleToggleSubsidio = (id) => {
+    const numId = Number(id);
+    setSubsidiosSelecionados((prev) =>
+      prev.includes(numId) ? prev.filter((x) => x !== numId) : [...prev, numId]
+    );
+  };
+
+  const handleToggleDesconto = (id) => {
+    const numId = Number(id);
+    setDescontosSelecionados((prev) =>
+      prev.includes(numId) ? prev.filter((x) => x !== numId) : [...prev, numId]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!FuncionarioId || !mesAno) {
+      setErroOperacional("Preencha o funcionário e competência mensal.");
+      return;
+    }
+
     setSalvando(true);
+    setErroOperacional("");
 
     try {
       const token = localStorage.getItem("token");
-
       const payload = {
-        FuncionarioId,
+        FuncionarioId: Number(FuncionarioId),
         mes_ano: mesAno,
         subsidiosAplicados: subsidiosSelecionados,
         descontosAplicados: descontosSelecionados,
@@ -138,25 +137,17 @@ export default function FormSalario({
         await api.put(`/salarios/${salarioEditando.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-onSalvo();
-setOpenSucesso(true);
-
-
       } else {
         await api.post(`/salarios`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-        
-onSalvo();
-setOpenSucesso(true);
-
       }
 
+      setShowSucesso(true);
       onSalvo();
     } catch (err) {
       console.error(err);
+      setErroOperacional(err.response?.data?.message || "Erro operacional no cálculo salarial.");
     } finally {
       setSalvando(false);
     }
@@ -164,347 +155,231 @@ setOpenSucesso(true);
 
   if (carregando) {
     return (
-      <Box display="flex" justifyContent="center" mt={6}>
-        <CircularProgress />
-      </Box>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 size={24} className="animate-spin text-slate-400" />
+      </div>
     );
   }
 
   return (
-    <Fade in>
-      <Box sx={{ p: 3, bgcolor: "#f6f7fb", minHeight: "100vh" }}>
-        <Card
-          sx={{
-            borderRadius: 3,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-            bgcolor: "#ffffff",
-            maxWidth: 1100,
-            mx: "auto",
-          }}
-        >
-          <CardContent sx={{ p: 4 }}>
+    <div className="w-full text-left max-w-4xl mx-auto space-y-5">
+      
+      {/* Mensagem Instantânea de Erro */}
+      {erroOperacional && (
+        <div className="flex items-center gap-2 rounded-lg px-4 py-2.5 font-semibold text-xs border bg-rose-50 border-rose-100 text-rose-700">
+          <AlertCircle size={14} />
+          {erroOperacional}
+        </div>
+      )}
 
-            {/* HEADER */}
-            <Stack spacing={0.5} mb={3}>
-              <Typography variant="h5" fontWeight={800}>
-                Processamento Salarial
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Gestão inteligente de salários com subsídios e descontos automáticos
-              </Typography>
-            </Stack>
+      {/* Alerta de Sucesso Embutido */}
+      {showSucesso && (
+        <div className="flex items-center justify-between gap-2 rounded-lg px-4 py-3 font-semibold text-xs border bg-emerald-50 border-emerald-100 text-emerald-700">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={16} />
+            <span>Processamento executado com sucesso e lançado em folha.</span>
+          </div>
+          <button onClick={() => setShowSucesso(false)} className="hover:opacity-75 transition-opacity">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
-            <form onSubmit={handleSubmit}>
-              <Grid container spacing={2.5}>
+      <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl bg-white">
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-5">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-slate-900 rounded-md flex items-center justify-center text-white">
+              <DollarSign size={14} />
+            </div>
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              Processamento de Folha Salarial
+            </h3>
+          </div>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Competência Contábil
+          </span>
+        </div>
 
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    type="month"
-                    value={mesAno}
-                    onChange={(e) => setMesAno(e.target.value)}
-                    fullWidth
-                    label="Mês / Ano"
-                    sx={{ bgcolor: "#fff" }}
-                  />
-                </Grid>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Grid Geral de Inputs Físicos */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Campo 1: Período/Mês */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Mês / Ano de Referência *</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Calendar size={14} />
+                </span>
+                <input
+                  type="month"
+                  value={mesAno}
+                  onChange={(e) => setMesAno(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  required
+                />
+              </div>
+            </div>
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Funcionário</InputLabel>
-                    <Select
-                      value={FuncionarioId}
-                      onChange={(e) => handleFuncionarioChange(e.target.value)}
-                      input={<OutlinedInput label="Funcionário" />}
-                      sx={{ bgcolor: "#fff" }}
-                    >
-                      {funcionarios.map((f) => (
-                        <MenuItem
-                          key={f.id}
-                          value={f.id}
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: 1,
-                            py: 1.2,
-                          }}
-                        >
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <Person fontSize="small" />
-                            <Typography fontWeight={600}>
-                              {f.Membro?.nome}
-                            </Typography>
-                          </Stack>
+            {/* Campo 2: Colaborador */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-400">Colaborador Destinatário *</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <User size={14} />
+                </span>
+                <select
+                  value={FuncionarioId}
+                  onChange={handleFuncionarioChange}
+                  className="w-full pl-9 pr-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  required
+                >
+                  <option value="">Selecione o funcionário...</option>
+                  {funcionarios.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.Membro?.nome || `Matrícula #${f.id}`} — (Base: {Number(f.salario_base).toFixed(2)} Kz)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
 
-                          <Typography variant="caption" color="text.secondary">
-                            Base: {Number(f.salario_base).toFixed(2)} Kz
-                          </Typography>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
+          {/* Secção de Seleção Múltipla Avançada NATIVA (Abas Verticais de Checkboxes) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Bloco de Subsídios */}
+            <div className="p-4 border border-slate-100 rounded-xl bg-slate-50/50">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">
+                Bonificações & Subsídios
+              </span>
+              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                {subsidios.map((s) => {
+                  const percent = subsidioMap[s.id] || 0;
+                  const valor = (salarioBase * percent) / 100;
+                  return (
+                    <label key={s.id} className="flex items-start p-2 border border-slate-200/60 rounded-lg bg-white cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={subsidiosSelecionados.includes(s.id)}
+                        onChange={() => handleToggleSubsidio(s.id)}
+                        className="h-4 w-4 mt-0.5 rounded border-slate-300 text-primary focus:ring-primary/20"
+                      />
+                      <div className="ml-2">
+                        <p className="text-xs font-semibold text-slate-700">{s.nome}</p>
+                        <p className="text-[10px] text-emerald-600 font-medium">+{percent}% (+{valor.toFixed(2)} Kz)</p>
+                      </div>
+                    </label>
+                  );
+                })}
+                {subsidios.length === 0 && (
+                  <p className="text-xs text-slate-400 font-medium py-2">Nenhum subsídio catalogado.</p>
+                )}
+              </div>
+            </div>
 
-                {/* SUBSÍDIOS */}
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel>Subsídios</InputLabel>
-                    <Select
-                      multiple
-                      value={subsidiosSelecionados}
-                      onChange={(e) => setSubsidiosSelecionados(e.target.value)}
-                      input={<OutlinedInput label="Subsídios" />}
-                      sx={{ bgcolor: "#fff" }}
-                      renderValue={(selected) => (
-                        <Stack direction="row" spacing={1} flexWrap="wrap">
-                          {selected.map((id) => (
-                            <Chip
-                              key={id}
-                              label={subsidios.find((s) => s.id === id)?.nome}
-                              size="small"
-                            />
-                          ))}
-                        </Stack>
-                      )}
-                    >
-                      {subsidios.map((s) => {
-                        const percent = subsidioMap[s.id] || 0;
-                        const valor = (salarioBase * percent) / 100;
+            {/* Bloco de Descontos */}
+            <div className="p-4 border border-slate-100 rounded-xl bg-slate-50/50">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">
+                Retenções & Descontos
+              </span>
+              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                {descontos.map((d) => {
+                  const percent = descontoMap[d.id] || 0;
+                  const valor = (salarioBase * percent) / 100;
+                  return (
+                    <label key={d.id} className="flex items-start p-2 border border-slate-200/60 rounded-lg bg-white cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={descontosSelecionados.includes(d.id)}
+                        onChange={() => handleToggleDesconto(d.id)}
+                        className="h-4 w-4 mt-0.5 rounded border-slate-300 text-rose-600 focus:ring-rose-500/20"
+                      />
+                      <div className="ml-2">
+                        <p className="text-xs font-semibold text-slate-700">{d.nome}</p>
+                        <p className="text-[10px] text-rose-600 font-medium">-{percent}% (-{valor.toFixed(2)} Kz)</p>
+                      </div>
+                    </label>
+                  );
+                })}
+                {descontos.length === 0 && (
+                  <p className="text-xs text-slate-400 font-medium py-2">Nenhum desconto catalogado.</p>
+                )}
+              </div>
+            </div>
+          </div>
 
-                        return (
-                          <MenuItem key={s.id} value={s.id}>
-                            <Checkbox checked={subsidiosSelecionados.includes(s.id)} />
-                            <ListItemText
-                              primary={s.nome}
-                              secondary={`+${percent}% • +${valor.toFixed(2)} Kz`}
-                            />
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </Grid>
+          {/* Painel de Resumos e Métricas de Fechamento */}
+          <div className="pt-2 border-t border-slate-100">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-3">
+              Demonstrativo Sintético
+            </span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <SummaryCard title="Salário Base" value={salarioBase} icon={<Wallet size={14} />} />
+              <SummaryCard title="Total Subsídios" value={totalSubs} icon={<TrendingUp size={14} />} status="success" />
+              <SummaryCard title="Total Descontos" value={totalDesc} icon={<TrendingDown size={14} />} status="danger" />
+              <SummaryCard title="Líquido a Receber" value={liquido} icon={<DollarSign size={14} />} status="highlight" />
+            </div>
+          </div>
 
-                {/* DESCONTOS (🔥 VERMELHO PREMIUM) */}
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel>Descontos</InputLabel>
-                    <Select
-                      multiple
-                      value={descontosSelecionados}
-                      onChange={(e) => setDescontosSelecionados(e.target.value)}
-                      input={<OutlinedInput label="Descontos" />}
-                      sx={{
-                        bgcolor: "#fff",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "rgba(220,38,38,0.2)",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "rgba(220,38,38,0.4)",
-                        },
-                      }}
-                    >
-                      {descontos.map((d) => {
-                        const percent = descontoMap[d.id] || 0;
-                        const valor = (salarioBase * percent) / 100;
+          {/* Ações Finais */}
+          <div className="flex items-center justify-end pt-4 border-t border-slate-200">
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={salvando}
+              className="w-full md:w-auto md:px-6"
+            >
+              {salvando ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 size={14} className="animate-spin shrink-0" />
+                  Calculando Folha...
+                </span>
+              ) : (
+                "Homologar Salário"
+              )}
+            </Button>
+          </div>
 
-                        return (
-                          <MenuItem
-                            key={d.id}
-                            value={d.id}
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <Stack direction="row" alignItems="center">
-                              <Checkbox
-                                checked={descontosSelecionados.includes(d.id)}
-                                sx={{ color: "#dc2626" }}
-                              />
-                              <ListItemText primary={d.nome} />
-                            </Stack>
-
-                            <Typography variant="caption" color="error">
-                              -{percent}% ({valor.toFixed(2)} Kz)
-                            </Typography>
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-
-              {/* RESUMO */}
-              <Box mt={4}>
-                <Divider sx={{ mb: 3 }} />
-
-                <Grid container spacing={2}>
-                  <Grid item xs={6} md={3}>
-                    <SummaryCard title="Base" value={salarioBase} icon={<AccountBalanceWallet />} />
-                  </Grid>
-
-                  <Grid item xs={6} md={3}>
-                    <SummaryCard title="Subsídios" value={totalSubs} icon={<TrendingUp />} />
-                  </Grid>
-
-                  <Grid item xs={6} md={3}>
-                    <SummaryCard title="Descontos" value={totalDesc} icon={<TrendingDown />} danger />
-                  </Grid>
-
-                  <Grid item xs={6} md={3}>
-                    <SummaryCard title="Líquido" value={liquido} icon={<Paid />} highlight />
-                  </Grid>
-                </Grid>
-              </Box>
-
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                sx={{
-                  mt: 4,
-                  py: 1.5,
-                  borderRadius: 2,
-                  fontWeight: 700,
-                  textTransform: "none",
-                  bgcolor: "#111827",
-                  "&:hover": { bgcolor: "#000" },
-                }}
-              >
-                {salvando ? "Processando..." : "Salvar Salário"}
-              </Button>
-
-            </form>
-          </CardContent>
-        </Card>
-        <Dialog
-  open={openSucesso}
-  onClose={() => setOpenSucesso(false)}
-  PaperProps={{
-    sx: {
-      borderRadius: 5,
-      p: 3,
-      textAlign: "center",
-      width: 380,
-      background: "rgba(255,255,255,0.9)",
-      backdropFilter: "blur(14px)",
-      border: "1px solid rgba(255,255,255,0.6)",
-      boxShadow: "0 25px 80px rgba(0,0,0,0.12)",
-      overflow: "hidden",
-      position: "relative",
-    },
-  }}
-  TransitionProps={{
-    timeout: 350,
-  }}
->
-  <DialogContent sx={{ py: 2 }}>
-    
-    {/* ICON CIRCLE */}
-    <Box
-      sx={{
-        width: 90,
-        height: 90,
-        borderRadius: "50%",
-        mx: "auto",
-        mb: 2,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background:
-          "linear-gradient(135deg, #dcfce7, #bbf7d0)",
-        animation: "pop .4s ease",
-      }}
-    >
-      <CheckCircleOutlineIcon
-        sx={{
-          fontSize: 48,
-          color: "#16a34a",
-        }}
-      />
-    </Box>
-
-    {/* TITLE */}
-    <Typography fontWeight={900} fontSize={22} color="#0f172a">
-      Sucesso
-    </Typography>
-
-    {/* SUBTITLE */}
-    <Typography
-      fontSize={13}
-      sx={{
-        color: "rgba(15,23,42,0.6)",
-        mt: 1,
-      }}
-    >
-      Salário processado com sucesso e guardado no sistema.
-    </Typography>
-
-    {/* BUTTON */}
-    <Button
-      onClick={() => setOpenSucesso(false)}
-      variant="contained"
-      sx={{
-        mt: 3,
-        borderRadius: 999,
-        px: 4,
-        py: 1,
-        fontWeight: 700,
-        textTransform: "none",
-        background: "linear-gradient(135deg, #16a34a, #22c55e)",
-        boxShadow: "0 10px 25px rgba(34,197,94,0.25)",
-        "&:hover": {
-          background: "linear-gradient(135deg, #15803d, #16a34a)",
-        },
-      }}
-    >
-      Continuar
-    </Button>
-
-    {/* ANIMATION */}
-    <style>
-      {`
-        @keyframes pop {
-          0% { transform: scale(0.5); opacity: 0; }
-          80% { transform: scale(1.08); opacity: 1; }
-          100% { transform: scale(1); }
-        }
-      `}
-    </style>
-  </DialogContent>
-</Dialog>
-      </Box>
-    </Fade>
+        </form>
+      </Card>
+    </div>
   );
 }
 
-/* CARD PREMIUM MELHORADO */
-function SummaryCard({ title, value, icon, highlight, danger }) {
-  return (
-    <Card
-      sx={{
-        borderRadius: 2,
-        boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
-        bgcolor: highlight ? "#0f172a" : danger ? "#fef2f2" : "#fff",
-        color: highlight ? "#fff" : "inherit",
-        border: danger ? "1px solid #fecaca" : "1px solid #eee",
-      }}
-    >
-      <CardContent>
-        <Stack spacing={1}>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography fontSize={12} color={highlight ? "#cbd5e1" : "text.secondary"}>
-              {title}
-            </Typography>
-            <Box>{icon}</Box>
-          </Stack>
+// Subcomponente de Cartões Analíticos Internos
+function SummaryCard({ title, value, icon, status }) {
+  let cardStyles = "bg-white border-slate-200 text-slate-800";
+  let titleStyles = "text-slate-400";
+  let iconStyles = "text-slate-400";
 
-          <Typography fontWeight={800} fontSize={18}>
-            {Number(value).toFixed(2)} Kz
-          </Typography>
-        </Stack>
-      </CardContent>
-    </Card>
+  if (status === "highlight") {
+    cardStyles = "bg-slate-900 border-slate-900 text-white";
+    titleStyles = "text-slate-400";
+    iconStyles = "text-white";
+  } else if (status === "success") {
+    cardStyles = "bg-emerald-50/40 border-emerald-100 text-emerald-900";
+    titleStyles = "text-emerald-600/80";
+    iconStyles = "text-emerald-500";
+  } else if (status === "danger") {
+    cardStyles = "bg-rose-50/40 border-rose-100 text-rose-900";
+    titleStyles = "text-rose-600/80";
+    iconStyles = "text-rose-500";
+  }
+
+  return (
+    <div className={`p-3.5 border rounded-xl flex flex-col justify-between gap-3 shadow-sm ${cardStyles}`}>
+      <div className="flex items-center justify-between w-full">
+        <span className={`text-[10px] font-bold tracking-wider uppercase ${titleStyles}`}>
+          {title}
+        </span>
+        <div className={iconStyles}>{icon}</div>
+      </div>
+      <p className="text-sm font-black tracking-tight whitespace-nowrap">
+        {Number(value).toFixed(2)} Kz
+      </p>
+    </div>
   );
 }

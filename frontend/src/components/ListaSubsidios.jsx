@@ -1,33 +1,33 @@
+// src/components/ListaSubsidios.jsx
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
   TableHead,
   TableRow,
+  TableCell,
+  TableBody,
   Paper,
   Chip,
+  Button,
   CircularProgress,
-  Fade,
   Stack,
   IconButton,
+  Divider,
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
+  useMediaQuery,
+  useTheme,
+  alpha,
+  Fade,
 } from "@mui/material";
-
-import PercentIcon from "@mui/icons-material/Percent";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CloseIcon from "@mui/icons-material/Close";
-
+import {
+  Percent,
+  Edit,
+  Delete,
+  WarningAmber,
+} from "@mui/icons-material";
 import api from "../api/axiosConfig";
 import FormSubsidios from "./FormSubsidios";
 
@@ -35,18 +35,23 @@ export default function ListaSubsidios() {
   const [subsidios, setSubsidios] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // Modais Operacionais
   const [editing, setEditing] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
-  // GET
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [idParaEliminar, setIdParaEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
-
       const res = await api.get("/subsidios", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setSubsidios(res.data || []);
     } catch (error) {
       console.error("Erro ao buscar subsídios:", error);
@@ -59,7 +64,6 @@ export default function ListaSubsidios() {
     fetchData();
   }, []);
 
-  // EDITAR
   const handleEdit = (item) => {
     setEditing(item);
     setOpenModal(true);
@@ -70,39 +74,40 @@ export default function ListaSubsidios() {
     setOpenModal(false);
   };
 
-  // DELETE
-  const handleDelete = async (id) => {
-    if (!window.confirm("Tens certeza que quer eliminar este subsídio?"))
-      return;
+  const abrirModalEliminar = (id) => {
+    setIdParaEliminar(id);
+    setOpenDeleteModal(true);
+  };
 
+  const fecharModalEliminar = () => {
+    if (eliminando) return;
+    setOpenDeleteModal(false);
+    setIdParaEliminar(null);
+  };
+
+  const confirmarEliminacao = async () => {
+    if (!idParaEliminar) return;
     try {
+      setEliminando(true);
       const token = localStorage.getItem("token");
-
-      await api.delete(`/subsidios/${id}`, {
+      await api.delete(`/subsidios/${idParaEliminar}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      fetchData();
+      await fetchData();
+      fecharModalEliminar();
     } catch (error) {
       console.error("Erro ao eliminar subsídio:", error);
+    } finally {
+      setEliminando(false);
     }
   };
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          height: 300,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 2,
-        }}
-      >
-        <CircularProgress size={45} thickness={4} />
-        <Typography fontWeight={700} color="#64748b">
-          A carregar subsídios...
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 8, gap: 1.5 }}>
+        <CircularProgress size={32} sx={{ color: "text.secondary" }} />
+        <Typography variant="caption" sx={{ fontWeight: "bold", color: "text.secondary", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+          Sincronizando bonificações e subsídios...
         </Typography>
       </Box>
     );
@@ -110,26 +115,184 @@ export default function ListaSubsidios() {
 
   return (
     <Fade in>
-      <Box sx={{ p: 3, background: "#f8fafc", minHeight: "100vh" }}>
+      <Box sx={{ width: "100%", textAlign: "left", display: "flex", flexDirection: "column", gap: 2 }}>
 
-        {/* ================= MODAL ================= */}
-        <Dialog open={openModal} onClose={handleClose} fullWidth maxWidth="md">
-          <DialogTitle
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontWeight: 900,
-              background: "linear-gradient(135deg, #0f172a, #1e293b)",
-              color: "#fff",
-            }}
-          >
-            Editar Subsídio
-            <IconButton onClick={handleClose} sx={{ color: "#fff" }}>
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
+        {/* HEADER DO PAINEL */}
+        <Paper variant="outlined" sx={{ p: 2, border: "1px solid", borderColor: "divider", bgcolor: "background.paper", borderRadius: "12px", boxShadow: "none" }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box sx={{ p: 1.2, bgcolor: alpha(theme.palette.success.main, 0.08), borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "success.main", border: "1px solid", borderColor: alpha(theme.palette.success.main, 0.15) }}>
+              <Percent fontSize="small" />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "12px", fontWeight: 900, color: "text.primary", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Tabela de Subsídios e Abonos
+              </Typography>
+              <Typography sx={{ fontSize: "11px", fontWeight: 500, color: "text.secondary" }}>
+                Definição de variáveis percentuais sobre o vencimento base (Alimentação, Transporte, Função)
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
 
-          <DialogContent dividers>
+        {/* MÓDULO RESPONSIVO: MOBILE */}
+        {isMobile ? (
+          <Stack spacing={2}>
+            {subsidios.map((s) => (
+              <Paper key={s.id} variant="outlined" sx={{ p: 2, borderRadius: "12px", borderColor: "divider", display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                  <Typography sx={{ fontSize: "12px", fontWeight: "bold", color: "text.primary" }}>
+                    {s.nome}
+                  </Typography>
+                  <Chip 
+                    label={`+${s.percentagem}%`} 
+                    size="small" 
+                    sx={{ 
+                      fontSize: "11px", 
+                      fontWeight: "bold", 
+                      height: "22px",
+                      bgcolor: alpha(theme.palette.success.main, 0.1), 
+                      color: "success.main",
+                    }} 
+                  />
+                </Box>
+
+                <Divider sx={{ borderStyle: "dashed" }} />
+
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Chip 
+                    label={s.ativo ? "Ativo" : "Inativo"} 
+                    size="small" 
+                    sx={{ 
+                      fontSize: "10px", 
+                      fontWeight: "bold", 
+                      height: "20px",
+                      bgcolor: s.ativo ? alpha(theme.palette.success.main, 0.1) : "grey.100", 
+                      color: s.ativo ? "success.main" : "text.secondary",
+                    }} 
+                  />
+                  
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<Edit sx={{ fontSize: "12px !important" }} />}
+                      onClick={() => handleEdit(s)}
+                      sx={{ textTransform: "none", fontWeight: "bold", fontSize: "11px", borderColor: "divider", color: "text.primary", borderRadius: "8px", height: "28px" }}
+                    >
+                      Editar
+                    </Button>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => abrirModalEliminar(s.id)} 
+                      sx={{ border: "1px solid", borderColor: "error.light", bgcolor: alpha(theme.palette.error.main, 0.05), borderRadius: "8px", p: 0.5, width: "28px", height: "28px" }}
+                    >
+                      <Delete sx={{ fontSize: 13, color: "error.main" }} />
+                    </IconButton>
+                  </Stack>
+                </Box>
+              </Paper>
+            ))}
+          </Stack>
+        ) : (
+          /* MÓDULO RESPONSIVO: DESKTOP TABLE */
+          <Paper variant="outlined" sx={{ borderRadius: "12px", overflow: "hidden", borderColor: "divider", bgcolor: "background.paper" }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: "grey.50", borderBottom: "1px solid", borderColor: "divider" }}>
+                  <TableCell sx={{ color: "text.secondary", fontWeight: "bold", fontSize: "10px", textTransform: "uppercase", py: 1.5 }}>Designação do Subsídio</TableCell>
+                  <TableCell sx={{ color: "text.secondary", fontWeight: "bold", fontSize: "10px", textTransform: "uppercase", py: 1.5 }}>Acréscimo Percentual</TableCell>
+                  <TableCell sx={{ color: "text.secondary", fontWeight: "bold", fontSize: "10px", textTransform: "uppercase", py: 1.5 }}>Estado</TableCell>
+                  <TableCell align="center" sx={{ color: "text.secondary", fontWeight: "bold", fontSize: "10px", textTransform: "uppercase", py: 1.5 }}>Ações</TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {subsidios.map((s) => (
+                  <TableRow key={s.id} sx={{ "&:hover": { bgcolor: "grey.50" }, transition: "background-color 0.15s" }}>
+                    
+                    {/* NOME */}
+                    <TableCell sx={{ py: 1.5, fontSize: "12px", fontWeight: "bold", color: "text.primary" }}>
+                      {s.nome}
+                    </TableCell>
+
+                    {/* PERCENTAGEM */}
+                    <TableCell sx={{ py: 1 }}>
+                      <Chip
+                        label={`+${s.percentagem}%`}
+                        size="small"
+                        sx={{
+                          fontSize: "11px",
+                          fontWeight: 800,
+                          bgcolor: alpha(theme.palette.success.main, 0.08),
+                          color: "success.main",
+                          borderRadius: "6px",
+                          height: "22px"
+                        }}
+                      />
+                    </TableCell>
+
+                    {/* STATUS CHIP */}
+                    <TableCell sx={{ py: 1 }}>
+                      <Chip 
+                        label={s.ativo ? "ATIVO" : "INATIVO"} 
+                        size="small" 
+                        sx={{ 
+                          fontSize: "10px", 
+                          fontWeight: 900, 
+                          height: "18px", 
+                          borderRadius: "4px",
+                          bgcolor: s.ativo ? alpha(theme.palette.success.main, 0.1) : "grey.100", 
+                          color: s.ativo ? "success.main" : "text.secondary",
+                          border: s.ativo ? "1px solid" : "none",
+                          borderColor: alpha(theme.palette.success.main, 0.2)
+                        }} 
+                      />
+                    </TableCell>
+
+                    {/* AÇÕES */}
+                    <TableCell align="center" sx={{ py: 1 }}>
+                      <Stack direction="row" spacing={1} justifyContent="center">
+                        <Button 
+                          size="small" 
+                          variant="outlined" 
+                          onClick={() => handleEdit(s)} 
+                          startIcon={<Edit sx={{ fontSize: "11px !important" }} />} 
+                          sx={{ px: 1.5, height: "26px", textTransform: "none", fontSize: "11px", fontWeight: "bold", color: "text.primary", borderColor: "divider", borderRadius: "6px" }}
+                        >
+                          Editar
+                        </Button>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => abrirModalEliminar(s.id)} 
+                          sx={{ border: "1px solid", borderColor: "error.light", bgcolor: alpha(theme.palette.error.main, 0.05), borderRadius: "6px", p: 0.5 }}
+                        >
+                          <Delete sx={{ fontSize: 13, color: "error.main" }} />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            <Divider />
+
+            {/* METADADOS TABELA */}
+            <Box sx={{ p: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: "grey.50" }}>
+              <Typography sx={{ fontSize: "10px", fontWeight: "bold", color: "text.secondary", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Total de Abonos: {subsidios.length}
+              </Typography>
+              <Typography sx={{ fontSize: "10px", fontWeight: "bold", color: "text.disabled", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Parametrização Salarial
+              </Typography>
+            </Box>
+          </Paper>
+        )}
+
+        {/* MODAL FORMULÁRIO DE EDIÇÃO */}
+        <Dialog open={openModal} onClose={handleClose} fullWidth maxWidth="md" PaperProps={{ sx: { borderRadius: "12px" } }}>
+          <DialogContent sx={{ p: 3 }}>
             <FormSubsidios
               editData={editing}
               onFinish={() => {
@@ -139,176 +302,38 @@ export default function ListaSubsidios() {
               onCancelEdit={handleClose}
             />
           </DialogContent>
-
-          <DialogActions sx={{ p: 2 }}>
-            <Button
-              onClick={handleClose}
-              sx={{
-                fontWeight: 800,
-                textTransform: "none",
-                borderRadius: "10px",
-              }}
-            >
-              Fechar
-            </Button>
-          </DialogActions>
         </Dialog>
 
-        {/* ================= HEADER ================= */}
-        <Card
-          sx={{
-            mb: 3,
-            borderRadius: "22px",
-            overflow: "hidden",
-            boxShadow: "0 25px 60px rgba(2,6,23,0.15)",
-            background: "linear-gradient(135deg, #020617, #0f172a, #1e293b)",
-            color: "#fff",
-          }}
+        {/* MODAL MINIMALISTA DE ELIMINAÇÃO */}
+        <Dialog 
+          open={openDeleteModal} 
+          onClose={() => !eliminando && fecharModalEliminar()} 
+          PaperProps={{ sx: { borderRadius: "12px", width: "100%", maxWidth: "360px" } }}
         >
-          <CardContent>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <PercentIcon sx={{ fontSize: 34, color: "#38bdf8" }} />
+          <DialogContent sx={{ p: 3, textAlign: "center", display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box sx={{ width: 44, height: 44, borderRadius: "50%", bgcolor: alpha(theme.palette.error.main, 0.1), border: "1px solid", borderColor: "error.light", color: "error.main", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto" }}>
+              <WarningAmber fontSize="small" />
+            </Box>
+            
+            <Box>
+              <Typography sx={{ fontSize: "13px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "text.primary", mb: 0.5 }}>
+                Eliminar Subsídio
+              </Typography>
+              <Typography sx={{ fontSize: "11px", color: "text.secondary", px: 1 }}>
+                Pretende remover este subsídio do sistema? Folhas salariais processadas anteriormente manterão o registro original.
+              </Typography>
+            </Box>
 
-              <Box>
-                <Typography variant="h5" fontWeight={900}>
-                  Lista de Subsídios
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                  Gestão avançada de subsídios do ERP
-                </Typography>
-              </Box>
+            <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
+              <Button fullWidth variant="outlined" onClick={fecharModalEliminar} disabled={eliminando} sx={{ textTransform: "none", fontSize: "12px", fontWeight: "bold", borderColor: "divider", color: "text.primary", borderRadius: "8px" }}>
+                Voltar
+              </Button>
+              <Button fullWidth variant="contained" onClick={confirmarEliminacao} disabled={eliminando} sx={{ textTransform: "none", fontSize: "12px", fontWeight: "bold", bgcolor: "error.main", "&:hover": { bgcolor: "error.dark" }, boxShadow: "none", borderRadius: "8px" }}>
+                {eliminando ? <CircularProgress size={16} sx={{ color: "#fff" }} /> : "Confirmar"}
+              </Button>
             </Stack>
-          </CardContent>
-        </Card>
-
-        {/* ================= TABELA ================= */}
-        <Card
-          sx={{
-            borderRadius: "22px",
-            boxShadow: "0 20px 60px rgba(2,6,23,0.08)",
-            overflow: "hidden",
-          }}
-        >
-          <TableContainer component={Paper}>
-            <Table>
-
-              {/* HEADER */}
-              <TableHead>
-                <TableRow
-                  sx={{
-                    background:
-                      "linear-gradient(135deg, #0f172a, #1e293b)",
-                  }}
-                >
-                  <TableCell sx={{ color: "#fff", fontWeight: 900 }}>
-                    Nome
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff", fontWeight: 900 }}>
-                    Percentagem
-                  </TableCell>
-                  <TableCell sx={{ color: "#fff", fontWeight: 900 }}>
-                    Status
-                  </TableCell>
-                  <TableCell align="right" sx={{ color: "#fff", fontWeight: 900 }}>
-                    Ações
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-
-              {/* BODY */}
-              <TableBody>
-                {subsidios.map((s) => (
-                  <TableRow
-                    key={s.id}
-                    hover
-                    sx={{
-                      "&:hover": {
-                        background: "#f1f5f9",
-                      },
-                    }}
-                  >
-                    <TableCell sx={{ fontWeight: 800 }}>
-                      {s.nome}
-                    </TableCell>
-
-                    <TableCell>
-                      <Chip
-                        label={`${s.percentagem}%`}
-                        sx={{
-                          fontWeight: 800,
-                          background: "#e0f2fe",
-                          color: "#0369a1",
-                          borderRadius: "10px",
-                        }}
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      {s.ativo ? (
-                        <Chip
-                          label="Ativo"
-                          sx={{
-                            fontWeight: 800,
-                            background:
-                              "linear-gradient(135deg, #16a34a, #22c55e)",
-                            color: "#fff",
-                          }}
-                        />
-                      ) : (
-                        <Chip
-                          label="Inativo"
-                          sx={{
-                            fontWeight: 800,
-                            background: "#e5e7eb",
-                            color: "#374151",
-                          }}
-                        />
-                      )}
-                    </TableCell>
-
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-
-                        <IconButton
-                          onClick={() => handleEdit(s)}
-                          sx={{
-                            background:
-                              "linear-gradient(135deg, #1e3a8a, #2563eb)",
-                            color: "#fff",
-                            borderRadius: "10px",
-                            "&:hover": {
-                              transform: "scale(1.05)",
-                            },
-                          }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-
-                        <IconButton
-                          onClick={() => handleDelete(s.id)}
-                          sx={{
-                            background:
-                              "linear-gradient(135deg, #ef4444, #dc2626)",
-                            color: "#fff",
-                            borderRadius: "10px",
-                            "&:hover": {
-                              transform: "scale(1.05)",
-                            },
-                          }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-
-                      </Stack>
-                    </TableCell>
-
-                  </TableRow>
-                ))}
-              </TableBody>
-
-            </Table>
-          </TableContainer>
-        </Card>
+          </DialogContent>
+        </Dialog>
 
       </Box>
     </Fade>
