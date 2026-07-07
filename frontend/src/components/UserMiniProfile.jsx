@@ -93,7 +93,7 @@ export default function UserMiniProfile({ membro }) {
               <User size={14} />
               Meu Perfil
             </button>
-            
+
             <div className="my-0 border-b border-border" />
 
             <button
@@ -133,11 +133,10 @@ export default function UserMiniProfile({ membro }) {
             <div className="p-4">
               {feedback && (
                 <div
-                  className={`mb-3 rounded-sm px-4 py-3 text-body font-semibold ${
-                    feedback.type === "success"
+                  className={`mb-3 rounded-sm px-4 py-3 text-body font-semibold ${feedback.type === "success"
                       ? "bg-successSoft text-success"
                       : "bg-dangerSoft text-danger"
-                  }`}
+                    }`}
                 >
                   {feedback.text}
                 </div>
