@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+// src/components/Chat/MembersChat.jsx
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, MessageSquare, Search, AlertCircle, RotateCw } from "lucide-react";
 import api from "../../api/axiosConfig";
 import ChatPage from "./ChatPage";
 
-// Avatar com fallback de iniciais caso o membro não tenha foto
-// (tamanhos fixos "sm"/"md" para as classes do Tailwind serem detectadas no build)
 function Avatar({ nome, foto, size = "md", online = true }) {
   const iniciais = (nome || "?")
     .trim()
@@ -22,7 +21,7 @@ function Avatar({ nome, foto, size = "md", online = true }) {
         <img
           src={foto}
           alt={nome}
-          className={`${dimensao} rounded-full object-cover`}
+          className={`${dimensao} rounded-full object-cover border border-slate-100`}
           onError={(e) => {
             e.currentTarget.style.display = "none";
             e.currentTarget.nextSibling.style.display = "flex";
@@ -35,7 +34,7 @@ function Avatar({ nome, foto, size = "md", online = true }) {
         {iniciais}
       </div>
       {online && (
-        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-success rounded-full border-2 border-white" />
+        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
       )}
     </div>
   );
@@ -44,10 +43,10 @@ function Avatar({ nome, foto, size = "md", online = true }) {
 function MembroSkeleton() {
   return (
     <div className="flex items-center gap-3 p-3 mb-1 animate-pulse">
-      <div className="w-10 h-10 rounded-full bg-border/60" />
+      <div className="w-10 h-10 rounded-full bg-slate-100" />
       <div className="flex-1 space-y-2">
-        <div className="h-3 w-2/3 rounded bg-border/60" />
-        <div className="h-2 w-1/2 rounded bg-border/40" />
+        <div className="h-3 w-2/3 rounded bg-slate-100" />
+        <div className="h-2 w-1/2 rounded bg-slate-50" />
       </div>
     </div>
   );
@@ -141,34 +140,36 @@ export default function MembersChat() {
   };
 
   return (
-    <div className="flex h-screen bg-white overflow-hidden font-sans">
-      {/* SIDEBAR ESQUERDA */}
+    <div className="flex h-screen bg-white overflow-hidden font-sans antialiased text-left">
+      {/* SIDEBAR ESQUERDA - LIMPA SEM FUNDO CINZENTO */}
       <div
         className={`${isMobile ? (viewMode === "list" ? "w-full" : "hidden") : "w-[360px]"
-          } flex flex-col bg-bgSection border-r border-border h-full`}
+          } flex flex-col bg-white border-r border-slate-200 h-full`}
       >
         <div className="p-4 pb-3">
-          <h2 className="text-xl font-bold text-text">Mensagens</h2>
-          <p className="text-xs font-semibold text-textMuted tracking-wide">
-            COMUNIDADE DA IGREJA
+          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Mensagens</h2>
+          <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">
+            Comunidade da Igreja
           </p>
         </div>
 
+        {/* PROCURAR MEMBRO */}
         <div className="px-4 pb-3">
-          <div className="flex items-center gap-2 bg-white border border-border rounded-xl px-3 py-2 focus-within:border-primary transition-colors">
-            <Search size={16} className="text-textMuted" />
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
+            <Search size={14} className="text-slate-400" />
             <input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Procurar membro..."
-              className="flex-1 bg-transparent border-none outline-none text-sm text-text placeholder:text-textMuted/70"
+              className="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 placeholder:text-slate-400 font-medium py-0.5"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 pb-2">
+        {/* LISTAGEM */}
+        <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1">
           {loadingMembros && (
-            <div className="px-1">
+            <div className="px-1 space-y-1">
               {Array.from({ length: 5 }).map((_, i) => (
                 <MembroSkeleton key={i} />
               ))}
@@ -176,21 +177,21 @@ export default function MembersChat() {
           )}
 
           {!loadingMembros && erroMembros && (
-            <div className="flex flex-col items-center text-center gap-2 px-4 py-10">
-              <AlertCircle size={22} className="text-red-500" />
-              <p className="text-sm text-textMuted">Não foi possível carregar os membros.</p>
+            <div className="flex flex-col items-center text-center gap-2 px-4 py-10 bg-white border border-slate-100 rounded-xl m-2">
+              <AlertCircle size={16} className="text-red-500" />
+              <p className="text-xs text-slate-500 font-medium">Não foi possível carregar os membros.</p>
               <button
                 onClick={carregarDadosIniciais}
-                className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                className="flex items-center gap-1.5 text-xs font-bold text-primary uppercase tracking-wider border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors mt-1"
               >
-                <RotateCw size={14} /> Tentar novamente
+                <RotateCw size={12} /> Tentar novamente
               </button>
             </div>
           )}
 
           {!loadingMembros && !erroMembros && membrosFiltrados.length === 0 && (
             <div className="flex flex-col items-center text-center gap-1 px-4 py-10">
-              <p className="text-sm text-textMuted">
+              <p className="text-xs font-medium text-slate-400">
                 {busca ? "Nenhum membro encontrado." : "Ainda não há outros membros cadastrados."}
               </p>
             </div>
@@ -204,18 +205,17 @@ export default function MembersChat() {
                 <button
                   key={m.id}
                   onClick={() => iniciarConversa(m)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl mb-1 transition-all ${ativo ? "bg-primary text-white" : "hover:bg-white text-text"
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${ativo 
+                      ? "bg-primary border-primary text-white shadow-sm" 
+                      : "bg-transparent border-transparent hover:bg-slate-50/50 hover:border-slate-100 text-slate-700"
                     }`}
                 >
-                  <Avatar nome={m.nome} foto={m.foto} />
+                  <Avatar nome={m.nome} foto={m.foto} online={true} />
                   <div className="flex-1 text-left min-w-0">
-                    <p
-                      className={`text-sm font-semibold truncate ${ativo ? "text-white" : "text-text"
-                        }`}
-                    >
+                    <p className={`text-xs font-bold truncate ${ativo ? "text-white" : "text-slate-800"}`}>
                       {m.nome}
                     </p>
-                    <p className={`text-xs truncate ${ativo ? "text-white/75" : "text-textMuted"}`}>
+                    <p className={`text-[11px] truncate font-medium mt-0.5 ${ativo ? "text-white/80" : "text-slate-400"}`}>
                       {m.email}
                     </p>
                   </div>
@@ -227,19 +227,18 @@ export default function MembersChat() {
 
       {/* PAINEL DE CHAT DIREITO */}
       <div
-        className={`${isMobile ? (viewMode === "chat" ? "flex" : "hidden") : "flex"
-          } flex-1 flex-col bg-white`}
+        className={`${isMobile ? (viewMode === "chat" ? "flex" : "hidden") : "flex"} flex-1 flex-col bg-white`}
       >
         {isMobile && viewMode === "chat" && (
-          <div className="p-3 flex items-center gap-2 border-b border-border">
+          <div className="p-3 flex items-center gap-2 border-b border-slate-200 bg-white">
             <button
               onClick={() => setViewMode("list")}
-              className="p-2 -ml-2 text-textMuted hover:text-text"
+              className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={16} />
             </button>
             <Avatar nome={membroSelecionado?.nome} foto={membroSelecionado?.foto} size="sm" />
-            <span className="font-semibold text-text truncate">{membroSelecionado?.nome}</span>
+            <span className="font-bold text-xs text-slate-800 truncate">{membroSelecionado?.nome}</span>
           </div>
         )}
 
@@ -251,17 +250,17 @@ export default function MembersChat() {
             meuMembroId={meuMembroId}
           />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-4">
-            <div className="w-16 h-16 rounded-2xl bg-primarySoft flex items-center justify-center mb-4">
-              <MessageSquare size={26} className="text-primary" />
+          <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-50/10">
+            <div className="w-11 h-11 rounded-xl bg-primarySoft flex items-center justify-center text-primary mb-3 border border-slate-100 shadow-none">
+              <MessageSquare size={16} />
             </div>
-            <h3 className="text-lg font-bold text-text">
-              {carregandoConversa ? "Abrindo conversa..." : "Comunicação da Igreja"}
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+              {carregandoConversa ? "Sincronizando canal operacional..." : "Módulo de Comunicação"}
             </h3>
-            <p className="text-textMuted text-center max-w-xs mt-2">
+            <p className="text-[11px] font-medium text-slate-400 text-center max-w-xs mt-1.5 leading-relaxed">
               {carregandoConversa
-                ? "Só um momento."
-                : "Selecione um membro para iniciar uma conversa."}
+                ? "A carregar as credenciais seguras da sala."
+                : "Selecione um utilizador do directório lateral para auditar ou iniciar uma nova sessão de conversação."}
             </p>
           </div>
         )}

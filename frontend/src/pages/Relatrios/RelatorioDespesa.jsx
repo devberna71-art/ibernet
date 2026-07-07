@@ -1,8 +1,7 @@
+// src/pages/Relatorios/RelatorioDespesas.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Calendar,
   Filter,
-  Download,
   Eye,
   Loader2,
   X,
@@ -16,20 +15,20 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 
-/** Modal genérico leve */
+/** Modal operacional leve */
 function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4 animate-fade-in"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
       <div
         className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
-          <h2 className="text-base font-semibold text-text">{title}</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-text">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -64,10 +63,7 @@ export default function RelatorioDespesas() {
     let inicio;
 
     if (p === 'todos') return { start: undefined, end: undefined };
-
-    if (p === 'personalizado') {
-      return { start: dataInicial, end: dataFinal };
-    }
+    if (p === 'personalizado') return { start: dataInicial, end: dataFinal };
 
     switch (p) {
       case 'hoje': inicio = agora.startOf('day'); break;
@@ -96,12 +92,8 @@ export default function RelatorioDespesas() {
           : { startDate: start, endDate: end, tipo: tipo || undefined };
 
       const res = await api.get('/relatorio/despesas', { params });
-
       const data = res.data || [];
-
-      const filtradas = data.filter(
-        (c) => parseFloat(c.totalDespesas || 0) > 0
-      );
+      const filtradas = data.filter((c) => parseFloat(c.totalDespesas || 0) > 0);
 
       setCategorias(filtradas);
 
@@ -112,7 +104,7 @@ export default function RelatorioDespesas() {
 
       setTotal(soma);
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao carregar relatório de despesas:", err);
     } finally {
       setLoading(false);
     }
@@ -129,38 +121,47 @@ export default function RelatorioDespesas() {
   };
 
   return (
-    <AppPage subtitle="Relatório detalhado de despesas por categoria e período.">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <AppPage subtitle="Relatório detalhado de saídas e fluxos de despesas por categoria e período competência.">
+      
+      {/* Header com Bloco de Total Geral Estratégico */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-sm bg-dangerSoft flex items-center justify-center text-danger">
             <DollarSign size={18} />
           </div>
           <div>
             <h2 className="text-[18px] font-semibold text-text">Relatório de Despesas</h2>
-            <p className="text-muted text-textMuted mt-0.5">Análise financeira de saídas</p>
+            <p className="text-muted text-textMuted mt-0.5">Análise financeira de saídas e custos operacionais</p>
           </div>
+        </div>
+
+        {/* Card de Total Geral integrado ao fluxo superior */}
+        <div className="w-full sm:w-auto shrink-0">
+          <Card padding="px-5 py-2.5" className="bg-surface border border-border rounded-lg min-w-[200px] sm:text-right shadow-sm">
+            <div className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">TOTAL CONSOLIDADO</div>
+            <div className="text-xl font-black text-danger tracking-tight">{formatKz(total)}</div>
+          </Card>
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* Painel de Filtros */}
       <Card padding="p-4" className="mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-textSecondary mb-1.5">Período</label>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5">Período de Análise</label>
             <select
               value={periodo}
               onChange={(e) => setPeriodo(e.target.value)}
               className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             >
-              <option value="todos">Todos</option>
+              <option value="todos">Todo o Histórico</option>
               <option value="hoje">Hoje</option>
-              <option value="semana">Semana</option>
-              <option value="mes">Mês</option>
-              <option value="trimestre">Trimestre</option>
-              <option value="semestre">Semestre</option>
-              <option value="ano">Ano</option>
-              <option value="personalizado">Personalizado</option>
+              <option value="semana">Esta Semana</option>
+              <option value="mes">Este Mês</option>
+              <option value="trimestre">Último Trimestre</option>
+              <option value="semestre">Último Semestre</option>
+              <option value="ano">Este Ano</option>
+              <option value="personalizado">Intervalo Customizado</option>
             </select>
           </div>
 
@@ -188,15 +189,15 @@ export default function RelatorioDespesas() {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-textSecondary mb-1.5">Tipo</label>
+            <label className="block text-xs font-semibold text-textSecondary mb-1.5">Natureza do Custo</label>
             <select
               value={tipo}
               onChange={(e) => setTipo(e.target.value)}
               className="w-full px-3 py-2 text-body text-text bg-bg border border-border rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             >
-              <option value="">Todas</option>
-              <option value="Fixa">Fixa</option>
-              <option value="Variável">Variável</option>
+              <option value="">Todas as Naturezas</option>
+              <option value="Fixa">Despesa Fixa</option>
+              <option value="Variável">Despesa Variável</option>
             </select>
           </div>
 
@@ -205,53 +206,45 @@ export default function RelatorioDespesas() {
               variant="primary"
               size="md"
               onClick={buscarRelatorio}
-              className="w-full"
+              className="w-full font-bold"
             >
               <Filter size={15} className="w-4 h-4 shrink-0 mr-2" />
-              Gerar Relatório
+              Filtrar Registros
             </Button>
           </div>
         </div>
       </Card>
 
-      {/* Total Geral */}
-      <div className="mb-6">
-        <Card className="bg-danger text-white max-w-sm">
-          <div className="text-[10px] font-semibold opacity-90 mb-1">TOTAL GERAL</div>
-          <div className="text-2xl font-bold">{formatKz(total)}</div>
-        </Card>
-      </div>
-
-      {/* Tabela */}
+      {/* Renderização de Dados */}
       {loading ? (
         <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
           <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
-          <span className="text-body">Carregando relatório...</span>
+          <span className="text-body font-medium">Processando demonstrativo...</span>
         </div>
       ) : !temDados ? (
         <Card className="text-center py-12">
-          <p className="text-body text-textMuted">Nenhuma despesa encontrada</p>
+          <p className="text-body text-textMuted">Nenhum registro de despesa localizado para os filtros informados.</p>
         </Card>
       ) : (
-        <Card padding="p-0">
+        <Card padding="p-0" className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-border bg-bgSection text-[10px] font-bold text-textMuted uppercase tracking-wide">
                   <th className="px-5 py-3">Categoria</th>
-                  <th className="px-5 py-3">Descrição</th>
-                  <th className="px-5 py-3 text-center">Qtd</th>
-                  <th className="px-5 py-3 text-right">Total</th>
-                  <th className="px-5 py-3 text-center">Ações</th>
+                  <th className="px-5 py-3">Descrição Estrutural</th>
+                  <th className="px-5 py-3 text-center">Frequência (Qtd)</th>
+                  <th className="px-5 py-3 text-right">Montante Total</th>
+                  <th className="px-5 py-3 text-center">Auditoria</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-body">
                 {categorias.map((cat) => (
                   <tr key={cat.id} className="hover:bg-bgSection/30 transition-colors">
-                    <td className="px-5 py-3 font-medium text-text">{cat.nome}</td>
-                    <td className="px-5 py-3 text-textMuted">{cat.descricao}</td>
-                    <td className="px-5 py-3 text-center">{cat.quantidadeDespesas || 0}</td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-5 py-3 font-semibold text-text">{cat.nome}</td>
+                    <td className="px-5 py-3 text-textMuted">{cat.descricao || "—"}</td>
+                    <td className="px-5 py-3 text-center font-medium">{cat.quantidadeDespesas || 0}</td>
+                    <td className="px-5 py-3 text-right font-semibold">
                       <Badge variant="danger">{formatKz(parseFloat(cat.totalDespesas || 0))}</Badge>
                     </td>
                     <td className="px-5 py-3 text-center">
@@ -262,9 +255,10 @@ export default function RelatorioDespesas() {
                           setCategoriaSelecionada(cat);
                           setOpenModal(true);
                         }}
+                        className="text-primary hover:bg-primary/5 font-bold"
                       >
                         <Eye size={13} className="mr-1" />
-                        Ver
+                        Detalhar
                       </Button>
                     </td>
                   </tr>
@@ -275,11 +269,11 @@ export default function RelatorioDespesas() {
         </Card>
       )}
 
-      {/* Modal */}
+      {/* Subsistema de Modal Detalhado */}
       <Modal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        title={categoriaSelecionada?.nome}
+        title={categoriaSelecionada ? `Análise: ${categoriaSelecionada.nome}` : ""}
         maxWidth="max-w-2xl"
       >
         <ListaDespesasCategorias
