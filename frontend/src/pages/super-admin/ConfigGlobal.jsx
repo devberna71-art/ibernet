@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Card, { CardHeader } from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
 
 export default function ConfigGlobal() {
   const [activeTab, setActiveTab] = useState("planos");

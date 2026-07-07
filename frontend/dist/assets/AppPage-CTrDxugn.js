@@ -1,0 +1,1 @@
+import"./chunk-Cyuzqnbw.js";import{n as e,r as t}from"./createLucideIcon-DnOhyCqh.js";t();var n=e();function r({children:e,className:t=``,membro:r,userRole:i,title:a,subtitle:o,showTopbar:s,showNotifications:c,actions:l}){return(0,n.jsx)(`div`,{className:`space-y-6 ${t}`,children:e})}export{r as t};

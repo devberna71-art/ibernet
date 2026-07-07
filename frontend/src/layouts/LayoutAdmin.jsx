@@ -45,7 +45,7 @@ export default function LayoutAdmin() {
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
-    navigate("/login");
+    navigate("/");
   };
 
   const isActive = (path) => {
