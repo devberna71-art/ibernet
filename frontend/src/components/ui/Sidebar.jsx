@@ -125,7 +125,7 @@ function CollapsibleSection({ label, icon: Icon, open, onToggle, children }) {
 /* ─── SectionLabel ─────────────────────────────────────────────────── */
 function SectionLabel({ children }) {
   return (
-    <p className="px-5 pt-4 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-textMuted/70">
+    <p className="px-4 sm:px-5 pt-3 sm:pt-4 pb-1 sm:pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-textMuted/70">
       {children}
     </p>
   );
@@ -176,10 +176,10 @@ export default function Sidebar({
       ].join(" ")}
       style={{ width: SIDEBAR_WIDTH }}
     >
-      <div className="flex flex-col items-center px-5 pt-5 pb-4 shrink-0 gap-2.5">
-        <img src={logoEclesia} alt="Eclesia Logo" className="h-8 object-contain" />
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${roleMeta.color}`}>
-          {isSuperAdmin && <ShieldCheck size={10} strokeWidth={2} />}
+      <div className="flex flex-col items-center px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4 shrink-0 gap-2 sm:gap-2.5">
+        <img src={logoEclesia} alt="Eclesia Logo" className="h-7 sm:h-8 object-contain" />
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold ${roleMeta.color}`}>
+          {isSuperAdmin && <ShieldCheck size={9} strokeWidth={2} className="sm:size-10" />}
           {roleMeta.label}
         </span>
       </div>
@@ -271,12 +271,12 @@ export default function Sidebar({
       </nav>
 
       {/* ── Rodapé: perfil do utilizador ── */}
-      <div className="shrink-0 border-t border-border p-3">
+      <div className="shrink-0 border-t border-border p-2 sm:p-3">
         {membro ? (
           <button
             type="button"
             onClick={onProfileClick}
-            className="flex items-center gap-2.5 w-full p-2 rounded-sm hover:bg-bgSection transition-colors text-left"
+            className="flex items-center gap-2 sm:gap-2.5 w-full p-2 rounded-sm hover:bg-bgSection transition-colors text-left"
           >
             <img
               src={
@@ -284,22 +284,22 @@ export default function Sidebar({
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(membro.nome)}&background=EEF0FE&color=4F5EF7&size=80`
               }
               alt={membro.nome}
-              className="w-8 h-8 rounded-sm object-cover shrink-0"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm object-cover shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-text truncate">{membro.nome}</p>
-              <p className="text-[11px] text-textMuted truncate">Ver perfil</p>
+              <p className="text-[12px] sm:text-[13px] font-semibold text-text truncate">{membro.nome}</p>
+              <p className="text-[10px] sm:text-[11px] text-textMuted truncate">Ver perfil</p>
             </div>
-            <ChevronDown size={14} strokeWidth={2} className="text-textMuted shrink-0" />
+            <ChevronDown size={13} strokeWidth={2} className="text-textMuted shrink-0 sm:size-14" />
           </button>
         ) : (
           <button
             type="button"
             onClick={logout}
-            className="flex items-center gap-2.5 w-full p-2 rounded-sm text-danger hover:bg-danger/5 transition-colors"
+            className="flex items-center gap-2 sm:gap-2.5 w-full p-2 rounded-sm text-danger hover:bg-danger/5 transition-colors"
           >
-            <LogOut size={16} strokeWidth={1.75} />
-            <span className="text-[13px] font-medium">Encerrar sessão</span>
+            <LogOut size={15} strokeWidth={1.75} className="sm:size-16" />
+            <span className="text-[12px] sm:text-[13px] font-medium">Encerrar sessão</span>
           </button>
         )}
       </div>

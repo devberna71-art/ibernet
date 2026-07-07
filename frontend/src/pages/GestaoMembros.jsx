@@ -49,7 +49,7 @@ function Modal({ open, onClose, title, children, maxWidth = "max-w-2xl" }) {
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
@@ -57,8 +57,8 @@ function Modal({ open, onClose, title, children, maxWidth = "max-w-2xl" }) {
         className={`relative bg-surface rounded-lg border border-border shadow-float w-full ${maxWidth} max-h-[90vh] overflow-auto`}
         style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
-          <h2 className="text-cardTitle text-text">{title}</h2>
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border sticky top-0 bg-surface z-10">
+          <h2 className="text-cardTitle text-text text-base sm:text-lg">{title}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -68,7 +68,7 @@ function Modal({ open, onClose, title, children, maxWidth = "max-w-2xl" }) {
             <X size={16} strokeWidth={1.75} />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-4 sm:p-5">{children}</div>
       </div>
     </div>
   );
@@ -216,16 +216,16 @@ export default function GestaoMembros() {
       )}
 
       {/* Header com busca e botão */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-5">
         <div>
-          <h2 className="text-[18px] font-semibold text-text">Membros</h2>
-          <p className="text-muted text-textMuted mt-0.5">
+          <h2 className="text-[16px] sm:text-[18px] font-semibold text-text">Membros</h2>
+          <p className="text-muted text-textMuted mt-0.5 text-xs sm:text-sm">
             {filteredMembros.length} membro{filteredMembros.length !== 1 ? "s" : ""} encontrado{filteredMembros.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           {/* Busca */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search size={14} strokeWidth={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted pointer-events-none" />
             <input
               id="membros-search"
@@ -233,7 +233,7 @@ export default function GestaoMembros() {
               placeholder="Buscar por nome..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors w-52"
+              className="pl-8 pr-3 py-2 text-body text-text bg-bg border border-border rounded-sm placeholder:text-textMuted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors w-full sm:w-52"
             />
           </div>
           <Button
@@ -241,9 +241,11 @@ export default function GestaoMembros() {
             size="md"
             id="membros-novo-btn"
             onClick={() => { setMembroEditar(null); setOpenMembroModal(true); }}
+            className="shrink-0"
           >
             <Plus size={15} strokeWidth={2} />
-            Novo membro
+            <span className="hidden sm:inline">Novo membro</span>
+            <span className="sm:hidden">Novo</span>
           </Button>
         </div>
       </div>
@@ -251,12 +253,12 @@ export default function GestaoMembros() {
       {/* Lista */}
       <Card padding="p-0">
         {loading ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-textMuted">
+          <div className="flex items-center justify-center py-12 sm:py-16 gap-2 text-textMuted">
             <Loader2 size={20} strokeWidth={1.75} className="animate-spin text-primary" />
             <span className="text-body">Carregando...</span>
           </div>
         ) : filteredMembros.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-12 sm:py-16">
             <p className="text-body text-textMuted">Nenhum membro encontrado.</p>
           </div>
         ) : (
@@ -264,7 +266,7 @@ export default function GestaoMembros() {
             {paginatedMembros.map((membro) => (
               <li
                 key={membro.id}
-                className="flex items-center gap-3 px-5 py-3.5 group hover:bg-bgSection transition-colors duration-100"
+                className="flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-3.5 group hover:bg-bgSection transition-colors duration-100"
               >
                 {/* Avatar */}
                 <div className="w-9 h-9 rounded-full bg-primarySoft flex items-center justify-center shrink-0 overflow-hidden">
@@ -284,13 +286,13 @@ export default function GestaoMembros() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-text truncate">{membro.nome}</p>
-                  <p className="text-muted text-textMuted truncate">
+                  <p className="text-muted text-textMuted truncate text-xs sm:text-sm">
                     {[membro.profissao, membro.email].filter(Boolean).join(" · ") || "—"}
                   </p>
                 </div>
 
-                {/* Ações — aparecem no hover */}
-                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                {/* Ações — visíveis em touch, hover em desktop */}
+                <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150">
                   <ActionBtn onClick={() => handleExtrairCartao(membro)} icon={FileText} label="Extrair cartão" variant="primary" />
                   <ActionBtn onClick={() => handleVerPerfil(membro)} icon={User} label="Ver perfil" />
                   <ActionBtn onClick={() => handleVerHistorico(membro)} icon={Clock} label="Histórico" />
@@ -305,8 +307,8 @@ export default function GestaoMembros() {
 
       {/* Paginação */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-muted text-textMuted">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+          <p className="text-muted text-textMuted text-xs sm:text-sm">
             Página {page} de {totalPages}
           </p>
           <div className="flex items-center gap-1">
@@ -318,7 +320,7 @@ export default function GestaoMembros() {
               onClick={() => setPage((p) => p - 1)}
             >
               <ChevronLeft size={14} strokeWidth={2} />
-              Anterior
+              <span className="hidden sm:inline">Anterior</span>
             </Button>
             <Button
               variant="ghost"
@@ -327,7 +329,7 @@ export default function GestaoMembros() {
               disabled={page === totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              Próxima
+              <span className="hidden sm:inline">Próxima</span>
               <ChevronRight size={14} strokeWidth={2} />
             </Button>
           </div>

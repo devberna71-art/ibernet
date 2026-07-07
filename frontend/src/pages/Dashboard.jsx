@@ -54,7 +54,7 @@ export default function Dashboard() {
       userRole="admin"
       subtitle="Métricas, finanças e atividades da sua comunidade."
     >
-      <div className="space-y-5">
+      <div className="space-y-4 md:space-y-5">
         <DashboardCards dados={dados} />
         <Distribuicoes dados={dados} />
 

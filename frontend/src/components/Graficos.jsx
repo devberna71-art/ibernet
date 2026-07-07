@@ -29,16 +29,16 @@ const TOOLTIP_STYLE = {
 
 function ChartCard({ icon: Icon, title, subtitle, children, className = "" }) {
   return (
-    <Card className={`flex flex-col ${className}`} padding="p-5 md:p-6">
+    <Card className={`flex flex-col ${className}`} padding="p-4 md:p-5 lg:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-sm bg-primarySoft text-primary">
-            <Icon size={20} strokeWidth={1.75} />
+          <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-sm bg-primarySoft text-primary">
+            <Icon size={18} strokeWidth={1.75} className="sm:size-20" />
           </div>
           <div>
-            <h3 className="text-cardTitle font-semibold text-text">{title}</h3>
+            <h3 className="text-cardTitle font-semibold text-text text-sm sm:text-base">{title}</h3>
             {subtitle && (
-              <p className="text-muted text-textMuted mt-0.5">{subtitle}</p>
+              <p className="text-muted text-textMuted mt-0.5 text-xs sm:text-sm">{subtitle}</p>
             )}
           </div>
         </div>
@@ -50,9 +50,9 @@ function ChartCard({ icon: Icon, title, subtitle, children, className = "" }) {
 
 function EmptyChart({ icon: Icon, message }) {
   return (
-    <div className="h-[350px] flex flex-col items-center justify-center text-textMuted gap-4">
-      <Icon size={40} strokeWidth={1.5} className="opacity-40" />
-      <p className="text-muted font-medium">{message}</p>
+    <div className="h-[280px] sm:h-[350px] flex flex-col items-center justify-center text-textMuted gap-4">
+      <Icon size={32} strokeWidth={1.5} className="opacity-40 sm:size-40" />
+      <p className="text-muted font-medium text-sm sm:text-base text-center px-4">{message}</p>
     </div>
   );
 }
@@ -112,8 +112,8 @@ export default function Graficos() {
   }));
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-      <div className="col-span-1 xl:col-span-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="col-span-1 lg:col-span-8">
         <ChartCard
           icon={TrendingUp}
           title="Resumo Financeiro"
@@ -132,7 +132,7 @@ export default function Graficos() {
             </select>
           </div>
 
-          <div className="h-[350px] w-full">
+          <div className="h-[280px] sm:h-[350px] w-full">
             {temDadosLinha ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={ultimosMeses} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
@@ -143,13 +143,13 @@ export default function Graficos() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="6 6" stroke={GRID_STROKE} vertical={false} />
-                  <XAxis dataKey="mes" stroke={AXIS_STROKE} fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke={AXIS_STROKE} fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
+                  <XAxis dataKey="mes" stroke={AXIS_STROKE} fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke={AXIS_STROKE} fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
                   <ChartTooltip
                     formatter={(val) => [`${Number(val).toLocaleString()} Kz`, "Contribuições"]}
                     contentStyle={TOOLTIP_STYLE}
                   />
-                  <Area type="monotone" dataKey="valor" stroke="#2563EB" strokeWidth={3} fillOpacity={1} fill="url(#colorValor)" />
+                  <Area type="monotone" dataKey="valor" stroke="#2563EB" strokeWidth={2} fillOpacity={1} fill="url(#colorValor)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -159,13 +159,13 @@ export default function Graficos() {
         </ChartCard>
       </div>
 
-      <div className="col-span-1 xl:col-span-4">
+      <div className="col-span-1 lg:col-span-4">
         <ChartCard
           icon={CircleDollarSign}
           title="Contribuições"
           subtitle="Divisão proporcional por categoria"
         >
-          <div className="h-[350px] w-full flex items-center justify-center">
+          <div className="h-[280px] sm:h-[350px] w-full flex items-center justify-center">
             {temDadosDonut ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -175,8 +175,8 @@ export default function Graficos() {
                     nameKey="nome"
                     cx="50%"
                     cy="45%"
-                    innerRadius="68%"
-                    outerRadius="85%"
+                    innerRadius="60%"
+                    outerRadius="80%"
                     paddingAngle={4}
                   >
                     {tiposContribuicao.map((entry, index) => (
@@ -184,7 +184,7 @@ export default function Graficos() {
                     ))}
                   </Pie>
                   <ChartTooltip formatter={(val) => `${Number(val).toLocaleString()} Kz`} />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "12px", fontFamily: '"Inter", sans-serif' }} />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "11px", fontFamily: '"Inter", sans-serif' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -194,21 +194,21 @@ export default function Graficos() {
         </ChartCard>
       </div>
 
-      <div className="col-span-1 xl:col-span-12">
+      <div className="col-span-1 lg:col-span-12">
         <ChartCard
           icon={Users}
           title="Demografia de Membros"
           subtitle="Distribuição por faixas etárias"
         >
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] sm:h-[300px] w-full">
             {temDadosBarra ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dadosBarraFormatados} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="6 6" stroke={GRID_STROKE} vertical={false} />
-                  <XAxis dataKey="faixa" stroke={AXIS_STROKE} fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke={AXIS_STROKE} fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
+                  <XAxis dataKey="faixa" stroke={AXIS_STROKE} fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis stroke={AXIS_STROKE} fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => Number(val).toLocaleString()} />
                   <ChartTooltip contentStyle={TOOLTIP_STYLE} />
-                  <Bar dataKey="Membros" fill="#2563EB" radius={[8, 8, 0, 0]} maxBarSize={45} />
+                  <Bar dataKey="Membros" fill="#2563EB" radius={[6, 6, 0, 0]} maxBarSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

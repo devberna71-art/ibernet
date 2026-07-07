@@ -17,7 +17,7 @@ export default function AppPage({
   className = "",
 }) {
   return (
-    <div className={`min-h-screen bg-bg pb-12 ${className}`}>
+    <div className={`min-h-screen bg-bg pb-8 md:pb-12 ${className}`}>
       {showTopbar && (
         <Topbar
           membro={membro}
@@ -27,7 +27,7 @@ export default function AppPage({
           actions={actions}
         />
       )}
-      <div className="px-6 md:px-8 pt-6">{children}</div>
+      <div className="px-4 sm:px-6 md:px-8 pt-4 md:pt-6">{children}</div>
     </div>
   );
 }

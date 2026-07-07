@@ -119,16 +119,16 @@ export default function Navbar() {
       {/* Mobile header */}
       {isMobile && (
         <header className="fixed top-0 left-0 right-0 z-[1200] bg-bg border-b border-border">
-          <div className="flex h-16 items-center justify-between px-2">
+          <div className="flex h-14 sm:h-16 items-center justify-between px-2 sm:px-4">
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Abrir menu"
               className="rounded-sm p-2 hover:bg-bgSection"
             >
-              <Menu size={22} strokeWidth={1.75} className="text-textSecondary" />
+              <Menu size={20} strokeWidth={1.75} className="text-textSecondary sm:size-22" />
             </button>
-            <img src={logoEclesia} alt="Logo" className="h-10 object-contain" />
-            {userRole && membro ? <UserBadge membro={membro} /> : <div className="w-10" />}
+            <img src={logoEclesia} alt="Logo" className="h-8 sm:h-10 object-contain" />
+            {userRole && membro ? <UserBadge membro={membro} /> : <div className="w-8 sm:w-10" />}
           </div>
         </header>
       )}
@@ -142,18 +142,18 @@ export default function Navbar() {
             onClick={() => setDrawerOpen(false)}
           />
           {/* Drawer content */}
-          <div className="relative z-10 w-[280px] bg-bg shadow-lg">
-            <div className="flex h-16 items-center justify-between px-4 border-b border-border">
-              <img src={logoEclesia} alt="Logo" className="h-8 object-contain" />
+          <div className="relative z-10 w-[280px] max-w-[85vw] bg-bg shadow-lg">
+            <div className="flex h-14 sm:h-16 items-center justify-between px-4 border-b border-border">
+              <img src={logoEclesia} alt="Logo" className="h-7 sm:h-8 object-contain" />
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Fechar menu"
                 className="rounded-sm p-2 hover:bg-bgSection"
               >
-                <X size={20} className="text-textSecondary" />
+                <X size={18} strokeWidth={1.75} className="text-textSecondary sm:size-20" />
               </button>
             </div>
-            <div className="h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] overflow-y-auto">
               {userRole ? (
                 <Sidebar {...sidebarProps} className="!w-full" />
               ) : (
@@ -165,7 +165,7 @@ export default function Navbar() {
       )}
 
       {/* Spacer for mobile header */}
-      {isMobile && userRole && <div className="h-16" />}
+      {isMobile && userRole && <div className="h-14 sm:h-16" />}
     </>
   );
 }

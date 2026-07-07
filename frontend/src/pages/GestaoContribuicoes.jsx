@@ -27,14 +27,14 @@ function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
       <div
         className={`relative bg-surface rounded-lg border border-border w-full ${maxWidth} max-h-[90vh] overflow-auto shadow-float`}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-surface z-10">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border sticky top-0 bg-surface z-10">
           <h2 className="text-base font-semibold text-text">{title}</h2>
           <button
             type="button"
@@ -44,7 +44,7 @@ function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
             <X size={16} strokeWidth={1.75} />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-4 sm:p-5">{children}</div>
       </div>
     </div>
   );

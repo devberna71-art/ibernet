@@ -14,7 +14,7 @@ export default function Topbar({
   showNotifications = true,
 }) {
   return (
-    <div className="sticky top-0 z-[1100] bg-bg border-b border-border px-6 md:px-8 pt-5 pb-4">
+    <div className="sticky top-0 z-[1100] bg-bg border-b border-border px-4 sm:px-6 md:px-8 pt-4 md:pt-5 pb-3 md:pb-4">
       <PageHeader
         name={membro?.nome}
         subtitle={subtitle}

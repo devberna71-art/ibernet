@@ -48,4 +48,10 @@
   /* Layout */
   --sidebar-width:  220px;
   --topbar-height:  60px;
+  
+  /* Breakpoints para JavaScript se necessário */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
 }
