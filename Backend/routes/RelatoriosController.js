@@ -14,7 +14,7 @@ const Contribuicao = require("../modells/Contribuicoes");
 
 const Atendimento = require("../modells/Atendimento");
 
-const Sede  = require("../modells/Sede")
+const Sede = require("../modells/Sede")
 const Filhal = require("../modells/filhal")
 
 
@@ -121,11 +121,11 @@ router.get('/cultos', auth, async (req, res) => {
         observacoes: c.observacoes,
         presencas: c.Presenca
           ? {
-              total: c.Presenca.total,
-              homens: c.Presenca.homens,
-              mulheres: c.Presenca.mulheres,
-              criancas: c.Presenca.criancas,
-            }
+            total: c.Presenca.total,
+            homens: c.Presenca.homens,
+            mulheres: c.Presenca.mulheres,
+            criancas: c.Presenca.criancas,
+          }
           : null,
       });
 
@@ -146,7 +146,6 @@ router.get('/cultos', auth, async (req, res) => {
         agrupado[tipo].presencasTotais.mulheres += mulheres || 0;
         agrupado[tipo].presencasTotais.criancas += criancas || 0;
 
-        // max e min
         if (total > agrupado[tipo].presencaMax) {
           agrupado[tipo].presencaMax = total;
         }

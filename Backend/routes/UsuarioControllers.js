@@ -35,17 +35,17 @@ const TipoCulto = require("../modells/TipoCulto");
 const MembroUser = require("../modells/MembroUser")
 
 
-const Cultos= require("../modells/Cultos");
+const Cultos = require("../modells/Cultos");
 
 
 
-const Funcionarios= require("../modells/Funcionarios");
+const Funcionarios = require("../modells/Funcionarios");
 
 
-const Salarios= require("../modells/Salarios");
+const Salarios = require("../modells/Salarios");
 
 
-const Subsidios= require("../modells/Subsidios");
+const Subsidios = require("../modells/Subsidios");
 
 
 
@@ -80,23 +80,23 @@ const AgendaPastoral = require("../modells/AgendaPastoral");
 
 
 
-const Sede  = require("../modells/Sede")
+const Sede = require("../modells/Sede")
 const Filhal = require("../modells/filhal");
 
-const PercentagemSubsidio =  require("../modells/PercentagemSubsidios");
-const PercentagemDesconto =  require("../modells/PercentagemDesconto");
+const PercentagemSubsidio = require("../modells/PercentagemSubsidios");
+const PercentagemDesconto = require("../modells/PercentagemDesconto");
 
 
-const NumeroMembro =  require("../modells/NumMembro");
-
-
-
-const DataValidadeCartao =  require("../modells/DataValidadeCartao");
+const NumeroMembro = require("../modells/NumMembro");
 
 
 
+const DataValidadeCartao = require("../modells/DataValidadeCartao");
 
-const {fn, col } = require('sequelize');
+
+
+
+const { fn, col } = require('sequelize');
 
 
 const dayjs = require("dayjs")
@@ -405,97 +405,97 @@ router.post('/login', async (req, res) => {
 
 
 router.get('/perfil-membros/:id', auth, async (req, res) => {
-try {
-const membroId = req.params.id;
+  try {
+    const membroId = req.params.id;
 
 
-// Buscar o membro com todos os campos necessários
-const membro = await Membros.findOne({
-  where: { id: membroId },
-  attributes: [
-    'id',
-    'nome',
-    'foto',
-    'genero',
-    'data_nascimento',
-    'estado_civil',
-    'bi',
-    'telefone',
-    'email',
-    'endereco_rua',
-    'endereco_bairro',
-    'endereco_cidade',
-    'endereco_provincia',
-    'grau_academico',
-    'profissao',
-    'batizado',
-    'data_batismo',
-    'ativo'
-  ],
-});
+    // Buscar o membro com todos os campos necessários
+    const membro = await Membros.findOne({
+      where: { id: membroId },
+      attributes: [
+        'id',
+        'nome',
+        'foto',
+        'genero',
+        'data_nascimento',
+        'estado_civil',
+        'bi',
+        'telefone',
+        'email',
+        'endereco_rua',
+        'endereco_bairro',
+        'endereco_cidade',
+        'endereco_provincia',
+        'grau_academico',
+        'profissao',
+        'batizado',
+        'data_batismo',
+        'ativo'
+      ],
+    });
 
-if (!membro) {
-  return res.status(404).json({ message: 'Membro não encontrado.' });
-}
+    if (!membro) {
+      return res.status(404).json({ message: 'Membro não encontrado.' });
+    }
 
-// Buscar departamentos do membro
-const deptosIds = await DepartamentoMembros.findAll({
-  where: { MembroId: membroId },
-  attributes: ['DepartamentoId']
-});
-const departamentoIds = deptosIds.map(d => d.DepartamentoId);
-const departamentos = await Departamentos.findAll({
-  where: { id: departamentoIds },
-  attributes: ['id', 'nome']
-});
+    // Buscar departamentos do membro
+    const deptosIds = await DepartamentoMembros.findAll({
+      where: { MembroId: membroId },
+      attributes: ['DepartamentoId']
+    });
+    const departamentoIds = deptosIds.map(d => d.DepartamentoId);
+    const departamentos = await Departamentos.findAll({
+      where: { id: departamentoIds },
+      attributes: ['id', 'nome']
+    });
 
-// Buscar cargos do membro
-const cargosIds = await CargoMembro.findAll({
-  where: { MembroId: membroId },
-  attributes: ['CargoId']
-});
-const cargoIds = cargosIds.map(c => c.CargoId);
-const cargos = await Cargo.findAll({
-  where: { id: cargoIds },
-  attributes: ['id', 'nome']
-});
+    // Buscar cargos do membro
+    const cargosIds = await CargoMembro.findAll({
+      where: { MembroId: membroId },
+      attributes: ['CargoId']
+    });
+    const cargoIds = cargosIds.map(c => c.CargoId);
+    const cargos = await Cargo.findAll({
+      where: { id: cargoIds },
+      attributes: ['id', 'nome']
+    });
 
-// Buscar dados acadêmicos
-const dadosAcademicos = await DadosAcademicos.findOne({
-  where: { MembroId: membroId },
-  attributes: ['habilitacoes', 'especialidades', 'estudo_teologico', 'local_formacao']
-});
+    // Buscar dados acadêmicos
+    const dadosAcademicos = await DadosAcademicos.findOne({
+      where: { MembroId: membroId },
+      attributes: ['habilitacoes', 'especialidades', 'estudo_teologico', 'local_formacao']
+    });
 
-// Buscar dados cristãos
-const dadosCristaos = await DadosCristaos.findOne({
-  where: { MembroId: membroId },
-  attributes: ['consagrado', 'data_consagracao', 'categoria_ministerial']
-});
+    // Buscar dados cristãos
+    const dadosCristaos = await DadosCristaos.findOne({
+      where: { MembroId: membroId },
+      attributes: ['consagrado', 'data_consagracao', 'categoria_ministerial']
+    });
 
-// Buscar dados diversos
-const diversos = await Diversos.findOne({
-  where: { MembroId: membroId },
-  attributes: ['trabalha', 'conta_outrem', 'conta_propria']
-});
+    // Buscar dados diversos
+    const diversos = await Diversos.findOne({
+      where: { MembroId: membroId },
+      attributes: ['trabalha', 'conta_outrem', 'conta_propria']
+    });
 
-// Montar a resposta completa
-const membroCompleto = {
-  ...membro.dataValues,
-  foto: membro.foto ? `${req.protocol}://${req.get('host')}${membro.foto}` : null,
-  departamentos,
-  cargos,
-  dadosAcademicos: dadosAcademicos ? dadosAcademicos.dataValues : null,
-  dadosCristaos: dadosCristaos ? dadosCristaos.dataValues : null,
-  diversos: diversos ? diversos.dataValues : null
-};
+    // Montar a resposta completa
+    const membroCompleto = {
+      ...membro.dataValues,
+      foto: membro.foto ? `${req.protocol}://${req.get('host')}${membro.foto}` : null,
+      departamentos,
+      cargos,
+      dadosAcademicos: dadosAcademicos ? dadosAcademicos.dataValues : null,
+      dadosCristaos: dadosCristaos ? dadosCristaos.dataValues : null,
+      diversos: diversos ? diversos.dataValues : null
+    };
 
-return res.status(200).json(membroCompleto);
+    return res.status(200).json(membroCompleto);
 
 
-} catch (error) {
-console.error('Erro ao buscar membro:', error);
-return res.status(500).json({ message: 'Erro interno do servidor.' });
-}
+  } catch (error) {
+    console.error('Erro ao buscar membro:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
 });
 
 
@@ -617,11 +617,11 @@ router.get('/dashboard/top-contribuidores', auth, async (req, res) => {
         }
       ],
       group: [
-        'Contribuicao.MembroId', 
-        'Membro.id', 
-        'Membro.nome', 
-        'Membro.foto', 
-        'Membro.telefone', 
+        'Contribuicao.MembroId',
+        'Membro.id',
+        'Membro.nome',
+        'Membro.foto',
+        'Membro.telefone',
         'Membro.email'
       ],
       order: [
@@ -641,7 +641,7 @@ router.get('/dashboard/top-contribuidores', auth, async (req, res) => {
     // 🚀 TRATAMENTO E RESULTADO FINAL
     // =========================================
     const resultado = contribuicoes.map((item, index) => {
-      
+
       // Tratamento premium da URL da foto direto no mapeamento
       const fotoTratada = item.Membro.foto
         ? `${req.protocol}://${req.get('host')}${item.Membro.foto}`
@@ -1234,7 +1234,7 @@ router.get("/funcionarios", auth, async (req, res) => {
     res.status(500).json({ message: "Erro ao listar funcionários ativos" });
   }
 });
-  
+
 
 
 
@@ -1772,27 +1772,27 @@ router.put("/salarios/:id", auth, async (req, res) => {
 
     console.log("📦 descontosAplicados:", descontosAplicados);
 
-  for (const idDesconto of descontosAplicados) {
-  const desconto = await Descontos.findByPk(idDesconto);
+    for (const idDesconto of descontosAplicados) {
+      const desconto = await Descontos.findByPk(idDesconto);
 
-  if (desconto?.id === 4) {
+      if (desconto?.id === 4) {
 
-    const percent = descMap[idDesconto] || 0;
-    const valorDizimo = (salario_base * percent) / 100;
+        const percent = descMap[idDesconto] || 0;
+        const valorDizimo = (salario_base * percent) / 100;
 
-    console.log("🔥 DÍZIMO DETECTADO:", valorDizimo);
+        console.log("🔥 DÍZIMO DETECTADO:", valorDizimo);
 
-    await Contribuicao.create({
-      valor: valorDizimo,
-      data: new Date(),
-      descricao: `Dízimo automático do salário de ${funcionario?.Membro?.nome}`,
-      MembroId: funcionario.Membro.id,
-      TipoContribuicaoId: tipoDizimo?.id || null,
-      SedeId: req.usuario.SedeId || null,
-      FilhalId: req.usuario.FilhalId || null,
-    });
-  }
-}
+        await Contribuicao.create({
+          valor: valorDizimo,
+          data: new Date(),
+          descricao: `Dízimo automático do salário de ${funcionario?.Membro?.nome}`,
+          MembroId: funcionario.Membro.id,
+          TipoContribuicaoId: tipoDizimo?.id || null,
+          SedeId: req.usuario.SedeId || null,
+          FilhalId: req.usuario.FilhalId || null,
+        });
+      }
+    }
 
     // =========================
     // SALÁRIO FINAL
@@ -1872,7 +1872,7 @@ router.delete("/salarios/:id", auth, async (req, res) => {
 
 
 
-  
+
 
 router.post("/subsidios", auth, async (req, res) => {
   try {
@@ -2365,10 +2365,10 @@ router.get('/lista/cargos', auth, async (req, res) => {
 
       const ultimoAtribuido = totalMembros > 0
         ? cargo.CargoMembros.reduce((maisRecente, atual) => {
-            return new Date(atual.createdAt) > new Date(maisRecente.createdAt)
-              ? atual
-              : maisRecente;
-          }).createdAt
+          return new Date(atual.createdAt) > new Date(maisRecente.createdAt)
+            ? atual
+            : maisRecente;
+        }).createdAt
         : null;
 
       return {
@@ -2859,14 +2859,14 @@ router.post('/membros', auth, upload.single('foto'), async (req, res) => {
     const cargosArray = Array.isArray(CargosIds)
       ? CargosIds.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
       : CargosIds
-      ? [parseInt(CargosIds, 10)].filter((id) => !isNaN(id))
-      : [];
+        ? [parseInt(CargosIds, 10)].filter((id) => !isNaN(id))
+        : [];
 
     const departamentosArray = Array.isArray(DepartamentosIds)
       ? DepartamentosIds.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
       : DepartamentosIds
-      ? [parseInt(DepartamentosIds, 10)].filter((id) => !isNaN(id))
-      : [];
+        ? [parseInt(DepartamentosIds, 10)].filter((id) => !isNaN(id))
+        : [];
 
     // Validação obrigatória
     if (!nome || !genero || cargosArray.length === 0) {
@@ -2881,7 +2881,7 @@ router.post('/membros', auth, upload.single('foto'), async (req, res) => {
     // 🏛️ BUSCAR NOME DA SEDE DINAMICAMENTE
     // ==========================================================
     let prefixoSede = 'SEDE';
-    
+
     if (req.usuario && req.usuario.SedeId) {
       const sede = await Sede.findByPk(req.usuario.SedeId);
       if (sede && sede.nome) {
@@ -3430,10 +3430,10 @@ router.get('/lista/contribuicoes', auth, async (req, res) => {
     // -----------------------------
     const membros = membrosIds.length > 0
       ? await Membros.findAll({
-          where: { id: membrosIds },
-          attributes: ['id', 'nome', 'foto'], // 🔥 ADICIONADO FOTO
-          raw: true
-        })
+        where: { id: membrosIds },
+        attributes: ['id', 'nome', 'foto'], // 🔥 ADICIONADO FOTO
+        raw: true
+      })
       : [];
 
     // -----------------------------
@@ -3441,10 +3441,10 @@ router.get('/lista/contribuicoes', auth, async (req, res) => {
     // -----------------------------
     const tipos = tiposIds.length > 0
       ? await TipoContribuicao.findAll({
-          where: { id: tiposIds },
-          attributes: ['id', 'nome'],
-          raw: true
-        })
+        where: { id: tiposIds },
+        attributes: ['id', 'nome'],
+        raw: true
+      })
       : [];
 
     // -----------------------------
@@ -3511,7 +3511,7 @@ router.get('/lista/contribuicoes', auth, async (req, res) => {
 
 
 
-const {literal } = require('sequelize');
+const { literal } = require('sequelize');
 
 // Relatório financeiro filtrado por usuário (Sede/Filhal)
 router.get('/financeiro', auth, async (req, res) => {
@@ -4068,7 +4068,7 @@ router.post('/detalhes-cultos', auth, async (req, res) => {
     const culto = await Cultos.create(
       {
         dataHora,
-        TipoCultoId: tipoCultoId,
+        TipoCultoId: parseInt(tipoCultoId, 10) || null,
         SedeId: SedeId || null,
         FilhalId: FilhalId || null,
       },
@@ -4076,18 +4076,18 @@ router.post('/detalhes-cultos', auth, async (req, res) => {
     );
 
     // 2. Criar contribuições
-    if (Array.isArray(contribuicoes) && {}); {
+    if (Array.isArray(contribuicoes) && contribuicoes.length > 0) {
       const contribs = [];
 
       contribuicoes.forEach(c => {
         const valorReal = parseFloat(c.valor) || 0;
-        
+
         // Só salva se o valor for estritamente superior a zero
         if (valorReal > 0) {
           contribs.push({
             valor: valorReal,
             data: new Date(dataHora),
-            TipoContribuicaoId: parseInt(c.tipoId),
+            TipoContribuicaoId: parseInt(c.tipoId, 10),
             CultoId: culto.id,
             MembroId: c.membroId || null, // Se não for associado, entra como anônimo puro
             SedeId: SedeId || null,
@@ -4176,7 +4176,7 @@ router.get("/cultos/proximos", auth, async (req, res) => {
       "sábado",
     ];
 
-    
+
     const resultado = [];
 
     for (const c of cultos) {
@@ -4669,13 +4669,13 @@ router.get('/dashboard', auth, async (req, res) => {
     // -----------------------------
     // 6️⃣ ESTATÍSTICAS E CLASSIFICAÇÃO DE MEMBROS
     // -----------------------------
-    const membrosData = await Membros.findAll({ 
-      where: filtroHierarquia, 
-      attributes: ['id', 'genero', 'data_nascimento', 'estado_civil', 'batizado'] 
+    const membrosData = await Membros.findAll({
+      where: filtroHierarquia,
+      attributes: ['id', 'genero', 'data_nascimento', 'estado_civil', 'batizado']
     });
 
     const faixasEtarias = { '0-17': 0, '18-30': 0, '31-50': 0, '51+': 0 };
-    
+
     // Contagem por grupos identitários da igreja
     const classificacaoGrupos = {
       criancas: 0,     // 0 a 11 anos
@@ -4694,7 +4694,7 @@ router.get('/dashboard', auth, async (req, res) => {
     membrosData.forEach(m => {
       if (m.data_nascimento) {
         const idade = hojeAno - dayjs(m.data_nascimento).year();
-        
+
         // Mantém a estrutura de faixas antigas para compatibilidade de gráficos
         if (idade <= 17) faixasEtarias['0-17']++;
         else if (idade <= 30) faixasEtarias['18-30']++;
@@ -4708,13 +4708,13 @@ router.get('/dashboard', auth, async (req, res) => {
         else if (idade <= 59) classificacaoGrupos.adultos++;
         else classificacaoGrupos.idosos++;
       }
-      
+
       // Contagem e distribuição real por gênero
       if (m.genero === 'Masculino') distribuicaoGenero.homens++;
       else if (m.genero === 'Feminino') distribuicaoGenero.mulheres++;
-      
+
       if (m.estado_civil) estadoCivil[m.estado_civil] = (estadoCivil[m.estado_civil] || 0) + 1;
-      
+
       if (m.batizado) situacaoBatismo.batizados++;
       else situacaoBatismo.naoBatizados++;
     });
@@ -5953,7 +5953,7 @@ router.patch('/:tipo/:id/status', async (req, res) => {
 router.post('/admin/config-validade-cartao', auth, async (req, res) => {
   try {
 
- 
+
     const { SedeId, FilhalId, validade_cartao_ano } = req.body;
 
     console.log(req.body);
@@ -6109,7 +6109,7 @@ router.delete("/filhal/:id", async (req, res) => {
       Contribuicao.destroy({ where: { FilhalId: filhalId } }),
       TipoContribuicao.destroy({ where: { FilhalId: filhalId } }),
       Despesa.destroy({ where: { FilhalId: filhalId } }),
-      Cultos.destroy({ where: { FilhalId: filhalId } } ),
+      Cultos.destroy({ where: { FilhalId: filhalId } }),
       Presencas.destroy({ where: { CultoId: { [Op.in]: cultoIdsFilhal } } }),
       TipoCulto.destroy({ where: { FilhalId: filhalId } }),
       Departamentos.destroy({ where: { FilhalId: filhalId } }),
@@ -6572,10 +6572,10 @@ router.post("/membros-relatorio", auth, async (req, res) => {
           idade <= 18
             ? "0-18"
             : idade <= 30
-            ? "19-30"
-            : idade <= 50
-            ? "31-50"
-            : "51+";
+              ? "19-30"
+              : idade <= 50
+                ? "31-50"
+                : "51+";
 
         if (!idades.includes(faixa)) atende = false;
       }
@@ -6678,7 +6678,7 @@ router.get('/membros/:membroId/historico', auth, async (req, res) => {
       const ultimaContribuicao = new Date(contribuicoes[contribuicoes.length - 1].data);
       const hoje = new Date();
       const diffMeses = (hoje.getFullYear() - ultimaContribuicao.getFullYear()) * 12
-                       + (hoje.getMonth() - ultimaContribuicao.getMonth());
+        + (hoje.getMonth() - ultimaContribuicao.getMonth());
       if (diffMeses <= 3) status = 'Regular';
       else status = 'Irregular';
     }
@@ -7125,7 +7125,7 @@ router.get("/notificacoes", auth, async (req, res) => {
 
     // 🔹 Busca as notificações correspondentes, EXCETO aniversários
     const notificacoes = await Notificacao.findAll({
-      where: { 
+      where: {
         id: idsNotificacoes,
         tipo: { [Op.ne]: "aniversario" }   // ⛔ Exclui notificações de aniversário
       },
@@ -7286,11 +7286,11 @@ router.get("/aniversarios", auth, async (req, res) => {
       ...notif.dataValues,
       Membro: notif.Membro
         ? {
-            ...notif.Membro.dataValues,
-            foto: notif.Membro.foto
-              ? `${req.protocol}://${req.get("host")}${notif.Membro.foto}`
-              : null,
-          }
+          ...notif.Membro.dataValues,
+          foto: notif.Membro.foto
+            ? `${req.protocol}://${req.get("host")}${notif.Membro.foto}`
+            : null,
+        }
         : null,
     }));
 
@@ -7552,14 +7552,14 @@ router.post('/membros2', auth, upload.single('foto'), async (req, res) => {
     const cargosArray = Array.isArray(CargosIds)
       ? CargosIds.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
       : CargosIds
-      ? [parseInt(CargosIds, 10)].filter((id) => !isNaN(id))
-      : [];
+        ? [parseInt(CargosIds, 10)].filter((id) => !isNaN(id))
+        : [];
 
     const departamentosArray = Array.isArray(DepartamentosIds)
       ? DepartamentosIds.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
       : DepartamentosIds
-      ? [parseInt(DepartamentosIds, 10)].filter((id) => !isNaN(id))
-      : [];
+        ? [parseInt(DepartamentosIds, 10)].filter((id) => !isNaN(id))
+        : [];
 
     // Validação obrigatória
     if (!nome || !genero || cargosArray.length === 0) {
@@ -7658,7 +7658,7 @@ router.post('/membros2', auth, upload.single('foto'), async (req, res) => {
     return res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 });
- 
+
 
 // GET /perfil/membro
 router.get('/perfil/do/membro', auth, async (req, res) => {
@@ -7783,8 +7783,8 @@ router.get('/perfil/do/membro', auth, async (req, res) => {
     const mesMaisGeneroso =
       Object.keys(totalPorMes).length > 0
         ? Number(
-            Object.entries(totalPorMes).sort((a, b) => b[1] - a[1])[0][0]
-          )
+          Object.entries(totalPorMes).sort((a, b) => b[1] - a[1])[0][0]
+        )
         : null;
 
     // ---------------------------------------------
@@ -7820,7 +7820,7 @@ router.get('/perfil/do/membro', auth, async (req, res) => {
     res.status(500).json({ message: "Erro interno." });
   }
 });
- 
+
 
 
 

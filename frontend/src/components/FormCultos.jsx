@@ -203,10 +203,10 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
 
       const payload = {
         dataHora: formData.dataHora,
-        tipoCultoId: formData.tipoCultoId,
-        homens: formData.homens || 0,
-        mulheres: formData.mulheres || 0,
-        criancas: formData.criancas || 0,
+        tipoCultoId: parseInt(formData.tipoCultoId, 10) || null,
+        homens: parseInt(formData.homens, 10) || 0,
+        mulheres: parseInt(formData.mulheres, 10) || 0,
+        criancas: parseInt(formData.criancas, 10) || 0,
         contribuicoes: contribArray,
       };
 
@@ -307,7 +307,7 @@ export default function FormCultos({ culto, onSuccess, onCancel }) {
           </div>
         </Card>
 
-        
+
 
         {/* Secção 4: Resumo Acoplado (Abaixo dos cards para não espremer) */}
         <Card padding="p-5" className="border border-slate-100 shadow-sm rounded-xl bg-slate-50/30">
