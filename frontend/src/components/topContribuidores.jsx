@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axiosConfig";
+import { getTopContribuidores } from "../services/dashboardService";
 import Card, { CardHeader, CardLink } from "./ui/Card";
 import Badge from "./ui/Badge";
 
@@ -11,9 +11,8 @@ export default function TopContribuidores() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api
-      .get("/dashboard/top-contribuidores")
-      .then((res) => setDados(res.data || []))
+    getTopContribuidores()
+      .then((res) => setDados(res || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

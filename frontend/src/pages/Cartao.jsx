@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { CreditCard, Search, Check, RotateCw, Download, Loader2, Image as ImageIcon } from 'lucide-react';
+import { CreditCard, Search, Check, RotateCw, Download, Loader2, Image as ImageIcon, User, Clock, X } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import api from '../api/axiosConfig';
 import AppPage from '../components/ui/AppPage';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import PerfilMembros from '../components/PerfilMembro';
+import HistoricoMembro from '../components/HistoricoMembro';
 
 export default function Cartao() {
   const [membros, setMembros] = useState([]);
@@ -22,6 +24,12 @@ export default function Cartao() {
   const [gerando, setGerando] = useState(false);
   const [toast, setToast] = useState(null);
   const itensPorPagina = 6;
+
+  // Estados para modais de perfil e histórico
+  const [openPerfilModal, setOpenPerfilModal] = useState(false);
+  const [openHistoricoModal, setOpenHistoricoModal] = useState(false);
+  const [perfilMembro, setPerfilMembro] = useState(null);
+  const [historicoMembro, setHistoricoMembro] = useState(null);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -50,6 +58,26 @@ export default function Cartao() {
         ? prev.filter(i => i !== id)
         : [...prev, id]
     );
+  };
+
+  const handleVerHistorico = async (membro) => {
+    try {
+      const res = await api.get(`/membros/${membro.id}/historico`);
+      setHistoricoMembro(res.data);
+      setOpenHistoricoModal(true);
+    } catch {
+      showToast('Erro ao carregar histórico.', 'error');
+    }
+  };
+
+  const handleVerPerfil = async (membro) => {
+    try {
+      const res = await api.get(`/perfil-membros/${membro.id}`);
+      setPerfilMembro(res.data);
+      setOpenPerfilModal(true);
+    } catch {
+      showToast('Erro ao carregar perfil.', 'error');
+    }
   };
 
   const handleUploadFundo = (e) => {
@@ -300,29 +328,50 @@ export default function Cartao() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
               {membrosPaginados.map(m => (
-                <button
+                <div
                   key={m.id}
-                  onClick={() => toggleSelecionado(m.id)}
                   className={`relative p-3 rounded-lg border-2 transition-all ${
                     selecionados.includes(m.id)
                       ? 'border-primary bg-primarySoft shadow-lg'
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  {selecionados.includes(m.id) && (
-                    <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                      <Check size={12} className="text-white" />
+                  <button
+                    onClick={() => toggleSelecionado(m.id)}
+                    className="w-full"
+                  >
+                    {selecionados.includes(m.id) && (
+                      <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center z-10">
+                        <Check size={12} className="text-white" />
+                      </div>
+                    )}
+                    <div className="flex flex-col items-center gap-2">
+                      <img
+                        src={m.foto}
+                        alt={m.nome}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-bgSection"
+                      />
+                      <p className="text-xs font-semibold text-text text-center line-clamp-2">{m.nome}</p>
                     </div>
-                  )}
-                  <div className="flex flex-col items-center gap-2">
-                    <img
-                      src={m.foto}
-                      alt={m.nome}
-                      className="w-16 h-16 rounded-full object-cover border-2 border-bgSection"
-                    />
-                    <p className="text-xs font-semibold text-text text-center line-clamp-2">{m.nome}</p>
+                  </button>
+                  {/* Ícones de ação */}
+                  <div className="flex justify-center gap-2 mt-2 pt-2 border-t border-border/50">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleVerPerfil(m); }}
+                      className="p-1.5 rounded hover:bg-bgSection transition-colors text-textMuted hover:text-primary"
+                      title="Ver perfil"
+                    >
+                      <User size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleVerHistorico(m); }}
+                      className="p-1.5 rounded hover:bg-bgSection transition-colors text-textMuted hover:text-primary"
+                      title="Ver histórico"
+                    >
+                      <Clock size={14} />
+                    </button>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
@@ -373,6 +422,56 @@ export default function Cartao() {
           </Button>
         </Card>
       </div>
+
+      {/* Modal Perfil */}
+      {openPerfilModal && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6 bg-black/20" onClick={() => setOpenPerfilModal(false)}>
+          <div
+            className="relative bg-surface rounded-lg border border-border shadow-float w-full max-w-2xl max-h-[90vh] overflow-auto"
+            style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border sticky top-0 bg-surface z-10">
+              <h2 className="text-cardTitle text-text text-base sm:text-lg">Perfil do Membro</h2>
+              <button
+                type="button"
+                onClick={() => setOpenPerfilModal(false)}
+                className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+              >
+                <X size={16} strokeWidth={1.75} />
+              </button>
+            </div>
+            <div className="p-4 sm:p-5">
+              {perfilMembro && <PerfilMembros membro={perfilMembro} onClose={() => setOpenPerfilModal(false)} />}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Histórico */}
+      {openHistoricoModal && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6 bg-black/20" onClick={() => setOpenHistoricoModal(false)}>
+          <div
+            className="relative bg-surface rounded-lg border border-border shadow-float w-full max-w-2xl max-h-[90vh] overflow-auto"
+            style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-border sticky top-0 bg-surface z-10">
+              <h2 className="text-cardTitle text-text text-base sm:text-lg">Histórico do Membro</h2>
+              <button
+                type="button"
+                onClick={() => setOpenHistoricoModal(false)}
+                className="p-1.5 rounded-sm text-textMuted hover:text-text hover:bg-bgSection transition-colors"
+              >
+                <X size={16} strokeWidth={1.75} />
+              </button>
+            </div>
+            <div className="p-4 sm:p-5">
+              {historicoMembro && <HistoricoMembro historico={historicoMembro} onClose={() => setOpenHistoricoModal(false)} />}
+            </div>
+          </div>
+        </div>
+      )}
     </AppPage>
   );
 }

@@ -22,13 +22,8 @@ import {
   alpha,
   Fade,
 } from "@mui/material";
-import {
-  Percent,
-  Edit,
-  Delete,
-  WarningAmber,
-} from "@mui/icons-material";
-import api from "../api/axiosConfig";
+import { Percent, Edit, Delete, WarningAmber } from "@mui/icons-material";
+import { getSubsidios, deleteSubsidio } from "../services/rhService";
 import FormSubsidios from "./FormSubsidios";
 
 export default function ListaSubsidios() {
@@ -48,11 +43,8 @@ export default function ListaSubsidios() {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await api.get("/subsidios", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSubsidios(res.data || []);
+      const data = await getSubsidios();
+      setSubsidios(data || []);
     } catch (error) {
       console.error("Erro ao buscar subsídios:", error);
     } finally {

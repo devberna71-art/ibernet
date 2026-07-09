@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import api from "../api/axiosConfig";
+import { getNovosMembros } from "../services/dashboardService";
 import ListCard from "./ui/ListCard";
 import Badge from "./ui/Badge";
 
@@ -9,9 +9,8 @@ export default function NovosMembros() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api
-      .get("/dashboard/novos-membros")
-      .then((res) => setDados(res.data || []))
+    getNovosMembros()
+      .then((res) => setDados(res || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

@@ -33,6 +33,7 @@ import {
 } from "@mui/icons-material";
 
 import api from "../api/axiosConfig";
+import { getSalarios, deleteSalario } from "../services/rhService";
 import FormSalario from "./FormSalarios";
 
 export default function ListaSalarios() {

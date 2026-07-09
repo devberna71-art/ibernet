@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Loader2, AlertCircle, CheckCircle2, UserCheck } from "lucide-react";
-import api from "../api/axiosConfig";
+import { Loader2, UserCheck } from "lucide-react";
+import { getMembrosParaAtribuicao, atribuirCargoMembro } from "../services/configService";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
 
@@ -14,8 +14,8 @@ export default function AtribuirCargoMembro({ cargos }) {
   useEffect(() => {
     const fetchMembros = async () => {
       try {
-        const res = await api.get("/membros");
-        setMembros(res.data);
+        const data = await getMembrosParaAtribuicao();
+        setMembros(data);
       } catch {
         showToast("Erro ao carregar membros.", "error");
       }
@@ -36,7 +36,7 @@ export default function AtribuirCargoMembro({ cargos }) {
     }
     setLoading(true);
     try {
-      await api.post("/atribuir-cargos", { membroId: membroSelecionado, cargoId: cargoSelecionado });
+      await atribuirCargoMembro({ membroId: membroSelecionado, cargoId: cargoSelecionado });
       showToast("Cargo atribuído ao membro com sucesso!");
       setMembroSelecionado("");
       setCargoSelecionado("");

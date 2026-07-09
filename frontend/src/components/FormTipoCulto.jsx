@@ -1,7 +1,6 @@
-// src/pages/FormTipoCulto.jsx
 import React, { useState, useEffect } from "react";
 import { Church, Edit, Loader2 } from "lucide-react";
-import api from "../api/axiosConfig";
+import { criarTipoCulto, atualizarTipoCulto } from "../services/cultosService";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 
@@ -42,9 +41,9 @@ export default function FormTipoCulto({ tipoCulto, onSuccess, onCancel }) {
     try {
       let res;
       if (tipoCulto && tipoCulto.id) {
-        res = await api.put(`/tipocultos/${tipoCulto.id}`, formData);
+        res = await atualizarTipoCulto(tipoCulto.id, formData);
       } else {
-        res = await api.post("/tipocultos", formData);
+        res = await criarTipoCulto(formData);
       }
 
       setMensagem({
@@ -54,7 +53,7 @@ export default function FormTipoCulto({ tipoCulto, onSuccess, onCancel }) {
           : "Tipo de culto cadastrado com sucesso!",
       });
 
-      if (onSuccess) onSuccess(res.data);
+      if (onSuccess) onSuccess(res);
       if (!tipoCulto)
         setFormData({ nome: "", descricao: "", ativo: true });
     } catch (err) {

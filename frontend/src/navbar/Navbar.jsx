@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import api from "../api/axiosConfig";
+import { getUsuarioStatus, getMeuPerfil } from "../services/userService";
 import socket from "../api/socketConfig";
 import logoEclesia from "../assets/logo-ofi.png";
 import Sidebar, { SIDEBAR_WIDTH } from "../components/ui/Sidebar";
@@ -39,10 +39,8 @@ export default function Navbar() {
           setUserRole(null);
           return;
         }
-        const res = await api.get("/usuario/status", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUserRole(res.data?.usuario?.funcao ?? null);
+        const data = await getUsuarioStatus();
+        setUserRole(data?.usuario?.funcao ?? null);
       } catch {
         setUserRole(null);
       }
@@ -53,8 +51,8 @@ export default function Navbar() {
   useEffect(() => {
     const fetchPerfil = async () => {
       try {
-        const res = await api.get("/meu-perfil");
-        setMembro(res.data?.usuario?.membro || null);
+        const data = await getMeuPerfil();
+        setMembro(data?.usuario?.membro || null);
       } catch (error) {
         console.error(error);
       }

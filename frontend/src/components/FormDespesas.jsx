@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../api/axiosConfig";
+import { cadastrarDespesa, atualizarDespesa } from "../services/despesasService";
 import Button from "./ui/Button";
 
 export default function FormDespesa({
@@ -30,9 +30,9 @@ export default function FormDespesa({
 
     try {
       if (despesa) {
-        await api.put(`/despesas/${despesa.id}`, payload);
+        await atualizarDespesa(despesa.id, payload);
       } else {
-        await api.post("/despesas", payload);
+        await cadastrarDespesa(payload);
       }
       onSuccess();
     } catch (error) {

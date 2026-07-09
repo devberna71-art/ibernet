@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api/axiosConfig';
+import { updateTipoContribuicao, createTipoContribuicao } from '../services/configService';
 import Button from './ui/Button';
 
 export default function FormTipoContribuicao({ tipo, onSuccess, onCancel }) {
@@ -20,13 +20,14 @@ export default function FormTipoContribuicao({ tipo, onSuccess, onCancel }) {
 
     try {
       if (tipo) {
-        await api.put(`/tipos-contribuicao/${tipo.id}`, { nome, ativo });
+        await updateTipoContribuicao(tipo.id, { nome, ativo });
       } else {
-        await api.post('/tipos-contribuicao', { nome, ativo });
+        await createTipoContribuicao({ nome, ativo });
       }
       onSuccess();
     } catch (error) {
       console.error('Erro ao salvar tipo de contribuição:', error);
+      alert("Erro ao salvar tipo de contribuição.");
     } finally {
       setLoading(false);
     }

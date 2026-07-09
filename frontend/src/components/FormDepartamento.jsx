@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import api from "../api/axiosConfig";
+import { updateDepartamento, createDepartamento } from "../services/configService";
 import Button from "./ui/Button";
 
 export default function FormDepartamento({ departamento, onSuccess, onCancel }) {
@@ -29,9 +29,9 @@ export default function FormDepartamento({ departamento, onSuccess, onCancel }) 
       };
 
       if (departamento && departamento.id) {
-        await api.put(`/departamentos/${departamento.id}`, payload);
+        await updateDepartamento(departamento.id, payload);
       } else {
-        await api.post("/departamentos", payload);
+        await createDepartamento(payload);
       }
 
       onSuccess(); 

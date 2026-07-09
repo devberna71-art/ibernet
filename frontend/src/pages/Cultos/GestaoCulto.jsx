@@ -8,7 +8,7 @@ import {
   Church,
   Diamond,
 } from "lucide-react";
-import api from "../../api/axiosConfig";
+import { getTabelaTiposCultos, deletarTipoCulto } from "../../services/cultosService";
 import FormTipoCulto from "../../components/FormTipoCulto";
 import AppPage from "../../components/ui/AppPage";
 import Card from "../../components/ui/Card";
@@ -61,8 +61,8 @@ export default function GestaoCulto() {
   useEffect(() => {
     const fetchTiposCultos = async () => {
       try {
-        const response = await api.get("/tabela-cultos1");
-        setTiposCultos(response.data || []);
+        const data = await getTabelaTiposCultos();
+        setTiposCultos(data || []);
       } catch (error) {
         console.error("Erro ao buscar tipos de cultos:", error);
         showToast("Erro ao carregar tipos de cultos.", "error");
@@ -81,7 +81,7 @@ export default function GestaoCulto() {
   const handleDelete = async () => {
     if (!tipoToDelete) return;
     try {
-      await api.delete(`/tipocultos/${tipoToDelete.id}`);
+      await deletarTipoCulto(tipoToDelete.id);
       setTiposCultos((prev) => prev.filter((t) => t.id !== tipoToDelete.id));
       setError(null);
       setOpenConfirmDelete(false);

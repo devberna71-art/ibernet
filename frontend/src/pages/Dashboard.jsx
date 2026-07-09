@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import api from "../api/axiosConfig";
+import { getDashboardMetrics } from "../services/dashboardService";
+import { getMeuPerfil } from "../services/userService";
 import AppPage from "../components/ui/AppPage";
 import DashboardCards from "../components/DashboardCards";
 import Distribuicoes from "../components/Distribuicoes";
@@ -15,9 +16,8 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    api
-      .get("/dashboard")
-      .then((res) => setDados(res.data))
+    getDashboardMetrics()
+      .then((res) => setDados(res))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -25,9 +25,8 @@ export default function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    api
-      .get("/meu-perfil", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setUser(res.data?.usuario?.membro))
+    getMeuPerfil()
+      .then((res) => setUser(res.usuario?.membro))
       .catch(console.error);
   }, []);
 

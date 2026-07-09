@@ -28,7 +28,7 @@ import {
   Delete,
   WarningAmber,
 } from "@mui/icons-material";
-import api from "../api/axiosConfig";
+import { getDescontos, deleteDesconto } from "../services/rhService";
 import FormDescontos from "./FormDescontos";
 
 export default function ListaDescontos() {
@@ -48,11 +48,8 @@ export default function ListaDescontos() {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await api.get("/descontos", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDescontos(res.data || []);
+      const data = await getDescontos();
+      setDescontos(data || []);
     } catch (error) {
       console.error("Erro ao buscar descontos:", error);
     } finally {
@@ -89,10 +86,7 @@ export default function ListaDescontos() {
     if (!idParaEliminar) return;
     try {
       setEliminando(true);
-      const token = localStorage.getItem("token");
-      await api.delete(`/descontos/${idParaEliminar}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await deleteDesconto(idParaEliminar);
       await fetchData();
       fecharModalEliminar();
     } catch (error) {

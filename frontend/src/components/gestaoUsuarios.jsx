@@ -22,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
 import api from '../api/axiosConfig';
+import { getGestaoUsuarios } from '../services/dashboardService';
 
 export default function GestaoUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
@@ -33,8 +34,8 @@ export default function GestaoUsuarios() {
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/gestao-usuarios');
-      setUsuarios(res.data.usuarios);
+      const data = await getGestaoUsuarios();
+      setUsuarios(data.usuarios);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       setSnackbar({ open: true, message: 'Erro ao carregar usuários.', severity: 'error' });

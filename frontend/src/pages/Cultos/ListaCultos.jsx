@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
-import api from "../../api/axiosConfig";
+import { getCultosAgrupados, getCultoDetalhes, deletarCulto } from "../../services/cultosService";
 import FormCultos from "../../components/FormCultos";
 import FormTipoCulto from "../../components/FormTipoCulto";
 import AppPage from "../../components/ui/AppPage";
@@ -106,9 +106,9 @@ export default function ListaCultos() {
   const fetchCultos = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/cultos");
-      setCultos(res.data || []);
-      setFilteredCultos(res.data || []);
+      const data = await getCultosAgrupados();
+      setCultos(data || []);
+      setFilteredCultos(data || []);
     } catch (err) {
       console.error(err);
       showToast("Erro ao carregar cultos.", "error");
@@ -132,8 +132,8 @@ export default function ListaCultos() {
 
   const abrirModalEditarCulto = async (culto) => {
     try {
-      const res = await api.get(`/detalhes-cultos/${culto.id}`);
-      setCultoEditando(res.data);
+      const data = await getCultoDetalhes(culto.id);
+      setCultoEditando(data);
       setOpenFormModal(true);
     } catch (err) {
       console.error("Erro ao buscar detalhes do culto:", err);
@@ -143,9 +143,9 @@ export default function ListaCultos() {
 
   const abrirModalNovoTipoCulto = () => setOpenFormTipoModal(true);
 
-  const deletarCulto = async (id) => {
+  const handleDeletarCulto = async (id) => {
     try {
-      await api.delete(`/detalhes-cultos/${id}`);
+      await deletarCulto(id);
       await fetchCultos();
       showToast("Culto excluído com sucesso.");
       setDeleteModalOpen(false);

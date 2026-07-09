@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../api/axiosConfig";
+import { cadastrarCategoria, atualizarCategoria } from "../services/despesasService";
 import Button from "./ui/Button";
 
 export default function FormCategoria({
@@ -31,9 +31,9 @@ export default function FormCategoria({
 
     try {
       if (categoria) {
-        await api.put(`/categorias/${categoria.id}`, payload);
+        await atualizarCategoria(categoria.id, payload);
       } else {
-        await api.post("/categorias", payload);
+        await cadastrarCategoria(payload);
       }
       onSuccess();
     } catch (error) {

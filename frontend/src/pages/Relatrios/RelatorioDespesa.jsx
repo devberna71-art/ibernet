@@ -8,7 +8,7 @@ import {
   DollarSign,
 } from 'lucide-react';
 import dayjs from 'dayjs';
-import api from '../../api/axiosConfig';
+import { getRelatorioDespesas } from '../../services/despesasService';
 import ListaDespesasCategorias from '../../components/ListaDespesasCategorias';
 import AppPage from '../../components/ui/AppPage';
 import Card from '../../components/ui/Card';
@@ -91,8 +91,7 @@ export default function RelatorioDespesas() {
           ? { tipo: tipo || undefined }
           : { startDate: start, endDate: end, tipo: tipo || undefined };
 
-      const res = await api.get('/relatorio/despesas', { params });
-      const data = res.data || [];
+      const data = await getRelatorioDespesas(params);
       const filtradas = data.filter((c) => parseFloat(c.totalDespesas || 0) > 0);
 
       setCategorias(filtradas);
@@ -279,6 +278,7 @@ export default function RelatorioDespesas() {
         <ListaDespesasCategorias
           categoria={categoriaSelecionada}
           onClose={() => setOpenModal(false)}
+          onRefresh={buscarRelatorio}
         />
       </Modal>
     </AppPage>

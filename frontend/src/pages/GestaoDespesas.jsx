@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Eye, Pencil, Trash2, Filter, Loader2, X } from "lucide-react";
-import api from "../api/axiosConfig";
+import { getCategoriasDespesas, excluirCategoria, getTotaisDespesas } from "../services/despesasService";
 import FormCategorias from "../components/FormCategorias";
 import FormDespesa from "../components/FormDespesas";
 import ListaDespesasCategorias from "../components/ListaDespesasCategorias";
@@ -41,6 +41,7 @@ export default function GestaoDespesas() {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
+  const [totais, setTotais] = useState(null);
 
   const [openModalCategoria, setOpenModalCategoria] = useState(false);
   const [selectedCategoria, setSelectedCategoria] = useState(null);
@@ -67,8 +68,12 @@ export default function GestaoDespesas() {
   const fetchCategorias = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/categorias/despesas");
-      setCategorias(res.data.data || []);
+      const [resCats, resTotais] = await Promise.all([
+        getCategoriasDespesas(),
+        getTotaisDespesas()
+      ]);
+      setCategorias(resCats.data || []);
+      setTotais(resTotais);
     } catch (error) {
       console.error("Erro ao carregar categorias:", error);
     } finally {
@@ -81,11 +86,24 @@ export default function GestaoDespesas() {
   }, []);
 
   const totalGeral = useMemo(() => {
+    if (totais && totais.totalGeral !== undefined) {
+      return Number(totais.totalGeral);
+    }
     return categorias.reduce(
       (acc, cat) => acc + Number(cat.totalDespesas || 0),
       0
     );
-  }, [categorias]);
+  }, [categorias, totais]);
+
+  const totalFixa = useMemo(() => {
+    const fixa = totais?.totalPorTipo?.find(t => t.tipo === 'Fixa');
+    return fixa ? Number(fixa.total || 0) : 0;
+  }, [totais]);
+
+  const totalVariavel = useMemo(() => {
+    const variavel = totais?.totalPorTipo?.find(t => t.tipo === 'Variável');
+    return variavel ? Number(variavel.total || 0) : 0;
+  }, [totais]);
 
   const categoriasFiltradas = useMemo(() => {
     if (!categoriaFiltro) return categorias;
@@ -96,7 +114,7 @@ export default function GestaoDespesas() {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/categorias/${deleteConfirm.categoriaId}`);
+      await excluirCategoria(deleteConfirm.categoriaId);
       setDeleteConfirm({ open: false, categoriaId: null });
       fetchCategorias();
     } catch (error) {
@@ -128,10 +146,24 @@ export default function GestaoDespesas() {
       </div>
 
       {/* KPI Cards & Filtro */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card>
           <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Total Geral</span>
           <p className="text-xl font-bold text-text mt-1">{formatKz(totalGeral)}</p>
+        </Card>
+
+        <Card>
+          <span className="text-[10px] font-bold text-textMuted uppercase tracking-wide">Fixas vs Variáveis</span>
+          <div className="mt-1 flex flex-col gap-0.5">
+            <div className="flex justify-between text-xs">
+              <span className="text-textSecondary">Fixas:</span>
+              <span className="font-semibold text-text">{formatKz(totalFixa)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-textSecondary">Variáveis:</span>
+              <span className="font-semibold text-text">{formatKz(totalVariavel)}</span>
+            </div>
+          </div>
         </Card>
 
         <Card>
@@ -309,6 +341,7 @@ export default function GestaoDespesas() {
         <ListaDespesasCategorias
           categoria={categoriaParaLista}
           onClose={() => setOpenModalLista(false)}
+          onRefresh={fetchCategorias}
         />
       </Modal>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Edit, Trash2, CalendarDays, Receipt, X, Loader2 } from "lucide-react";
 import dayjs from "dayjs";
-import api from "../api/axiosConfig";
+import { getDespesasPorCategoria, excluirDespesa } from "../services/despesasService";
 import FormDespesa from "./FormDespesas";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
@@ -34,7 +34,7 @@ function Modal({ open, onClose, title, children, maxWidth = "max-w-md" }) {
   );
 }
 
-export default function ListaDespesasCategoria({ categoria, onClose }) {
+export default function ListaDespesasCategoria({ categoria, onClose, onRefresh }) {
   const [despesas, setDespesas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -48,8 +48,8 @@ export default function ListaDespesasCategoria({ categoria, onClose }) {
     if (!categoria?.id) return;
     setLoading(true);
     try {
-      const res = await api.get(`/categorias/${categoria.id}/despesas`);
-      setDespesas(res.data.data || []);
+      const data = await getDespesasPorCategoria(categoria.id);
+      setDespesas(data.data || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -63,9 +63,10 @@ export default function ListaDespesasCategoria({ categoria, onClose }) {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/despesas/${deleteConfirm.despesaId}`);
+      await excluirDespesa(deleteConfirm.despesaId);
       setDeleteConfirm({ open: false, despesaId: null });
       fetchDespesas();
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
     }
@@ -161,6 +162,7 @@ export default function ListaDespesasCategoria({ categoria, onClose }) {
           onSuccess={() => {
             setOpenEditModal(false);
             fetchDespesas();
+            if (onRefresh) onRefresh();
           }}
           onCancel={() => setOpenEditModal(false)}
         />
